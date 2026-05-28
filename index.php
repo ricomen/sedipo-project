@@ -112,6 +112,7 @@ is_auth(1);
 
     <!--<link href="css/bootstrap.min.css" rel="stylesheet" >-->
     <link href="css/bootstrap-lumen.min.css" rel="stylesheet" >
+    <link href="css/index-D9KOFwRM.css" rel="stylesheet" >
     <script src="css/bootstrap.bundle.min.js" ></script>
 
 
@@ -154,18 +155,13 @@ is_auth(1);
 <!--<script src="js/Sortable.min.js"></script>
 <script src="js/vue3-sortablejs.global.js"></script>-->
 
-
-<div id="app" class="container-lg" style="margin-top: 5px;">
-	<div class="text-center" style="margin-top: 2px;">
-		<router-view></router-view>
-	</div>
+<div id="app" class="container-lg" >
+	<router-view></router-view>
 </div>
-
 
 <!-- Vue Pages -->
 <script src="pages/login.vue.js?v=1"></script>
 <script src="pages/logout.vue.js?v=1"></script>
-
 
 <?php if(is_auth(0) ){ ?>
 <script src="pages/home.vue.js?v=1"></script>
@@ -424,7 +420,7 @@ app.component('navigation',  {
 
   template: `
 <?php if(is_auth(0) ){ ?>
-<nav class="navbar navbar-expand-lg bg-light bg-body-tertiary " data-bs-theme="light"  style="background-color: #c5c5c5; ">
+<nav class="navbar navbar-expand-lg bg-light bg-body-tertiary" data-bs-theme="light">
     <div class="container-fluid">
       <a class="navbar-brand" href="/" style="margin-left: 8px;"> <img src="<?php echo $LogoImg;?>" width="30"> </a>
 
