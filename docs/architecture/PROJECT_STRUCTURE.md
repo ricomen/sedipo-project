@@ -85,6 +85,7 @@ sedipo-project/
 ├── reports/               # Государственные отчёты (ЕИСОТ, ФИС ФРДО, ERCDO, ФСН-стат)
 ├── lms-api/               # Интеграция с Moodle (REST WS) и выгрузки по студентам LMS
 │
+├── components/            # Переиспользуемые Vue-компоненты (редизайн), см. REUSABLE_COMPONENTS.md
 ├── pages/                 # Vue-страницы SPA (~70 активных + множество резервных копий)
 ├── js/                    # Глобальные JS-библиотеки (vue, vue-router, axios, jodit, chart, sortable, md5)
 ├── css/                   # Стили (bootstrap-lumen, style, home, polina) + bootstrap bundle
@@ -94,7 +95,7 @@ sedipo-project/
 ├── documents/             # HTML/Smarty-шаблоны печатных документов (договоры, протоколы, дипломы, удостоверения)
 ├── docs/                  # Документация
 │   ├── instructions/      #   • PDF/DOCX-инструкции для пользователей
-│   └── architecture/      #   • Документация для разработчиков (этот файл)
+│   └── architecture/      #   • Документация для разработчиков (этот файл, REUSABLE_COMPONENTS.md, …)
 │
 ├── smarty/                # Вендор: шаблонизатор Smarty 4.x
 ├── dompdf/                # Вендор: HTML → PDF конвертер
