@@ -1,0 +1,123 @@
+<?php
+/* Smarty version 4.3.2, created on 2026-04-29 06:39:13
+  from '/var/www/sed20.sedipo.ru/public_html/documents/protocol/itc-professionalnoe-obuchenie-rabochie-professii.html' */
+
+/* @var Smarty_Internal_Template $_smarty_tpl */
+if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
+  'version' => '4.3.2',
+  'unifunc' => 'content_69f1a7914479e6_24223462',
+  'has_nocache_code' => false,
+  'file_dependency' => 
+  array (
+    '3f528732348453933360619c570edb26da40651b' => 
+    array (
+      0 => '/var/www/sed20.sedipo.ru/public_html/documents/protocol/itc-professionalnoe-obuchenie-rabochie-professii.html',
+      1 => 1751396038,
+      2 => 'file',
+    ),
+  ),
+  'includes' => 
+  array (
+  ),
+),false)) {
+function content_69f1a7914479e6_24223462 (Smarty_Internal_Template $_smarty_tpl) {
+$_smarty_tpl->_checkPlugins(array(0=>array('file'=>'/var/www/sed20.sedipo.ru/public_html/smarty/libs/plugins/modifier.date_format.php','function'=>'smarty_modifier_date_format',),));
+?>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.7cm; margin-right: 1.7cm; margin-top: 1cm; margin-bottom: 1cm; size: A4 landscape; }
+	p {  direction: ltr;  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-bottom: 2px;  margin-top: 2px; }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 2px;  margin-top: 10px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center; margin-bottom: 2px;  margin-top: 2px; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 14pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	th { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	td { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left margin-bottom: 2px;  margin-top: 2px; line-height: 96%; }
+	td.boss { text-align:top; font-size: 10pt; line-height: 0%;}
+	td.comand { text-align:middle; font-size: 10pt; margin-right: 20px; }
+    </style>
+	<title>Протокол</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+
+<h4  class="western" style="margin-top: 0; margin-bottom: 5px;  text-transform: uppercase;"><?php echo $_smarty_tpl->tpl_vars['self_data']->value['name'];?>
+</h4>
+<h2 class="western" style="margin-top: 5px; margin-bottom: 2px; " >ПРОТОКОЛ №  <?php echo $_smarty_tpl->tpl_vars['course']->value['protocol_num'];?>
+ </h2>
+<p  class="center" style="margin-top: 5px; margin-bottom: 2px; " ><?php echo $_smarty_tpl->tpl_vars['protocol']->value['protocol_h'];?>
+ </p>
+<table width="100%"><tr><td style="font-size: 12pt;"><p class="western" > <?php echo smarty_modifier_date_format($_smarty_tpl->tpl_vars['course']->value['date_protocol'],"%02e.%m.%Y");?>
+ </p></td><td> </td> <td width="10%" style="font-size: 12pt; text-align: right;"><p class="western"  style="text-align: right;"> г. Уфа</p></td></tr></table>
+
+
+<p  class="center" style="margin-top: 4px;  margin-left: 250px;  margin-right: 250px; line-height: 95%;" ></p>
+
+
+<p class="western"  style="margin-top: 7px;" > <?php echo $_smarty_tpl->tpl_vars['protocol']->value['directive'];?>
+</p>
+
+<?php echo $_smarty_tpl->tpl_vars['teachers_commission']->value['html1'];?>
+
+
+
+<p class="western" style="margin-bottom: 6px;  margin-top: 6px; line-height: 96%;" > <?php echo $_smarty_tpl->tpl_vars['protocol']->value['protocol_p1'];?>
+
+    <i>«<?php echo $_smarty_tpl->tpl_vars['course']->value['name'];?>
+»</i>: </p>
+
+
+	<table width="100%" cellpadding="2" cellspacing="0">
+		<tr>
+            <th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; font-size:8pt;">№</th>
+            <th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;">Фамилия, имя, отчество</th>
+            <th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;">Итоговая аттестация</th>
+            <th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;">Квалификационный разряд </th>
+        </tr>
+		<?php
+$_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['users_data']->value, 'row', false, NULL, 'i', array (
+  'iteration' => true,
+));
+$_smarty_tpl->tpl_vars['row']->do_else = true;
+if ($_from !== null) foreach ($_from as $_smarty_tpl->tpl_vars['row']->value) {
+$_smarty_tpl->tpl_vars['row']->do_else = false;
+$_smarty_tpl->tpl_vars['__smarty_foreach_i']->value['iteration']++;
+?>
+		<tr>
+            <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;"><?php echo (isset($_smarty_tpl->tpl_vars['__smarty_foreach_i']->value['iteration']) ? $_smarty_tpl->tpl_vars['__smarty_foreach_i']->value['iteration'] : null);?>
+</td>
+            <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;"><?php echo $_smarty_tpl->tpl_vars['row']->value['lastname'];?>
+ <?php echo $_smarty_tpl->tpl_vars['row']->value['firstname'];?>
+ <?php echo $_smarty_tpl->tpl_vars['row']->value['middlename'];?>
+</td>
+            <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;">Сдано</td>
+            <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;"><?php echo $_smarty_tpl->tpl_vars['course']->value['qualification'];?>
+</td>
+         </tr>
+		<?php
+}
+$_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?>
+	</table>
+<p class="western" style="margin-top: 15px;" >
+</p>
+
+<?php echo $_smarty_tpl->tpl_vars['teachers_commission']->value['html2_short'];?>
+
+
+<?php if (strlen($_smarty_tpl->tpl_vars['protocol']->value['protocol_p3']) > 0) {?>
+<p class="western" > <?php echo $_smarty_tpl->tpl_vars['protocol']->value['protocol_p3'];?>
+ </p>
+<?php }?>
+
+<?php if ($_smarty_tpl->tpl_vars['print_v']->value == "false") {?> 
+<div style="position: relative; top: 0px; left: 0px;">        
+<div style="position: absolute; top: -125px; left: 75px; "><img src="https://<?php echo $_SERVER['SERVER_NAME'];?>
+/documents/signs/Stamp.png" width="150px" align="top" ></div>
+</div>
+<?php }?>
+</body><?php }
+}

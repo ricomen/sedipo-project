@@ -1,0 +1,584 @@
+var Home = {
+  data: function () {
+    return {
+	info9: '',
+        role: '',
+        login: '',
+
+        monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+        monthNamesPos: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
+        dayNamesShort: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+        dayNames: ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье'],
+        currentDate: null,
+        month: null,    // название выбранного месяца
+        monthNumber: null, // номер выбранного месяца
+        year: null,     // выбранный год
+        firstDay: null, // номер дня недели, на который выпадает первое число месяца
+        daysInMonth: null, // количество дней в выбранном месяце
+
+        // текущие дата и время
+        dayNumber: null, // текущий день (число)
+        currentMonthNumber: null, // номер текущего месяца
+        monthPos: null,  // название месяца в Р.П.
+        currentYear: null, // текущий год
+        weekDay: null,   // день недели
+        hours: null,     // часы (числовое значение)
+        minutes: null,   // минуты (строковое значение)
+
+        chartType: 'bar',
+        ordersCount: {}, // '2025-08-11': [{status: 'Новая заявка', count: 5}]},
+        ordersCountForDay: [],
+        chartDate: '',
+
+        news_CED: [],
+        news_world: [],
+        imgSource: "https://center.sedipo.ru/images/news/",
+        changeImg: ("https://center.sedipo.ru/images/news/gerb.png"),
+        news_CED_isRead_str: '',
+        news_CED_isRead: {},
+        news_world_isRead_str: '',
+        news_world_isRead: [],
+        limit: 3,
+
+        showMascot: false,
+        showSmallMascot: false,
+        mascotLeft: 590,
+        mascotHome: 0,
+     }
+   },
+
+   created() {
+     window.addEventListener("resize", this.mascotHomeChangePosition);
+   },
+   destroyed() {
+     window.removeEventListener("resize", this.mascotHomeChangePosition);
+   },
+
+   mounted() {
+    this.session = session_t
+
+    axios
+        .post(JsonApiURL+'api/auth_json.php', {is_auth: {sessionId: session_t.sessionId}})
+        .then(response => {
+            this.role = response.data.role;
+            this.login = response.data.login;
+            this.mascotHome = response.data.mascotHome;
+         })
+        .catch(error => {
+              console.log(error.response)
+         })
+
+    axios
+      .post(JsonApiURL+'api/payment_1c.php', {payment_1c: {sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info9 = response.data
+            this.role = this.info9.role
+       })
+      .catch(error => {
+              console.log(error.response)
+       })
+
+const table1 = 'b_news_CED';
+
+    axios
+//      .post(JsonApiURL+'api/news_json.php', {table: 'b_news_CED'})
+      .post(JsonApiURL+'api/news_json.php', {list: {table: table1}})
+      .then(response => {
+            const data = response.data;
+            if(Object.keys(data).length) {
+                this.news_CED = Object.values(data);
+                this.news_CED.forEach(news => {if(news.img_ads && news.img_ads.slice(0,4)!= 'http' && news.img_ads.slice(0,3)!= 'www') news.img_ads = this.imgSource + news.img_ads; });
+
+                axios
+                  .post(JsonApiURL+'api/news_json.php', {news_isRead : {table: 'a_news_isRead', login: this.login}})
+                  .then(response => {
+                     this.news_CED_isRead_str = (response.data[0].ced);
+                     const max_id = Math.max(this.news_CED[0].b_id, this.news_CED[1].b_id, this.news_CED[2].b_id);
+                     const news_count = this.news_CED_isRead_str.length;
+                     if(max_id > news_count) {
+                       this.news_CED_isRead_str = this.news_CED_isRead_str.padEnd(max_id,'0');
+                       console.log(this.news_CED_isRead_str);
+                     }
+                     this.news_CED.forEach(news => this.news_CED_isRead[news.b_id] = this.news_CED_isRead_str[news.b_id - 1] )
+
+                     this.news_world_isRead_str = (response.data[0].world);
+                     const max_id_world = Math.max(this.news_world[0].b_id, this.news_world[1].b_id, this.news_world[2].b_id);
+                     const news_world_count = this.news_world_isRead_str.length;
+                     if(max_id_world > news_world_count) {
+                       this.news_world_isRead_str = this.news_world_isRead_str.padEnd(max_id_world,'0');
+                     }
+                     this.news_world.forEach(news => this.news_world_isRead[news.b_id] = this.news_world_isRead_str[news.b_id - 1] )
+
+                })
+                .catch(error => {
+                   console.log(error.response)
+                })
+            } else {
+                console.log('NO DATA')
+            }
+       })
+      .catch(error => {
+              console.log(error.response)
+       })
+
+
+     axios
+      .post(JsonApiURL+'api/news_json.php', {list: {table: 'b_news_world'}})
+      .then(response => {
+            const data = response.data;
+            if(Object.keys(data).length) {
+                this.news_world = Object.values(data);
+                this.news_world.forEach(news => {
+                   if(news.img_ads && news.img_ads.slice(0,4)!= 'http' && news.img_ads.slice(0,3)!= 'www') news.img_ads = this.imgSource + news.img_ads
+                   /*else if(news.img_ads) {
+                      fetch(news.img_ads, { method: 'HEAD' }) 
+                        .then(res => { if (res.ok) { console.log('Image exists.') } else { console.log('Image does not exist.'); news.img_ads = 'https://center.sedipo.ru/images/news/img3.png' } }) 
+                        .catch(err => console.log('Error:', err))
+                   };*/
+                });
+            } else {
+                console.log('NO DATA')
+            }
+
+       })
+      .catch(error => {
+              console.log(error.response)
+       })
+
+    this.mascotHomeChangePosition();
+
+    setTimeout(() => {
+     if(!this.mascotHome) {
+       this.showMascot = true;
+       var mascotRef = this.$refs.audioPlayer;
+       const mascotPromise = mascotRef;
+         if (mascotRef !== null) {
+           const mascotPromise = mascotRef.play();
+           if(mascotPromise !== undefined) {
+           mascotPromise
+             .then(_ => { 
+                mascotRef.addEventListener('ended', () => {
+                 this.showMascot = false;
+                 this.showSmallMascot = true;
+                })
+             })
+             .catch( error => {
+                console.log('audio did not start');
+                this.showMascot = false;
+                this.showSmallMascot = true;
+             })
+}
+       }
+
+      // отменяем повторный запуск маскота
+      axios
+        .post(JsonApiURL+'api/auth_json.php', {update_mascotSession: {sessionId: session_t.sessionId}})
+        .then(response => {
+            //this.mascotHome = response.data.mascotHome;
+            //console.log(response.data);
+         })
+        .catch(error => {
+              console.log(error.response)
+         })
+      }
+
+    }, 3000);
+
+    this.currentDate = new Date();
+    this.renderCalendar();
+    this.getToday();
+    
+    this.chartDate = this.dayNumber + ' ' + this.monthNamesPos[this.monthNumber] + ' ' + String(this.year);
+    //String(this.year) + '-' + String(this.monthNumber + 1) + '-' + String(this.dayNumber);
+    this.getData(String(this.year) + '-' + String(this.monthNumber + 1) + '-' + String(this.dayNumber));
+
+    },
+
+    methods: {
+            changeVisibility(id, $event) { //news
+                const newsText = $event.currentTarget.nextSibling;
+                newsText.classList.contains('d-none') ? newsText.classList.remove('d-none') : newsText.classList.add('d-none');
+                if(this.news_CED_isRead[id] == '0') {
+                  this.news_CED_isRead[id] = '1';
+                  const replaceChar = (str, index, char) => str.substring(0, index) + char + str.substring(index + 1);
+                  this.news_CED_isRead_str = replaceChar(this.news_CED_isRead_str, id - 1, '1');
+
+                  axios
+                    .post(JsonApiURL+'api/news_json.php', {news_isRead_update : {table: 'a_news_isRead', login: this.login, news_type: 'ced', news_isRead: this.news_CED_isRead_str}})
+                    .then(response => {
+                      console.log(response.data);
+                  })
+                  .catch(error => {
+                     console.log(error.response)
+                  })
+                }
+
+                if(this.news_world_isRead[id] == '0') {
+                  this.news_world_isRead[id] = '1';
+                  const replaceChar = (str, index, char) => str.substring(0, index) + char + str.substring(index + 1);
+                  this.news_world_isRead_str = replaceChar(this.news_world_isRead_str, id - 1, '1');
+
+                  axios
+                    .post(JsonApiURL+'api/news_json.php', {news_isRead_update : {table: 'a_news_isRead', login: this.login, news_type: 'world', news_isRead: this.news_world_isRead_str}})
+                    .then(response => {
+                      console.log(response.data);
+                  })
+                  .catch(error => {
+                     console.log(error.response)
+                  })
+
+                }
+
+            },
+            closeMascot() {
+              let mascotRef = this.$refs.audioPlayer;
+              mascotRef.pause();
+              mascotRef.currentTime = 0;
+              this.showMascot = false;
+              this.showSmallMascot = true;
+            },
+            closeMascotText() {
+              this.showMascotText = false;
+            },
+            mascotHomeChangePosition() {
+              const mainBlock = this.$refs.mainBlock;
+              if( mainBlock != undefined ) this.mascotLeft = mainBlock.offsetWidth - 370;
+            },
+            showSmallMascot() {
+              this.showMascot = false;
+              this.showSmallMascot = true;
+            },
+            playAudio() {this.$refs.audioPlayer.play()},
+            pauseAudio() {this.$refs.audioPlayer.pause()},
+
+            dateFormat(date){
+                return `${Number(date.slice(8))} ${this.monthNamesPos[Number(date.slice(5, 7))-1]} ${date.slice(0,4)} г.`;
+            },
+            renderCalendar() {
+                this.year = this.currentDate.getFullYear();
+                this.monthNumber = this.currentDate.getMonth();
+                this.month = this.monthNames[this.monthNumber];
+
+                this.firstDay = (new Date(this.year, this.monthNumber).getDay() + 6) % 7;
+                this.daysInMonth = 32 - new Date(this.year, this.monthNumber, 32).getDate();
+            },
+            getToday() {
+                const today = new Date();
+                this.dayNumber = today.getDate();
+                this.currentMonthNumber = today.getMonth();
+                this.monthPos = this.monthNamesPos[this.currentMonthNumber];
+                this.currentYear = today.getFullYear();
+                const weekDayNumber = (today.getDay() + 6) % 7;
+                this.weekDay = this.dayNames[weekDayNumber];
+                this.hours = today.getHours();
+                this.minutes = String(today.getMinutes()).padStart(2, '0');
+            },
+            changeMonth(delta) {
+                this.currentDate.setMonth(this.currentDate.getMonth() + delta);
+                this.renderCalendar();
+                const selectedEarlier = document.querySelector('.calendar__selectedDay');
+                if (selectedEarlier) {selectedEarlier.classList.remove('calendar__selectedDay');}
+            },
+
+
+            selectDay($event) {
+                const selectedEarlier = document.querySelector('.calendar__selectedDay');
+                if (selectedEarlier) {selectedEarlier.classList.remove('calendar__selectedDay');}
+                $event.target.classList.add('calendar__selectedDay');
+
+                const searchDate1 = String(this.year) + '-' + String(this.monthNumber + 1) + '-' + $event.target.innerText;
+                this.chartDate = $event.target.innerText + ' ' + this.monthNamesPos[this.monthNumber] + ' ' + String(this.year);
+                this.getData(searchDate1);
+            },
+
+            getData(searchDate1) {
+                  axios
+                     //.post(JsonApiURL+'api/chart_json.php', {list: {date1: '2025-05-05', date2: '2025-05-05', order_name: '',  course: '', status: 0,  counterparty_id: '', orderid: 0, page: 1, sort: 0,  sessionId: session_t.sessionId }})
+                     .post(JsonApiURL+'api/chart_json.php', {count: {date1: '', date2: "2025-05-05"}})
+                     .then(response => {
+                         this.ordersCountForDay = response.data;
+                         this.ordersCount[searchDate1] = this.ordersCountForDay;
+                         if(this.ordersCountForDay) displayChart(this.chartType, this.ordersCountForDay, this.chartDate);
+
+                     })
+                     .catch(error => {
+                        console.log(error.response)
+                     })
+            },
+
+            changeChartType() {
+                if(this.ordersCountForDay) displayChart(this.chartType, this.ordersCountForDay, this.chartDate);
+            },
+
+            loadAllNews() {
+                console.log('all news');
+            },
+            openWindow(url) {
+                window.open(url, '_blank')
+            },
+
+            iframeLoad() { console.log(event.target, event.currentTarget ); 
+               const iframe = event.target;
+               iframe.contentWindow.postMessage(
+                  { type: 'auth', token: 'ваш_токен'}, 
+                  'https://center.sedipo.ru/feedback/index.php'  // сайт, который откроется
+               )
+            },
+        },
+
+	template: `
+	<div><navigation></navigation><h3></h3>
+
+    <div v-if="role!=''" class="row">
+      <div class="col-3">
+           <button v-if="role!='counterparty'" class="btn btn-light" > <div style="float: right"><router-link  :to="{ name: 'order_edit', params: {orderid: 0, counterpartyid: 0 }}"   title="Создать новую заявку" ><div><nobr><i class="fa-solid fa-file-circle-plus"></i> Новая заявка ЮЛ <i class="fa-solid fa-circle-right"></i></nobr></div></router-link ></div>  </button>
+           <button v-else class="btn btn-light"> <div style="float: right"><router-link  :to="{ name: 'order_edit', params: {orderid: 0, counterpartyid: this.info.counterparty_id }}"   title="Создать новую заявку" ><div><nobr><i class="fa-solid fa-file-circle-plus"></i> Новая заявка <i class="fa-solid fa-circle-right"></i></nobr></div></router-link ></div>  </button>
+      </div>
+      <div class="col-2">
+           <button v-if="role!='counterparty'" class="btn btn-light" > <div style="float: right"><router-link  :to="{ name: 'order_edit', params: {orderid: 0, counterpartyid: 1 }}"   title="Создать новую заявку для физ. лиц" ><div><nobr><i class="fa-regular fa-id-badge"></i> Новая заявка ФЛ <i class="fa-solid fa-circle-right"></i></nobr></div></router-link ></div>  </button>
+           <button v-else class="btn btn-light"> <div style="float: right"><router-link  :to="{ name: 'order_edit', params: {orderid: 0, counterpartyid: 1 }}"   title="Создать новую заявку для физ. лиц" ><div><nobr><i class="fa-regular fa-id-badge"></i> Новая заявка для физ. лиц <i class="fa-solid fa-circle-right"></i></nobr></div></router-link ></div>  </button>
+      </div>
+    </div>
+    <hr />
+    <br />
+
+<!-- Обратная связь -->
+    <div class="col-12 d-flex" style="">
+       <div class="col-11"></div>
+<!--       <button id="feedback" type="button" class="btn btn-primary rounded-top-3 px-3" style="transform: rotate(-90deg); white-space: nowrap; --bs-btn-border-radius: 0;"
+            @click="openWindow('https://center.sedipo.ru/feedback/')"    >Ваши предложения</button>
+-->
+      <!-- <button id="feedback" type="button" class="btn btn-primary rounded-top-3 px-3" style="transform: rotate(-90deg); white-space: nowrap; --bs-btn-border-radius: 0;"
+               data-bs-toggle="modal" data-bs-target="#feedbackModal" >Ваши предложения</button>-->
+
+         <!--<feedback style="float: right; argin-top: 120px;"></feedback>-->
+    </div>
+
+
+
+<!-- Modal -->
+<div class="modal modal-xl fade" id="feedbackModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <!--<h5 class="modal-title" id="exampleModalLabel">Ваши предложения</h5>-->
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <iframe v-on:load="iframeLoad" id="feedback-iframe" src="https://center.sedipo.ru/feedback/index.php" frameborder="1" style="width: 800px; height: 500px;"></iframe>
+      </div>
+<!--      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+-->
+    </div>
+  </div>
+</div>
+
+
+
+    <!--<main style="min-height: 111vh;max-height: 111vh;">
+        <div class="modal fade" role="dialog" tabindex="-1" id="modal-1">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Куратор</h4><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="margin: 0px;"><strong>Техническая поддержка</strong></p>
+                    </div>
+                    <div class="modal-footer"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Закрыть</button></div>
+                </div>
+            </div>
+        </div>
+    </main>-->
+
+
+<!-- НОВОСТИ -->
+	    <div class="row pb-4 d-flex" ref="mainBlock">
+                <div class="col-xl-8 col-lg-8 col-md-12 mb-5">
+		    <div class="row">
+                        <div class="col-1 pattern" style="max-width: 40px; background-image: url('../images/pattern.svg'); background-size: 100%;"></div>
+                        <div class="col-11">
+
+                            <div class="row" v-if="news_CED.length">
+                                <div class="col pb-4">
+                                    <div class="bg-secondary p-2 text-start" @click="loadAllNews()"><a href="#" class="fw-bold text-dark text-uppercase link-offset-2 link-offset-3-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover">Важная информация по СЭД</a></div>
+                                    <div class="pt-2 pb-2" v-for="news in news_CED" :key="news.b_id">
+                                        <a class="item d-block news-link" @click="changeVisibility(news.b_id, $event)">
+                                            <div class="row gx-4">
+                                                <div class="col-lg-3 col-md-2 d-flex align-items-center" v-if="news.img_ads !== null">
+                                                    <div>
+                                                        <img class="news_announce" :src="news.img_ads" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-9 col-md-10" v-if="news.img_ads !== null">
+                                                    <div class="news_content">
+                                                        <div>
+                                                            <p class="text-black-50" style="margin-bottom: .5rem">{{ dateFormat(news.date_from) }}</p>
+                                                        </div>
+                                                        <h5 v-if="news_CED_isRead[news.b_id ] == undefined || news_CED_isRead[news.b_id ] == '1'" class="news_title text-secondary fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                        <h5 v-else class="news_title text-danger fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                        <!--<h5 class="news_title fw-bold" :class="{ 'text-secondary': (news_CED_isRead[news.b_id ] == undefined || news_CED_isRead[news.b_id - 1]), 'text-danger': !news_CED_isRead[news.b_id - 1] }" style="text-align: justify;">{{ news.title }}</h5>-->
+                                                    </div>
+                                                </div>
+                                                <div class="col-12" v-else>
+                                                    <div class="g-2 news_content">
+                                                        <div>
+                                                            <p class="text-black-50" style="margin-bottom: .5rem">{{ dateFormat(news.date_from) }}</p>
+                                                        </div>
+                                                        <h5 v-if="news_CED_isRead[news.b_id ] == undefined || news_CED_isRead[news.b_id ] == '1'" class="news_title text-secondary fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                        <h5 v-else class="news_title text-danger fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+<!--                                                        <h5 v-if="news_CED_isRead[news.b_id ] == '0'" class="news_title text-danger fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                        <h5 v-if="!news_CED_isRead[news.b_id - 1]" class="news_title text-secondary fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                        <h5 v-else class="news_title text-danger fw-bold" style="text-align: justify;">{{ news.title }}</h5>-->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <div class="news__text d-none" v-html="news.text"></div>
+                                    </div>
+                                </div>
+                                <!-- <div class="col-2 pos-rel">
+                                    <p class="vertical">
+                                        <a href=" #"
+                                            class="text-secondary text-uppercase link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">Новости СЭД</a>
+                                    </p>
+                                </div> -->
+                                <!--<div class="bottom-line"></div>-->
+                            </div>
+
+                            <div class="row" v-if="news_world.length">
+                                <div class="col">
+                                    <div class="bg-secondary p-2 text-start"><a class="fw-bold text-dark text-uppercase link-offset-2 link-offset-3-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover" href="#">Новости</a></div>
+                                    <div class="pt-2 pb-2" v-for="news in news_world" :key="news.b_id">
+                                        <a class="item d-block news-link" @click="changeVisibility(news.b_id, $event)">
+                                            <div class="row gx-4">
+                                                <div class="col-lg-3 col-md-2 d-flex align-items-center" v-if="news.img_ads !== null">
+                                                    <div>
+                                                        <img class="news_announce" :src="news.img_ads" onerror="this.src='https://center.sedipo.ru/images/news/gerb.png'; this.onerror=null;" style="width: 140px; object-fit: cover;"/>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-9 col-md-10" v-if="news.img_ads !== null">
+                                                    <div class="news_content">
+                                                        <div>
+                                                            <p class="text-black-50" style="margin-bottom: .5rem">{{ dateFormat(news.date_from) }}</p>
+                                                        </div>
+                                                        <h5 v-if="news_world_isRead[news.b_id ] == undefined || news_world_isRead[news.b_id ] == '1'" class="news_title text-secondary fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                        <h5 v-else class="news_title text-danger fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12" v-else>
+                                                    <div class="g-2 news_content">
+                                                        <div>
+                                                            <p class="text-black-50" style="margin-bottom: .5rem">{{ dateFormat(news.date_from) }}</p>
+                                                        </div>
+                                                        <h5 v-if="news_world_isRead[news.b_id ] == undefined || news_world_isRead[news.b_id ] == '1'" class="news_title text-secondary fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                        <h5 v-else class="news_title text-danger fw-bold" style="text-align: justify;">{{ news.title }}</h5>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <div class="news__text d-none" v-html="news.text"></div>
+                                    </div>
+                                </div>
+                                <!-- <div class="col-2 pos-rel">
+                                    <p class="vertical">
+                                        <a href=" #"
+                                            class="text-secondary text-uppercase link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">Мировые новости</a>
+                                    </p>
+                                </div> -->
+                            </div> <!-- end of <div class="row" v-if="news_world.length"> -->
+
+		        </div>
+                    </div>
+
+
+                </div>
+
+                <div class="col-xl-4 col-lg-4 col-md-12 d-flex flex-xl-column flex-lg-column flex-md-row justify-content-xl-start justify-content-lg-start justify-content-md-around">
+
+<!-- КАЛЕНДАРЬ -->
+                   <div class="calendar__block col-xl-12 col-lg-12 col-md-5">
+                     <p>{{ dayNumber }} {{ monthPos }}, {{ weekDay }}, {{ hours }}:{{ minutes }}</p>
+                     <div class="calendar">
+                        <div class="calendar__header">
+                            <div class="calendar__month" id="month-year">{{ month }} {{ year }}</div>
+                            <div class="calendar__btns">
+                                <button type="button" class="calendar__btn" id="prev-btn" @click="changeMonth(-1)"><i
+                                        class="fa-solid fa-chevron-left"></i> </button>
+                                <button type="button" class="calendar__btn" id="next-btn" @click="changeMonth(1)"><i
+                                        class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="calendar__body">
+                            <div class="calendar__day-names">
+                                <span v-for="day in dayNamesShort">{{ day }}</span>
+                            </div>
+                            <div class="calendar__days" id="calendar-days">
+                                <span class="calendar__days-hidden" v-for="day in firstDay"></span>
+                                <span class="day" v-for="day in daysInMonth">
+                                    <span v-if="monthNumber === currentMonthNumber && day === dayNumber && year === currentYear" class="today">{{ day }}</span>
+                                    <span v-else-if="((firstDay + day) % 7 === 6) || ((firstDay + day) % 7 === 0)"
+                                        class="weekend">{{ day }}</span>
+                                    <span v-else class="workday">{{ day }}</span>
+                                </span>
+                            </div>
+                        </div>
+                     </div>
+                   </div>
+<!-- ДИАГРАММА -->
+                   <div class="col-xl-11 col-lg-11 col-md-5">
+                      <div v-show="ordersCountForDay != null">
+                         <select v-model="chartType" class="form-select" name="chartType" id="chartType" @change="changeChartType">
+                            <option value="bar">Столбчатая диаграмма</option>
+                            <option value="doughnut">Кольцевая диаграмма</option>
+                            <option value="line">Линейная диаграмма</option>
+                            <option value="pie">Круговая диаграмма</option>
+                            <option value="polarArea">Полярная диаграмма</option>
+                         </select>
+                      </div>
+                      <div v-show="ordersCountForDay == null" class="pb-3 pt-3">Нет заявок на <b>{{ chartDate }}</b></div>
+
+                      <div v-show="ordersCountForDay != null"> <!-- class="col-xl-12 col-lg-12 col-md-5 pt-3"> <!-- style="max-width: 40vw; min-height: 300px; height: 420px;">-->
+                         <canvas id="myChart" style="min-height: 300px; height: 420px;"></canvas>
+                      </div>
+                   </div>
+
+
+                </div>
+            </div>
+
+<!-- MASCOT -->
+                   <div style="position: fixed; bottom: 2%;">
+                   <div class="mascot" :style="{left: mascotLeft +'px'}">
+                     <div class="mascot__block text-end" v-show="showMascot">
+                        <div id="mascot-close-container" @click="closeMascot">
+                            <div id="mascot-close">x</div>
+                        </div>
+                        <div id="mascot-video-container">
+                            <!--<video id="mascot-video" src="../mascot/mascot2.mp4" style="height: 200px;" autoplay crossorigin="anonymous"></video>-->
+                            <img src="https://center.sedipo.ru/mascot/mascot2.gif" style="height: 200px;" />
+                            <audio ref="audioPlayer" src="https://center.sedipo.ru/mascot/homePage.MP3" @ended="showSmallMascot"> </audio>
+<!--<button @click="playAudio">Play </button>
+<button @click="pauseAudio">Pause </button>-->
+                        </div>
+                        <div id="mascot-message-box">
+                            <!--<div id="mascot-message-close" @click="closeMascotText">x</div>-->
+                            <div class="mascot-message-text-box">
+                                <p class="mascot-message-text">Здравствуйте! Меня зовут Полина.</p>
+                                <p class="mascot-message-text">Ну что, начнем?</p>
+                            </div>
+                        </div>
+                      </div>
+                      <div id="staticMascot" v-show="showSmallMascot">
+                        <img id="smallMascot" src="https://center.sedipo.ru/mascot/Polina.png" style="height: 50px" :class="{mascotAnimation: showSmallMascot}"/>
+                      </div>
+
+                    </div>
+                    </div>
+
+    </div>`
+};

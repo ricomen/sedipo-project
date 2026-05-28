@@ -1,0 +1,239 @@
+var TemplateList = {
+  data: function () {
+    return {
+      role: '',
+      info: [],
+      info9: [],
+      message: '',
+      type_id: '',
+      type_name: ['', 'Шаблоны протоколов', 'Документ об образовании', 'Дополнительный документ об образовании', 'Шаблон бухгалтерских документов', 'Шаблон договора с юр. лицом', 'Шаблон договора с физ. лицом' ],
+      role_privileges: {
+          accountedit: 0,
+          self_list: 0,
+          rolelist: 0,
+          accountslist: 0,
+          set_template_contract: 0,
+          validity_period_counterparty_list: 0,
+          course_category_list: 0,
+          courses_list: 0,
+          teachers_commission_list: 0,
+          teacher_list: 0,
+          template_list: 0,
+          counterparty_list: 0,
+          students_list: 0,
+          orders_analytics: 0,
+          orders_table: 0,
+          stat_report: 0,
+          groups_list: 0,
+          lstream_list: 0,
+          calendar: 0,
+          eisot_import: 0,
+          orders_list: 0,
+          orders_list_buh: 0
+        },
+
+      numPages: 0,
+      page: 1,
+     }
+   },
+
+
+   mounted() {
+      this.role_privileges =  session_role_privileges
+      this.type_id = session_var.template_type_id
+      this.page = session_var.template_page
+
+      conditions = ''
+      if(this.type_id != ''){
+          conditions =  {"type": this.type_id}
+      }
+
+
+    axios
+      .post(JsonApiURL+'api/template_json.php', {list: { conditions,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+	        this.numPages = this.info.numPages
+	        this.page = this.info.page
+
+            console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+            });
+
+
+
+  },
+
+
+  methods: {
+    search_go() {
+
+      session_var.template_page = this.page 
+      session_var.template_type_id = this.type_id 
+
+    conditions = ''
+    if(this.type_id != ''){
+        conditions =  {"type": this.type_id}
+    }
+
+      axios
+      .post(JsonApiURL+'api/template_json.php', {list: { conditions,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+	        this.numPages = this.info.numPages
+	        this.page = this.info.page
+       })
+      .catch(error => {
+              console.log(error.response)
+      })
+    },
+
+
+
+
+    templateDelete(templateId, name ){ 
+	var fl = confirm('Удалить шаблон: ' + name + '?');
+	if(fl) {
+	    axios
+          .post(JsonApiURL+'api/template_json.php', {delete: {objectId: templateId}})
+          .then(response => { 
+            //this.info9 = response.data
+            axios
+            .post(JsonApiURL+'api/template_json.php', {list: { type: this.type_id,    status: this.status, sessionId: session_t.sessionId }})
+            .then(response2 => { 
+                this.info = response2.data
+
+            })
+            .catch(error => {
+                  console.log(error.response)
+            })
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+
+      }
+    },
+
+    templateHidden(templateId, arg ){ 
+         axios
+          .post(JsonApiURL+'api/template_json.php', {save: {objectId: templateId, hidden: arg}})
+          .then(response => { 
+            //this.info9 = response.data
+            axios
+            .post(JsonApiURL+'api/template_json.php', {list: { type: this.type_id,    status: this.status, sessionId: session_t.sessionId }})
+            .then(response2 => { 
+                this.info = response2.data
+
+            })
+            .catch(error => {
+                  console.log(error.response)
+            })
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+
+    }
+
+
+},
+
+
+
+
+	template: `<div><navigation></navigation><h3>Шаблоны документов</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+    <br />
+    <h4 v-if="role!='counterparty' && a_counterparty_id>0"  style="text-align: right;" > {{info3.result.name}} </h4>
+
+    <p  style="text-align: left;"><select  v-model="type_id" @change="search_go()" >
+        <option value=""> - Тип шаблонов - </option>
+        <option value="1">Шаблоны протоколов </option>
+        <option value="2">Шаблон документа об образовании </option>
+        <option value="3">Шаблон дополнительного документа об образовании </option>
+        <option value="4">Шаблон бухгалтерских документов </option>
+        <option value="5">Шаблон договора с юр. лицом </option>
+        <option value="6">Шаблон договора с физ. лицом </option>
+
+    </select></p>
+
+
+    <br />
+    <div  v-if="role=='admin' || role=='metodist' "  align="left"  ><button  class="btn btn-light" > <router-link  :to="{ name: 'template1_edit', params: { templateid: 0 }}"    title="Добавить шаблон документа" ><div><nobr><i class="fa-solid fa-file-circle-plus"></i> Новый  шаблон документа </nobr></div></router-link >  </button></div>
+    <table class="table">
+      <thead>
+        <tr  align="left">
+          <th scope="col"  style="text-align: left; padding-left: 0; padding-right: 0;" width="2%"  ></th>
+          <th scope="col" style="padding-left: 1px;" > Шаблон </th>
+          <th scope="col" width="20%" ><div style="text-align: center;"> Тип </div></th>
+          <th  scope="col"  style="text-align: right;" width="5%"> </th>
+        </tr>
+      </thead>
+     
+     <tbody>   
+        <tr v-for="item in info.list"  align="left" style="float: none;" >  
+            <td  style="padding-left: 0; padding-right: 0;">
+                <span v-if="item.output_format=='word'"><i class="fa-regular fa-file-word" style="color:#1e88e5;"></i></span><span v-else><i class="fa-regular fa-file-code"></span>
+            </td>
+            <td  style="padding-left: 1px;" >
+               <span v-if="item.hidden==0">
+                    {{item.name}}
+                    &nbsp;&nbsp;<router-link v-if="role=='admin' || role=='metodist' " :to="{ name: 'template1_edit', params: { templateid: item.template_id }}" title="Редактировать" ><i class="fa-solid fa-pen"></i></router-link>
+                    &nbsp;&nbsp;<router-link v-if="role=='admin' || role=='metodist' " :to="{ name: 'template2_edit', params: { templateid: item.template_id }}" title="Дополнительный блок" ><i class="fa-solid fa-pen-to-square"></i></router-link>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<router-link v-if="role=='admin' || role=='metodist' " :to="{ name: 'template1_edit', params: { templateid: 0, copyid: item.template_id }}" title="Создать копию" ><i class="fa-solid fa-clone"></i></router-link>
+               </span>
+               <span v-else  style="color: #777;" >
+                    {{item.name}}
+               </span>
+            </td>
+            <td  style="text-align: right;" width="5%"><small>{{type_name[item.type]}}</small></td>
+
+            <td style="text-align: right;"><div align="right"> 
+		        <table border="0" ><tr style="padding: 15px; 15px; 15px; 15px;">
+		            <td style="padding-left: 10px; padding-right: 10px;">
+		                <a v-if="item.hidden==0 && (role=='admin' || role=='metodist') "  @click="templateHidden(item.template_id,  1 )"  title="Скрыть шаблон" ><i class="fa fa-eye-slash"></i></a>
+		                <a v-if="item.hidden==1 && (role=='admin' || role=='metodist') "  @click="templateHidden(item.template_id,  0 )"  title="Показывать шаблон" ><i class="fa fa-eye"></i></a>
+		            </td>
+		            <td style="padding-left: 10px; padding-right: 0px;">
+		                <a v-if="role=='admin' || role=='metodist' "  @click="templateDelete(item.template_id, item.name )"   title="Удалить шаблон" style="color: red;" ><i class="fa-solid fa-trash-can"></i></a>
+		            </td>
+		        </tr></table>
+	        </div></td>
+
+        </tr>
+  </tbody>
+  </table>
+  
+  
+  <br />
+  <div class="mb-2">
+    <div align="left">
+       <button v-if="(type_id=='' || type_id=='5' || type_id=='6' ) && ( role_privileges.set_template_contract==2 || role_privileges.set_template_contract==1 )"  class="btn btn-outline-secondary" ><router-link  to="/set_template_contract"  class="dropdown-item"   >Выбор используемого набора  шаблонов договоров с контрагентами</router-link ></button>
+    </div>
+  </div>
+ </div>
+
+
+  <br />
+  <div class="mb-2">
+    <div align="right">
+      <router-link to="/" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+    </div>
+  </div>
+ </div>
+
+
+    </div>`
+};
+
+
+
+

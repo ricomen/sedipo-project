@@ -1,0 +1,810 @@
+<?php
+require_once 'DativeCase.php';
+require_once '../config.php';
+require_once 'd-api_lib.php';
+$dbhost = $cfg->host;
+$dbuser = $cfg->user;
+$dbpassword = $cfg->password;
+$dbname = $cfg->name;
+try {  
+    $dbh = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+require_once '../../config/config-auth.php';
+$dbhost_a = $cfg_auth->host;
+$dbuser_a = $cfg_auth->user;
+$dbpassword_a = $cfg_auth->password;
+$dbname_a = $cfg_auth->name;
+try {  
+    $dbh_a = new PDO("mysql:host=$dbhost_a;dbname=$dbname_a;charset=utf8", $dbuser_a, $dbpassword_a);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+session_start();
+$sessionid = session_id();
+$auth_session = 0;
+$stmt = $dbh_a->prepare('SELECT `login`, `role_name`, `a_account`.`account_id`  FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`) LEFT JOIN `a_role` USING(`role_id`)   WHERE `session_id`=? ');
+$stmt->execute([$sessionid]);
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $auth_session = 1;
+}
+if($auth_session == 0){
+    exit();
+}
+
+
+$print_v = 0;
+if(isset($_GET['print_v']) && $_GET['print_v']!='false')
+   $print_v = 1;
+
+
+require_once '../smarty/libs/Smarty.class.php';
+$smarty = new Smarty();
+$smarty->setTemplateDir('../documents/');
+$smarty->setCompileDir('../tmp/');
+$smarty->setConfigDir('../config/');
+$smarty->setCacheDir('../cache/');
+
+require_once '../dompdf/autoload.inc.php';
+use Dompdf\Dompdf;
+
+require_once  '../PhpWord/vendor/autoload.php';
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\TemplateProcessor;
+use PhpOffice\PhpWord\Shared\Html;
+
+
+
+$order_id = 0;
+$course_id = 0;
+$group_number = 0;
+
+$cohort_id = intval($_GET['groupid']);
+if($cohort_id > 0){
+    $stmt = $dbh->prepare("SELECT DISTINCT  `order_id`, `a_order_course`.`course_id`, `a_order_course`.`group_number`  FROM `a_order_course` LEFT JOIN  `a_order_users` USING(`item_id`)  LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)    WHERE `cohort_id`=?  AND `user_lock`=0 AND `a_user_counterparty`.`user_id`>1 ");
+    $stmt->execute( [$cohort_id ] );
+    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $order_id = $row->order_id;
+        $course_id = $row->course_id;
+        $group_number = $row->group_number;
+    }
+}
+//else if( intval($_GET['userid'])>0 && intval($_GET['id'])>0 && intval($_GET['courseid'])>0 ){
+//    $order_id = intval($_GET['id']);
+//    $course_id = intval($_GET['courseid']);
+//}
+
+$is_rank_of_profession = 1;
+
+
+if($cohort_id>0 && $order_id>0 && $course_id>0 ){
+//if(isset($_GET['print_v']))
+//    $smarty->assign('print_v', $_GET['print_v']);
+//else
+//    $smarty->assign('print_v', 'false');
+
+}
+/*else {
+    $data =  [ 'name'=>'Курс',  'shortname'=>'Курс', 'competence'=>'Компитенция', 'hours'=>0, 'hours_l'=>0, 'hours_p'=>0, 'date_begin'=>'дд.мм.гггг', 'date_end'=>'дд.мм.гггг', 'date_protocol'=>'дд.мм.гггг',  'date_finish'=>'дд.мм.гггг',  'protocol_num'=>'1', 'certificate_num'=>'1-01' ];
+    $smarty->assign('cert', $data);
+    $smarty->assign('modules', []);
+    $smarty->assign('teachers_commission', [ 'chairman'=>'<nobr> _________________ Фамилия И.О.</nobr>' ]);
+    $user =  [ 'lastname'=>'Фамилия', 'firstname'=>'Имя', 'middlename'=>'Отчество',  'lastname_d'=>'Фамилии', 'firstname_d'=>'Имени', 'middlename_d'=>'Отчеству', 'fio_d'=>'Фамилия И.О.',  'counterparty_name'=>'Организация',  'counterparty_shortname'=>'Организация',  'position_name'=>'должность', "rank_of_profession"=>''  ];
+    $smarty->assign('user', $user);
+    $smarty->assign('print_v', 'true');
+
+    $report_file = 'Document-'.$template_name;
+    $html_str = $smarty->fetch('../documents/'.$template_file);
+}*/
+
+
+$output_format = '';
+$html_arr = [];
+$num_of_page = 1;
+$template_name = '';
+$template_file = '';
+$template_footer_file = ''; 
+$report_file = '';
+
+
+
+
+
+
+
+if($cohort_id > 0){
+    if( intval($_GET['template'])>0 ) {
+       $stmt2 = $dbh->prepare('SELECT  `name`, `file`, `footer_file`,  `num_of_page`, `output_format`  FROM  `a_template`  WHERE `template_id`=? ');
+        $stmt2->execute([ intval($_GET['template']) ]);
+        if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+            $num_of_page = $row2->num_of_page;
+            $template_name = $row2->name;
+            $template_file = $row2->file;
+            $template_footer_file = $row2->footer_file;
+            $output_format = $row2->output_format;
+        }
+    }
+
+    if($output_format=="word") {
+        $phpWord = new \PhpOffice\PhpWord\TemplateProcessor('../documents/'.$template_file);
+    }
+    else {
+        $phpWord = null;
+    } 
+
+    $html_str = '<div></div>';
+    $footer_html_str = '';
+    $block_count = 1;
+    $stmt = $dbh->prepare("SELECT  count(*) as `count`  FROM `a_order_course` LEFT JOIN  `a_order_users` USING(`item_id`)  LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)   WHERE `cohort_id`=?  AND `user_lock`=0 AND `a_user_counterparty`.`user_id`>1 ");
+    $stmt->execute( [$cohort_id ] );
+    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+         $block_count = $row->count;
+    }
+
+    if($output_format=="word") {
+    $phpWord->cloneBlock('BLOCK', $block_count, true, true);
+    }
+    
+    $stmt = $dbh->prepare("SELECT DISTINCT `a_user_counterparty`.`user_counterparty_id`, `a_user_counterparty`.`user_id`, `order_id`, `a_order_course`.`course_id`  FROM `a_order_course` LEFT JOIN  `a_order_users` USING(`item_id`)  LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)   WHERE `cohort_id`=?  AND `user_lock`=0 AND `a_user_counterparty`.`user_id`>1 ");
+    $stmt->execute( [$cohort_id ] );
+    $block_number = 1;
+    $i = 0;
+    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        if($i == $num_of_page) {
+                $html_str = $html_str .  '<div style="page-break-after: always;"></div>';
+                if($output_format=="word") {
+                   $phpWord->setValue('PAGE_BREAK'.'#'.$block_number, '</w:t></w:r>'.'<w:r><w:br w:type="page"/></w:r>'. '<w:r><w:t>'); 
+                }
+                $i = 0;
+        }
+        else if($output_format=="word") {
+               $phpWord->setValue('PAGE_BREAK'.'#'.$block_number, ''); 
+        }
+
+        //$html_s = report_cert($order_id, $row->user_counterparty_id,  $row->user_id, $course_id, $protocol_num, $cohort_id, $phpWord, $block_number  );
+        $html_s = report_cert($order_id, $row->user_counterparty_id,  $row->user_id, $course_id, $cohort_id, $phpWord, $block_number  );
+        $html_str = $html_str . $html_s . "\n";
+        //$footer_html_str = $html_s[1];
+        $i = $i +1;
+        $block_number = $block_number +1;
+    }
+    $report_file = 'Document'.$cohort_id.'-'.$template_name;
+    out_cert( $cohort_id, $cohort_id );
+}
+/*else if( intval($_GET['userid'])>0 && intval($_GET['id'])>0 && intval($_GET['courseid'])>0 ){
+    $html_s = report_cert($order_id, $user_counterparty_id, $user_id, $course_id,  0, $phpWord, 1  );
+    $html_str = $html_s[0] . $html_s[1];
+    $phpWord->cloneBlock('BLOCK', 1, true, true);
+}*/
+else if( intval($_GET['userid'])==0 && intval($_GET['id'])>0 && intval($_GET['courseid'])==0 ){
+    $html_str = '<div></div>';
+    $footer_html_str = '';
+    $protocol_num = '';
+    $templates = [];
+    $stmt1 = $dbh->prepare("SELECT DISTINCT  `a_order_course`.`course_id`, `certificate1_template`, `certificate2_template`, `a_order_course`.`cohort_id`,  YEAR(`a_cohort`.`date_num`) as `year_protocol`,  MONTH(`a_cohort`.`date_num`) as `month_protocol`,  DAYOFMONTH(`a_cohort`.`date_num`) as `day_protocol` FROM `a_order_course`  LEFT JOIN  `a_order_users` USING(`item_id`) LEFT JOIN  `a_course` USING(`course_id`) LEFT JOIN `a_cohort` USING(`cohort_id`)    WHERE `order_id`=? ORDER BY  `cohort_id` ");
+    $stmt1->execute( [ intval($_GET['id']) ] );
+    while($row1 = $stmt1->fetch(PDO::FETCH_OBJ)) {
+      $template1 = intval($row1->certificate1_template);
+      if($template1 > 0 )
+               $templates[] = $template1;
+      $template2 = intval($row1->certificate2_template);
+      if($template2 > 0 )
+               $templates[] = $template2;
+
+/*
+        if($is_short_certificate_num)
+             $protocol_num =  sprintf('%02d', $row1->month_protocol).'/'.sprintf('%02d', $row1->day_protocol).'/'.sprintf('%d', $row1->protocol_num);
+        else
+             $protocol_num =  substr(sprintf('%04d', $row1->year_protocol), 2, 2).'/'.sprintf('%02d', $row1->month_protocol).'/'.sprintf('%02d', $row1->day_protocol).'/'.sprintf('%d', $row1->protocol_num);
+
+        $protocol_number = $protocol_num;
+*/
+
+      foreach( $templates  as $template){
+        $html_1 = '<div></div>';
+        $stmt2 = $dbh->prepare("SELECT DISTINCT  `template_id`,  `a_template`.`file`, `a_template`.`footer_file`,  `a_template`.`num_of_page`  FROM   `a_template` WHERE `template_id`= ? ");
+        $stmt2->execute( [ $template ] );
+        while($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+           $num_of_page = $row2->num_of_page;
+           $template_name = $row2->name;
+           $template_file = $row2->file;
+           $template_footer_file = $row2->footer_file;
+           $output_format = $row2->output_format;
+
+           if($output_format=="word") {
+                $phpWord = new \PhpOffice\PhpWord\TemplateProcessor('../documents/'.$template_file);
+           }
+           else {
+              $phpWord = null;
+           } 
+
+           $stmt = $dbh->prepare("SELECT DISTINCT `a_user_counterparty`.`user_counterparty_id`, `a_user_counterparty`.`user_id` FROM `a_order_course` LEFT JOIN  `a_order_users` USING(`item_id`)  LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)    WHERE `cohort_id`=?  AND `user_lock`=0 AND `a_user_counterparty`.`user_id`>1  ");
+           $stmt->execute( [ $row1->cohort_id  ] );
+           $i = 0;
+           while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                if($i == $num_of_page) {
+                    $html_str = $html_str .'<div style="page-break-after: always;"></div>';
+                    $i = 0;
+                }
+                //$html_s = report_cert(intval($_GET['id']), $row->user_counterparty_id, $row->user_id, $row1->course_id, $protocol_number, $row1->cohort_id, $phpWord, 1  );
+                $html_s = report_cert(intval($_GET['id']), $row->user_counterparty_id, $row->user_id, $row1->course_id,  $row1->cohort_id, $phpWord, 1  );
+                $html_str = $html_str . $html_s . "\n";
+                //$footer_html_str = $html_s[1];
+                $html_1 = $html_1 . $html_s;
+                out_cert( $row1->cohort_id, 0 );
+                $i = $i +1;
+            }
+            $html_str = $html_str .'<div style="page-break-after: always;"></div>';
+        }
+        $html_arr[] = $html_1;
+      }
+    }
+    $report_file = 'Document'.$cohort_id.'-'.$template_name;
+}
+
+
+
+
+
+//function report_cert($order_id, $user_counterparty_id, $user_id, $course_id, $protocol_num, $cohort_id, $phpWord, $block_count  ){
+function report_cert($order_id, $user_counterparty_id, $user_id, $course_id,  $cohort_id, $phpWord, $block_count  ){
+ global  $dbh, $smarty ;
+ global  $JsonApiURL, $is_short_certificate_num;
+ global  $template_name, $template_file, $template_footer_file, $report_file, $print_v, $output_format, $block_number;
+ //global  $data, $modules;
+
+ $data = [];
+ $commission_id = 0;
+
+
+ $date_beginf = '1000-01-01';
+ $date_endf = '1000-01-01';
+ $date_finishf = '1000-01-01';
+ $date_protocolf = '1000-01-01';
+ $date_protocol = '1000-01-01';
+ $protocol_num = '';
+//$stmt = $dbh->prepare("SELECT DISTINCT `a_course`.`course_id`, `a_order_course`.`group_number`, `a_course`.`name`, `a_course`.`area`, `a_course`.`shortname`,  `a_course`.`competence`,  `a_course`.`name_common`, `a_course`.`hours`, `a_course`.`hours_c`, `a_course`.`hours_l`, `a_course`.`hours_p`, `a_order_course`.`cohort_id`,   `a_course`.`delta2`, `a_course`.`category_id`, `cohort_id`, `a_course`.`certificate1_template`, `a_course`.`certificate2_template`, `a_course`.`qualification`,  `a_course`.`rank_of_profession`, `a_course`.`qualification_work`,  `blank_number`    FROM `a_order_users` LEFT JOIN  `a_order_course` USING(`item_id`)    LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)  LEFT JOIN  `a_course` USING(`course_id`)  LEFT JOIN `a_course_category` USING(`category_id`) WHERE `a_order_course`.`cohort_id`>0  AND `a_user_counterparty`.`user_id`>1 AND `user_lock`=0  AND `order_id`=?  AND `course_id`=?   ");
+//$stmt->execute( [ $order_id, $course_id ] );
+
+ $stmt = $dbh->prepare("SELECT DISTINCT `a_course`.`course_id`, `a_order_course`.`group_number`, `a_course`.`name`, `a_course`.`area`, `a_course`.`shortname`,  `a_course`.`competence`,  `a_course`.`name_common`, `a_course`.`hours`, `a_course`.`hours_c`, `a_course`.`hours_l`, `a_course`.`hours_p`, `a_order_course`.`cohort_id`,   `a_course`.`delta2`, `a_course`.`category_id`, `cohort_id`, `a_course`.`certificate1_template`, `a_course`.`certificate2_template`, `a_course`.`qualification`,  `a_course`.`rank_of_profession`, `a_course`.`qualification_work`,  `blank_number`    FROM `a_order_users` LEFT JOIN  `a_order_course` USING(`item_id`)    LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)  LEFT JOIN  `a_course` USING(`course_id`)  LEFT JOIN `a_course_category` USING(`category_id`) WHERE `a_order_course`.`cohort_id`>0  AND `a_user_counterparty`.`user_id`>1 AND `user_lock`=0 AND `user_id`=?  AND `cohort_id`=?    ");
+ $stmt->execute( [ $user_id, $cohort_id ] );
+ if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $delta = intval($row['delta2']);
+    $category_id  = $row['category_id'];
+    //if ($cohort_id==0)
+    //      $cohort_id = $row['cohort_id'];
+    $stmt2 = $dbh->prepare("SELECT DISTINCT  `date_begin`, `date_end`, `date_protocol`, `a_cohort`.`date_num`,  YEAR(`a_cohort`.`date_num`) as `year_protocol`,  MONTH(`a_cohort`.`date_num`) as `month_protocol`,  DAYOFMONTH(`a_cohort`.`date_num`) as `day_protocol`, `date_protocol` + INTERVAL ?  YEAR as `date_finish`, `a_cohort`.`protocol_num`, `a_lstream`.`commission_id`   FROM   `a_cohort`  LEFT JOIN `a_lstream` USING(`lstream_id`)    WHERE `cohort_id`=?   ");
+    $stmt2->execute( [ $delta, $cohort_id ] );
+    if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+        if(trim($row['name_common'])!='')
+            $name = $row['name_common'].' <br />'.$row['name'];
+        else
+            $name = $row['name'];
+        //$delta = $row['delta'];
+
+        $custom_protocol_num = '';
+        $stmt3 = $dbh->prepare('SELECT  `custom_protocol_num`   FROM `a_order_group`   WHERE `order_id`=? AND `course_id`=? AND `group_number`=?  ');
+        $stmt3->execute([$order_id, $row['course_id'], $row['group_number']  ]);
+        if($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {  
+              $custom_protocol_num = $row3->custom_protocol_num;
+        }
+
+        if($is_short_certificate_num)
+             $protocol_num = sprintf('%02d', $row2['month_protocol']).'/'.sprintf('%02d', $row2['day_protocol']).'/'.sprintf('%d', $row2['protocol_num']);
+        else
+             $protocol_num =  substr(sprintf('%04d', $row2['year_protocol']), 2, 2).'/'.sprintf('%02d', $row2['month_protocol']).'/'.sprintf('%02d', $row2['day_protocol']).'/'.sprintf('%d', $row2['protocol_num']);
+
+        if($custom_protocol_num != '')
+            $protocol_number = $custom_protocol_num;
+        else
+            $protocol_number = $protocol_num;
+
+        //$protocol_num = sprintf('%02d', $row2['month_protocol']).'/'.sprintf('%02d', $row2['day_protocol']).'/'.sprintf('%d', $row2['protocol_num']);
+        $commission_id = $row2['commission_id'];
+        $date_protocol = $row2['date_protocol'];
+        if($date_protocol=='' )
+                  $date_protocol=date("Y-m-d"); 
+
+        $rank_of_profession_name =  ['','','2 (второй) разряд','3 (третий) разряд','4 (четвертый) разряд','5 (пятый) разряд','6 (шестой) разряд','7 (седьмой) разряд','8 (восьмой) разряд'];
+        //$data =  [ 'name'=>$name,  'shortname'=>$row['shortname'], 'competence'=>$row['competence'], 'hours'=>$row['hours'], 'hours_l'=>$row['hours_l'], 'hours_p'=>$row['hours_p'], 'date_begin'=>$row2['date_begin'], 'date_end'=>$row2['date_end'], 'date_protocol'=>$row2['date_protocol'],  'date_finish'=>$row2['date_finish'],  'protocol_num'=>$protocol_num, 'certificate_num'=>$protocol_num.'-'.sprintf('%03d',$row['certificate_num']) ];
+        $data =  [ 'name'=>$name,
+          'shortname'=>$row['shortname'],
+          'competence'=>$row['competence'],
+          'hours_c'=>$row['hours_c'],
+          'hours'=>$row['hours'],
+          'hours_l'=>$row['hours_l'],
+          'hours_p'=>$row['hours_p'],
+          'date_begin'=>$row2['date_begin'],
+          'date_begin_rus'=>formatRussianDate($row2['date_begin']),
+          'date_begin_rus_m'=>formatRussianDate($row2['date_begin'],'m'),
+          'date_end'=>$row2['date_end'],
+          'date_end_rus'=>formatRussianDate($row2['date_end']),
+          'date_end_rus_m'=>formatRussianDate($row2['date_end'],'m'),
+          'date_protocol'=>$date_protocol,
+          'date_protocol_rus'=>formatRussianDate($row2['date_protocol']),
+          'date_protocol_rus_m'=>formatRussianDate($row2['date_protocol'],'m'),
+          'date_finish'=>$row2['date_finish'],
+          'date_finish_rus'=>formatRussianDate($row2['date_finish']),
+          'date_finish_rus_m'=>formatRussianDate($row2['date_finish'],'m'),
+          'qualification'=>$row['qualification'], 
+          'protocol_num'=>$protocol_number,
+          'rank_of_profession'=> $rank_of_profession_name[$row['rank_of_profession']],
+          'blank_number'=>$row['blank_number'],
+          'qualification_work'=>$row['qualification_work'],
+          'area'=>$row['area']     ];
+
+          $date_protocolf = date('d.m.Y',strtotime($date_protocol));
+
+          $date_beginf = date('d.m.Y',strtotime($row2['date_begin']));
+
+          $date_endf = date('d.m.Y',strtotime($row2['date_end']));
+        
+          $date_finishf = date('d.m.Y',strtotime($row2['date_finish']));
+
+        if($output_format=="word") {
+            $phpWord->setValue('name'.'#'.$block_number, $name);
+            $phpWord->setValue('shortname'.'#'.$block_number, $row['shortname']);
+            $phpWord->setValue('competence'.'#'.$block_number, $row['competence']);
+            $phpWord->setValue('hours_c'.'#'.$block_number, $row['hours_c']);
+            $phpWord->setValue('hours'.'#'.$block_number, $row['hours']);
+            $phpWord->setValue('hours_l'.'#'.$block_number, $row['hours_l']);
+            $phpWord->setValue('hours_p'.'#'.$block_number, $row['hours_p']);
+            $phpWord->setValue('date_begin'.'#'.$block_number, $date_beginf);
+            $phpWord->setValue('date_begin_rus'.'#'.$block_number, formatRussianDate($row2['date_begin']) );
+            $phpWord->setValue('date_begin_rus_m'.'#'.$block_number, formatRussianDate($row2['date_begin'],'m') );
+            $phpWord->setValue('date_end'.'#'.$block_number, $date_endf);
+            $phpWord->setValue('date_end_rus'.'#'.$block_number, formatRussianDate($row2['date_end']) );
+            $phpWord->setValue('date_end_rus_m'.'#'.$block_number, formatRussianDate($row2['date_end'],'m') );
+            $phpWord->setValue('date_protocol'.'#'.$block_number, $date_protocolf);
+            $phpWord->setValue('date_protocol_rus'.'#'.$block_number, formatRussianDate($row2['date_protocol']) );
+            $phpWord->setValue('date_protocol_rus_m'.'#'.$block_number, formatRussianDate($row2['date_protocol'],'m') );
+            $phpWord->setValue('date_finish'.'#'.$block_number, $date_finishf);
+            $phpWord->setValue('date_finish_rus'.'#'.$block_number, formatRussianDate($row2['date_finish']) );
+            $phpWord->setValue('date_finish_rus_m'.'#'.$block_number, formatRussianDate($row2['date_finish'],'m') );
+            $phpWord->setValue('qualification'.'#'.$block_number, $row['qualification']);
+            $phpWord->setValue('protocol_num'.'#'.$block_number, $protocol_number);
+            $phpWord->setValue('rank_of_profession'.'#'.$block_number, $rank_of_profession_name[$row['rank_of_profession']] );
+            $phpWord->setValue('blank_number'.'#'.$block_number, $row['blank_number']);
+            $phpWord->setValue('qualification_work'.'#'.$block_number, $row['qualification_work']);
+            $phpWord->setValue('area'.'#'.$block_number, $row['area']);
+        }
+        else {
+            $smarty->assign('cert', $data);
+        }
+    }
+}
+//print_r($data);
+
+
+ $course_programm=[];
+ $stmt2 = $dbh->prepare("SELECT   DISTINCT  `topic`,  `name_topic`,  `a_course_calendar`.`hours`,  `a_course_calendar`.`num`,   `a_order_course`.`course_id`  FROM `a_order_course` LEFT JOIN `a_course_calendar` USING(`course_id`)  WHERE `a_order_course`.`cohort_id`=?   ORDER BY  `topic` "); 
+ $stmt2->execute( [  $row['cohort_id'] ] );
+ while($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+    $course_programm[] = ['name_topic'=>$row2['name_topic'], 'hours'=>$row2['hours'] ];
+ }
+ $smarty->assign('course_programm', $course_programm );
+//print_r($course_programm);
+
+
+
+ $modules = [];
+ $stmt = $dbh->prepare("SELECT DISTINCT `a_course`.`course_id`, `a_course`.`name`, `a_course`.`shortname`,   `a_course`.`competence`,  `a_course`.`name_common`, `a_course`.`hours`, `a_course`.`hours_l`, `a_course`.`hours_p`, `a_order_course`.`cohort_id`    FROM `a_order_users`  LEFT JOIN  `a_order_course` USING(`item_id`)   LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)  LEFT JOIN  `a_course` USING(`course_id`)  LEFT JOIN `a_course_category` USING(`category_id`) WHERE `a_order_course`.`cohort_id`>0  AND `order_id`=?  AND `a_course`.`category_id` =? AND `main_module`<>'true' AND `a_user_counterparty`.`user_id`>1  ");
+ $stmt->execute( [$order_id, $category_id  ] );
+ while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $modules[] =  [ 'name'=>$name,  'shortname'=>$row['shortname'], 'competence'=>$row['competence'], 'hours'=>$row['hours'], 'hours_l'=>$row['hours_l'], 'hours_p'=>$row['hours_p'],   ];
+ }
+//print_r($modules);
+ $smarty->assign('modules', $modules);
+
+
+
+
+ $user = [];
+ $level_of_diplom_name =  ['Диплом о среднем профессиональном образовании','Диплом о высшем образовании'];
+ $level_of_education_name =  ['Среднее профессиональное образование','Высшее образование'];
+ $rank_of_profession_name =  ['','','2 (второй) разряд','3 (третий) разряд','4 (четвертый) разряд','5 (пятый) разряд','6 (шестой) разряд','7 (седьмой) разряд','8 (восьмой) разряд'];
+ $stmt2 = $dbh->prepare("SELECT  `lastname`, `firstname`, `middlename`, `a_users`.`dplom_series` as `diplom_series`, `a_users`.`diplom_number` as `diplom_number`, `a_users`.`diplom_lastname` as `diplom_lastname`, `a_users`.`level_of_education` as `level_of_education`, `a_counterparty`.`name` as `counterparty_name`, `a_counterparty`.`shortname` as `counterparty_shortname`, `a_job_title`.`name` as `position_name`, `a_order_users`.`certificate_num`, `a_order_course`.`blank_number` as `blank_number`, `custom_cert_number`   FROM `a_order_users`  LEFT JOIN  `a_order_course` USING(`item_id`)  LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)   LEFT JOIN `a_users` ON `a_user_counterparty`.`user_id`=`a_users`.`user_id`   LEFT JOIN `a_counterparty` USING(`counterparty_id`)   LEFT JOIN `a_job_title` USING(`job_title_id`)  WHERE `order_id`=? AND `a_user_counterparty`.`user_counterparty_id`=?  AND `course_id`=?  AND `user_lock`=0  AND `a_user_counterparty`.`user_id`>1 ");
+ $stmt2->execute( [$order_id, $user_counterparty_id, $course_id ] );
+ if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+    $fullname_d = DativeCase($row2['lastname'], $row2['firstname'], $row2['middlename']);
+    $fio_d = $fullname_d[0]. ' '. mb_substr($fullname_d[1], 0, 1). '. '. mb_substr($fullname_d[2], 0, 1). '.';
+    $rank_of_profession = 0;
+    $level_of_education = $level_of_education_name[$row2['level_of_education']-1];
+    $level_of_diplom = $level_of_diplom_name[$row2['level_of_education']-1];
+    if($is_rank_of_profession =='true') {
+        $stmt3 = $dbh->prepare("SELECT  `rank_of_profession`   FROM `a_order_users`  WHERE `order_id`=? AND `user_id`=? AND `course_id`=? AND  `rank_of_profession`>0 ");
+        $stmt3->execute( [ $_GET['id'], $user_id, $course_id ] );
+        if($row3 = $stmt3->fetch(PDO::FETCH_ASSOC)) {  
+             $rank_of_profession =  $rank_of_profession_name[ $row3['rank_of_profession'] ];
+        }
+    }
+    $rank_of_profession = '';
+
+    if($row2['custom_cert_number'] != '' )
+        $certificate_num = $row2['custom_cert_number'];
+    else
+        $certificate_num = $protocol_num.'-'.sprintf('%02d',$row2['certificate_num']);
+
+    $user =  [ 'lvl'=>$row2['level_of_education'], 'lastname'=>$row2['lastname'], 'firstname'=>$row2['firstname'], 'middlename'=>$row2['middlename'], 'diplom_series'=>$row2['diplom_series'], 'diplom_number'=>$row2['diplom_number'], 'diplom_lastname'=>$row2['diplom_lastname'], 'level_of_education'=>$level_of_education, 'level_of_diplom'=>$level_of_diplom, 'lastname_d'=>$fullname_d[0], 'firstname_d'=>$fullname_d[1], 'middlename_d'=>$fullname_d[2], 'fio_d'=>$fio_d,  'counterparty_name'=>$row2['counterparty_name'],  'counterparty_shortname'=>$row2['counterparty_shortname'],  'position_name'=>$row2['position_name'], "rank_of_profession"=>$rank_of_profession,'blank_number'=>$row2['blank_number'], 'certificate_num'=>$certificate_num  ];
+
+    if($output_format=="word") {
+          $phpWord->setValue('level_of_education'.'#'.$block_number, $row2['level_of_education']);
+          $phpWord->setValue('lastname'.'#'.$block_number, $row2['lastname']);
+          $phpWord->setValue('firstname'.'#'.$block_number, $row2['firstname']);
+          $phpWord->setValue('middlename'.'#'.$block_number, $row2['middlename']);
+          $phpWord->setValue('diplom_series'.'#'.$block_number, $row2['diplom_series']);
+          $phpWord->setValue('diplom_number'.'#'.$block_number, $row2['diplom_number']);
+          $phpWord->setValue('diplom_lastname'.'#'.$block_number, $row2['diplom_lastname']);
+          $phpWord->setValue('level_of_education'.'#'.$block_number, $level_of_education);
+          $phpWord->setValue('level_of_diplom'.'#'.$block_number, $level_of_diplom);
+          $phpWord->setValue('lastname_d'.'#'.$block_number, $fullname_d[0]);
+          $phpWord->setValue('firstname_d'.'#'.$block_number, $fullname_d[1]);
+          $phpWord->setValue('middlename_d'.'#'.$block_number, $fullname_d[2]);
+          $phpWord->setValue('fio_d', $fio_d);
+          $phpWord->setValue('counterparty_name'.'#'.$block_number, $row2['counterparty_name']);
+          $phpWord->setValue('counterparty_shortname'.'#'.$block_number, $row2['counterparty_shortname']);
+          $phpWord->setValue('job_title'.'#'.$block_number, $row2['position_name']);
+          $phpWord->setValue('rank_of_profession'.'#'.$block_number, $rank_of_profession);
+          $phpWord->setValue('blank_number'.'#'.$block_number, $row2['blank_number']);
+          $phpWord->setValue('certificate_num'.'#'.$block_number, $certificate_num);
+     }
+     else{
+           $smarty->assign('user', $user);
+     }
+}
+//print_r($user);
+//file_put_contents("lst.txt", print_r($user, true) );
+
+
+
+ $teachers_commission = [];
+ $edition_id = 0;
+ if($commission_id>0){
+    $chairman_b = '';
+    $chairman_bb = '';
+    $chairman_a = ''; 
+    $stmt = $dbh->prepare("SELECT `edition_id`  FROM `a_teachers_commission_edition`  WHERE  `commission_id`=? AND `edition`<=?  ORDER BY `edition` DESC LIMIT 1 ");  
+    $stmt->execute( [$commission_id, $date_protocol] );
+    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+          $edition_id = intval($row->edition_id);
+    }
+    $stmt = $dbh->prepare("SELECT  `teacher_id`, `n`, `fullname`, `job_title`, `sign` FROM  `a_teachers_commission_teacher`  WHERE  `edition_id`=?  ORDER BY  `n`");  
+    $stmt->execute( [ $edition_id  ] );
+
+    
+    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        if($print_v == 0)
+                 $img_sign = '<div style="position: relative; top: -40px; left: 0px;"><div style="position: absolute; top: 1px; left: 1px; "><img width="100px" src="'.$JsonApiURL.'documents/'.$row->sign.'"></div></div>';
+        else
+                 $img_sign = '';
+
+
+        if($row->n==0){
+            $fullname_a = formatFio($row->fullname);
+            $fullname_b = formatFio($row->fullname, true);
+            $chairman_a =  $img_sign. '<nobr> _________________ ' . $row->fullname . '</nobr>';
+            $chairman_b =  $img_sign. '<nobr> _________________ ' . $fullname_a . '</nobr>';
+            $chairman_bb =  $img_sign. '<nobr> _________________ ' . $fullname_b . '</nobr>';
+
+        }
+    }
+    $teachers_commission =  [ 'chairman_short'=>$chairman_b, 'chairman_short_b'=>$chairman_bb, 'chairman'=>$chairman_a  ];
+
+    if($output_format=="word") {
+          $phpWord->setValue('chairman_fullname', $row->fullname);
+          $phpWord->setValue('chairman_fullname_shrt', formatFio($row->fullname));
+          $phpWord->setValue('chairman_fullname_b', formatFio($row->fullname, true));
+          $phpWord->setValue('chairman_sign', $img_sign);
+    }
+    else {
+           $smarty->assign('teachers_commission', $teachers_commission);
+    }
+}
+//$smarty->assign('test', $chairman_b);
+//$smarty->assign('testb', $chairman_bb);
+//print_r($teachers_commission);
+
+
+ $stmt2 = $dbh->prepare("SELECT *  FROM `a_self`  WHERE `edition`<=?  ORDER BY `edition` DESC  LIMIT 1  ");
+ $stmt2->execute( [$date_protocol] );
+ if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+//file_put_contents("lst.txt", print_r($row2, true) );
+
+    $enterprise_manager3 = formatFio($row2['enterprise_manager']);
+    $enterprise_manager4 = formatFio($row2['enterprise_manager'],true);
+    $self_data =  [  'name'=>$row2['name'], 'shortname'=>$row2['shortname'],    'inn'=>$row2['inn'], 'kpp'=>$row2['kpp'], 'ogrn'=>$row2['ogrn'], 'addres1'=>$row2['addres1'],  'addres2'=>$row2['addres2'], 'phone'=>$row2['phone'],
+      'position_head'=>$row2['position_head'], 'enterprise_manager'=>$row2['enterprise_manager'], 'position_head2'=>$row2['position_head2'], 'enterprise_manager2'=>$row2['enterprise_manager2'], 'enterprise_manager3'=>$enterprise_manager3, 'enterprise_manager4'=>$enterprise_manager4, 'enterprise_manager_signs'=>$row2['enterprise_manager_signs'], 
+      'company_signs'=>$row2['company_signs'],
+      'bank'=>$row2['bank'], 'checking_account'=>$row2['checking_account'], 'correspondent_account'=>$row2['correspondent_account'], 'bik'=>$row2['bik'], 'license'=>$row2['license'], 'accreditation'=>$row2['accreditation'], 'city'=>$row2['city'] ];
+
+    if($output_format=="word") {
+          $phpWord->setValue('self-name'.'#'.$block_number, $row2['name']);
+          $phpWord->setValue('self-shortname'.'#'.$block_number, $row2['shortname']);
+          $phpWord->setValue('self-inn'.'#'.$block_number, $row2['inn']);
+          $phpWord->setValue('self-kpp'.'#'.$block_number, $row2['kpp']);
+          $phpWord->setValue('self-ogrn'.'#'.$block_number, $row2['ogrn']);
+          $phpWord->setValue('self-addres1'.'#'.$block_number, $row2['addres1']);
+          $phpWord->setValue('self-addres2'.'#'.$block_number, $row2['addres2']);
+          $phpWord->setValue('self-phone'.'#'.$block_number, $row2['phone']);
+          $phpWord->setValue('self-position_head'.'#'.$block_number, $row2['position_head']);
+          $phpWord->setValue('self-enterprise_manager'.'#'.$block_number, $row2['enterprise_manager']);
+          $phpWord->setValue('self-position_head2'.'#'.$block_number, $row2['position_head2']);
+          $phpWord->setValue('self-enterprise_manager2'.'#'.$block_number, $row2['enterprise_manager2']);
+          $phpWord->setValue('self-enterprise_manager3'.'#'.$block_number, $enterprise_manager3);
+          $phpWord->setValue('self-enterprise_manager4'.'#'.$block_number, $enterprise_manager4);
+          $phpWord->setValue('self-bank'.'#'.$block_number, $row2['bank']);
+          $phpWord->setValue('self-checking_account'.'#'.$block_number, $row2['checking_account']);
+          $phpWord->setValue('self-correspondent_account'.'#'.$block_number, $row2['correspondent_account']);
+          $phpWord->setValue('self-bik'.'#'.$block_number, $row2['bik']);
+          $phpWord->setValue('self-license'.'#'.$block_number, $row2['license']);
+          $phpWord->setValue('self-accreditation'.'#'.$block_number, $row2['accreditation']);
+          $phpWord->setValue('self-city'.'#'.$block_number, $row2['city']);
+
+            $imageStampStyle = [
+                'path' => '../documents/signs/Stamp.png',
+                'width' => 100,
+                'height' => 100,
+                'wrap' => 'inFront' // Основной параметр: square, tight, topAndBottom, behind, inFront
+            ];  
+
+
+          if(isset($_GET['print_v']) && $_GET['print_v']=='false') {
+              $phpWord->setImageValue('self-stamp', $imageStampStyle);
+          }
+          if(isset($_GET['print_v']) && $_GET['print_v']=='false' && $row2['enterprise_manager_signs']!='') {
+              $phpWord->setImageValue('self-enterprise_manager_signs'.'#'.$block_number, '../documents/'.$row2['enterprise_manager_signs']);
+          }
+          else {
+              $phpWord->setValue('self-enterprise_manager_signs'.'#'.$block_number, '');
+          }
+          if(isset($_GET['print_v']) && $_GET['print_v']=='false' && $row2['company_signs']!='') {
+              $phpWord->setImageValue('self-company_signs'.'#'.$block_number, '../documents/'.$row2['company_signs']);
+          }
+          else {
+              $phpWord->setValue('self-company_signs'.'#'.$block_number, '');
+          }
+    }
+    else {
+           $smarty->assign('self_data', $self_data);
+    }
+}
+//print_r($self_data);
+//file_put_contents("lst.txt", print_r($self_data, true) );
+
+
+
+
+
+ if(isset($_GET['print_v']))
+    $smarty->assign('print_v', $_GET['print_v']);
+ else
+    $smarty->assign('print_v', 'false');
+
+
+
+ if($output_format=="") {
+    $html_s = $smarty->fetch('../documents/'.$template_file);
+    $footer_html_s = '';
+    //if($template_footer_file != '')
+    //   $footer_html_s = $smarty->fetch('../documents/'.$template_footer_file);
+ }
+ return $html_s . $footer_html_s;
+}
+//echo $html_str;
+
+
+
+function out_cert( $cohort_id, $mode  ){
+ global  $dbh, $smarty, $JsonApiURL, $is_short_certificate_num, $IS_SECR;
+ global   $report_file, $print_v;
+ global $output_format, $page_size;
+ global $phpWord;
+
+ global $header,  $html_str, $bottom,  $footer_html_str, $sessionid;
+
+ $rc = '';
+ $print_switch = $_GET['print_switch'];
+ $print_switch = 'false';
+ if($_GET['print_v'] && $_GET['print_v']=='edit' && $output_format==""  &&  $mode>0)
+ {
+  header('Cache-Control: max-age=0');
+  header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+  header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+  header('Pragma: public'); // HTTP/1.0
+
+  $header = file_get_contents('documents-editor_cert.header.html');
+  $bottom = file_get_contents('documents-editor.bottom.html');
+  echo $header;
+  echo $html_str;
+  echo $bottom;
+ }
+
+ else if($_GET['print_v'] && $_GET['print_v']!='edit' && $output_format=="word" && $print_switch!='false'  &&  $mode==0 )
+ {
+  header('Cache-Control: max-age=0');
+  header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+  header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+  header('Pragma: public'); // HTTP/1.0
+  header('Content-Disposition: attachment; filename="'.rus2translit($report_file).'.pdf"');
+
+  $location = '../tmp/' . $sessionid .'-cert';
+  $phpWord->saveAs($location. '.docx');
+  $phpWord_raw = IOFactory::load($location. '.docx');
+  system('unoconv -f pdf '. $location. '.docx');
+  unlink($location. '.docx');
+  readfile($location. '.pdf');
+  unlink($location. '.pdf');
+ }
+
+ else if($output_format=="word"  &&  $mode>0) {
+  header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml');
+  //header('Content-Type: application/vnd.oasis.opendocument.text');
+  header('Content-Disposition: attachment; filename="'.rus2translit($report_file).'.docx"');
+  header('Cache-Control: max-age=0');
+  header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+  header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+  header('Pragma: public'); // HTTP/1.0
+
+  $phpWord->saveAs('php://output');
+ }
+
+ else {
+    $dompdf = new Dompdf();
+    $dompdf->setPaper('A4', $paper);
+    $dompdf->set_option('defaultFont', 'DejaVu Sans');
+    $dompdf->set_option('isRemoteEnabled', true);
+
+    $dompdf->loadHtml($html_str, 'UTF-8');
+    $dompdf->render();
+
+    if($mode>0){
+         $dompdf->stream(str_replace('JUL', '', rus2translit($report_filename)) . ".pdf", array("Attachment" => 0));
+    }
+    else {
+           $output = $dompdf->output();
+           $rc = '../tmp/'.$sessionid.'_'.$cohort_id. '.pdf';
+           file_put_contents($rc, $output);
+   }
+ }
+ return($rc);
+}
+
+if(0) {
+    if(count($html_arr)>0){
+         include '../PDFMerger/PDFMerger.php';
+         $pdf = new PDFMerger;
+
+        $files_1 = [];
+        $i = 0;
+        foreach ($html_arr as $html_c) {
+             $dompdf = new Dompdf();
+             $dompdf->setPaper('A4', 'landscape');
+             $dompdf->set_option('defaultFont', 'DejaVu Sans');
+             $dompdf->set_option('isRemoteEnabled', true);
+             $dompdf->loadHtml($html_c, 'UTF-8');
+             $dompdf->render();
+             $output = $dompdf->output();
+             //$filename = getRandomFileName("/tmp", "pdf");
+             $filename =  "../tmp/pdf" . md5(time(). rand(1,100000) . $i) . ".pdf" ;
+             $files_1[] = $filename;
+             file_put_contents( $filename, $output);
+             $pdf->addPDF($filename);
+             $i = $i +1;
+        }
+        $pdf->merge('download', rus2translit($report_file). ".pdf");
+        foreach ($files_1 as $filename){
+               unlink($filename);
+        } 
+    } 
+
+}
+
+
+
+
+
+function out_protocol2($groupid, $order_id, $mode  ){
+ global  $dbh, $smarty, $JsonApiURL, $is_short_certificate_num, $IS_SECR;
+ global   $report_file, $print_v;
+ global $output_format, $page_size;
+ global $phpWord;
+
+ global $html_str, $footer_html_str, $sessionid;
+
+ $rc = '';
+ if($_GET['print_v'] && $_GET['print_v']=='edit' && $output_format=="" &&  $mode>0)
+ {
+    header('Cache-Control: max-age=0');
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+    header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+    header('Pragma: public'); // HTTP/1.0
+
+    $header = file_get_contents('documents-editor_protocol.header.html');
+    $header = str_replace( "{Id}", $groupid, $header); 
+    $bottom = file_get_contents('documents-editor.bottom.html');
+    echo $header;
+    echo $html_str;
+    echo $bottom;
+ }
+ else if($_GET['print_v'] && $_GET['print_v']!='edit' && $output_format=="word" && ( $_GET['print_switch']!='false' || $mode==0) && 0 )
+ {
+    header('Cache-Control: max-age=0');
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+    header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+    header('Pragma: public'); // HTTP/1.0
+    header('Content-Disposition: attachment; filename="'.rus2translit($report_filename).'.pdf"');
+
+
+    $location = '../tmp/' . $sessionid .'-cert.docx';
+    $phpWord->saveAs($location);
+    $phpWord_raw = IOFactory::load($location);
+    $xmlWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord_raw , 'PDF');
+    $xmlWriter->save('php://output');  
+ }
+
+ else if($output_format=="word" &&  $mode>0) {
+    header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    //header('Content-Type: application/vnd.oasis.opendocument.text');
+    header('Content-Disposition: attachment; filename="'.rus2translit($report_file).'.docx"');
+    header('Cache-Control: max-age=0');
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+    header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+    header('Pragma: public'); // HTTP/1.0
+
+    $phpWord->saveAs('php://output');
+ }
+ else {
+	$dompdf = new Dompdf();
+	$dompdf->setPaper('A4', 'landscape');
+	$dompdf->set_option('defaultFont', 'DejaVu Sans');
+	$dompdf->set_option('isRemoteEnabled', true);
+
+	//$html_str = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><style> body { font-family: DejaVu Sans; font-size:12px; }</style><body> hello world по русски </body></html>';
+
+	$dompdf->loadHtml($html_str . $footer_html_str , 'UTF-8');
+	$dompdf->render();
+        if($mode>0){
+             $dompdf->stream(rus2translit($report_file) . ".pdf", array("Attachment" => 0));
+        }
+        else {
+               $output = $dompdf->output();
+               $rc = '../tmp/'.$sessionid.'_'.$order_id.'_'.$groupid. '.pdf';
+               file_put_contents($rc, $output);
+        }
+ }
+ return($rc);
+}
+
+function merge_protocol($out_flses  ){
+ global  $dbh, $smarty, $JsonApiURL, $is_short_certificate_num, $IS_SECR;
+ global   $report_file, $print_v;
+ global $output_format, $page_size;
+ global $phpWord;
+
+ if(count($out_flses)>0){
+    $pdf = new PDFMerger;
+
+    $i = 0;
+    foreach ($out_flses as $filename) {
+             $pdf->addPDF($filename);
+             $i = $i +1;
+        }
+        $pdf->merge('download', rus2translit($report_file). ".pdf");
+        foreach ($files_1 as $filename){
+               unlink($filename);
+        } 
+    } 
+
+}
+
+
+?>

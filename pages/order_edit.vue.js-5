@@ -1,0 +1,745 @@
+var OrderEdit = {
+  data: function () {
+    return {
+      role: '',
+      info: [],
+      info2: {list:[]},
+      info3: [],
+      info4: [],
+      info5: [],
+      info7: [],
+      info9: [],
+      info10: [],
+      message: '',
+      order_id: 0,
+      invoice: '',
+      counterparty_id: 0,
+      date_order: '',
+      list_length: 0,
+      a_counterparty_id: -1,
+      a_counterparty_id_rc: 0,
+      status: 0,
+      counterparty_c: '',
+      counterparty_c_id: 0,
+      date_begin: '',
+      date_end: '',
+      date_completed: '',
+      account_name: '',
+      status_array:  [], 
+      status2_array:  [], 
+      counterparty_c2: '',
+      payer_id: 0,
+      payer_check: '',
+      payer_check_type: 0,
+      pre_check: '', 
+      balance: 0,
+      items_count: 0,
+      balance_pay: '',
+      secondary_order_id: 0,
+      refund: '',
+      refund_check: '',
+      payment_receipt: '', 
+      payment_receipt_date: '', 
+      counterparty_c_lastname: '',
+      counterparty_с_firstname: '',
+      counterparty_c_middlename: '',
+      counterparty_c_snils: '',
+      cancelled: 0,
+      importfile1: '',
+      importfile1_filename: '',
+      importfile1_file_type: '',
+      scane_file: '',
+      upload_m1p: '',
+      uploadorder: '',
+      uploadorder_type: '',
+      uploadorder_name: '',
+      wait: 0,
+      import_total: 0,
+      upload_index: 0,
+      upload_file: '',
+      //helpers: {},
+      //normative: {},
+     }
+   },
+
+   mounted() {
+    this.order_id = Number(this.$route.params.orderid)
+    this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+    this.a_counterparty_id_rc = this.a_counterparty_id
+    if(this.a_counterparty_id == 1 || this.order_id == 0 )
+            this.a_counterparty_id_rc = 0
+
+    this.date_order =  new Date().toLocaleDateString('en-ca')
+    this.date_begin = this.date_order
+
+    if(this.order_id > 0){
+	    axios
+    	    .post(JsonApiURL+'api/orders_json.php', {object: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    	    .then(response => { 
+                this.info = response.data
+                this.role = this.info.role
+                this.counterparty_id  = this.info.result.counterparty_id
+                this.date_order = this.info.result.date_order + '/' + this.info.result.number
+                this.status = this.info.result.status_id
+                this.date_begin = this.info.result.date_begin
+                this.date_end = this.info.result.date_end
+                this.date_completed = this.info.result.date_completed
+                this.payer_id = this.info.result.payer_id
+                this.balance = this.info.result.balance
+                this.secondary_order_id = this.info.result.secondary_order_id
+                this.items_count = this.info.result.items_count
+                this.refund_check = this.info.result.refund_check
+                this.refund = this.info.result.refund
+                this.account_name = this.info.result.account_name
+                this.payment_receipt = this.info.result.payment_receipt
+                this.payment_receipt_date = this.info.result.payment_receipt_date
+                this.invoice = this.info.result.invoice
+                this.upload_file = this.info.result.upload_file
+                
+
+                 if( this.date_end == '1000-01-01' || this.date_end == '0000-00-00'  )
+                           this.date_end = ''
+
+                 if ( this.status  > 14 )
+                            this.cancelled = this.status
+                 else
+                            this.cancelled = 1
+
+                if(this.refund_check == 1) 
+                        this.refund_check = true
+
+                 if(this.counterparty_id > 0) {
+    	            axios
+    		            .post(JsonApiURL+'api/counterparty_json.php', {object: {objectId: this.counterparty_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		            .then(response3 => { 
+        	                console.log(response3)
+        	                this.info3 = response3.data
+    		            })
+    		            .catch(error => {
+            	             console.log(error.response)
+        	            })
+                 }
+
+                 if(this.payer_id > 1) {
+                    this.payer_check = true  
+    	            axios
+    		            .post(JsonApiURL+'api/counterparty_json.php', {object: {objectId: this.payer_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		            .then(response5 => { 
+        	                console.log(response5)
+        	                this.info5 = response5.data
+        	                this.counterparty_c2 = this.info5.result.name 
+    		            })
+    		            .catch(error => {
+            	             console.log(error.response)
+        	            })
+                 }
+                 if(this.payer_id == 1) {
+                    this.payer_check = true  
+                    this.payer_check_type = 1  
+
+    	            axios
+    		            .post(JsonApiURL+'api/order_payer_json.php', {object: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		            .then(response7 => { 
+        	                console.log(response7)
+        	                this.info7 = response7.data
+        	                this.counterparty_c_lastname = this.info7.result.lastname
+        	                this.counterparty_c_firstname = this.info7.result.firstname
+        	                this.counterparty_c_middlename = this.info7.result.middlename
+        	                this.counterparty_c_snils = this.info7.result.snils
+    		            })
+    		            .catch(error => {
+            	             console.log(error.response)
+        	            })
+                 }
+
+
+    	    })
+    	    .catch(error => {
+        	  console.log(error.response)
+            })
+    }
+
+
+    if(this.a_counterparty_id > 0 && this.order_id==0) {
+        axios
+         .post(JsonApiURL+'api/counterparty_json.php', {object: {objectId: this.a_counterparty_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+         .then(response3 => { 
+             console.log(response3)
+             this.info3 = response3.data
+	         this.role = this.info3.role
+         })
+         .catch(error => {
+             console.log(error.response)
+         })
+    }
+
+    axios
+      .post(JsonApiURL+'api/status_json.php', {list: {  sessionId: session_t.sessionId }}, {withCredentials: true})
+      .then(response => { 
+            for(var i=0; i< response.data.list.length; i++ ) {
+                  if(response.data.list[i].status_id <=15 )
+                        this.status_array.push(response.data.list[i])
+                  else
+                        this.status2_array.push(response.data.list[i])
+            }
+       })
+      .catch(error => {
+              console.log(error.response)
+        }),
+
+
+
+     axios
+      .post(JsonApiURL+'api/helpers_json.php', {table: 'a_order_edit', sessionId: session_t.sessionId })
+      .then(response => {
+            const data = response.data;
+
+            if(Object.keys(data).length) {
+
+                const values = Object.values(data);
+                for (const value of values) {
+                    if(value['description']) this.helpers[value['name']] = value['description'];
+                    if(value['normative']) this.normative[value['name']] = value['normative'];
+                }
+
+                const labels = document.querySelectorAll('label');
+                labels.forEach(label => {
+                    const getFor = label.htmlFor;
+
+                    if(getFor in this.helpers) {
+                        const help_block = ` <a title='${this.helpers[getFor]}'><span class="text-primary"><i class="fa-regular fa-circle-question"></i></span></a>`;
+                        label.innerHTML = label.innerHTML + (help_block);
+                    }
+                    if(getFor in this.normative) {
+                        const help_block = ` <a title='${this.normative[getFor]}'><span class="text-primary"><i class="fa-solid fa-book"></i></span></a>`;
+                        label.innerHTML = label.innerHTML + (help_block);
+                    }
+                })
+
+            } else {
+                console.log('NO DATA')
+            }
+
+       })
+      .catch(error => {
+              console.log(error.response)
+      })
+
+
+  },
+
+
+  methods: {
+        orderSave () {
+            if( this.counterparty_id == 0 )
+                    this.counterparty_id = this.a_counterparty_id
+                    
+            if( this.payer_check != true)         
+                    this.payer_id = 0
+
+             if(this.payer_check == true && this.payer_check_type >0 )
+                    this.payer_id = 1
+            
+            if( this.payer_id > 0 &&  this.payer_check == true ) {
+                 if( this.date_end == ''  ||  this.date_end == null  )
+                           this.date_end = '1000-01-01'
+
+                 if( this.date_completed == ''  ||  this.date_completed == null  )
+                           this.date_completed = '1000-01-01'
+
+                axios
+                    .post(JsonApiURL+'api/order_payer_json.php', {replace: {objectId: this.order_id,  lastname: this.counterparty_c_lastname,  firstname: this.counterparty_c_firstname,  middlename: this.counterparty_c_middlename, snils: this.counterparty_c_snils, sessionId: session_t.sessionId } }, {withCredentials: true})
+                    .then(response => {
+                        console.log(response)
+                    })
+                    .catch(error => {
+                        console.log(error.response)
+                    })
+            }
+
+            var status = this.status
+            if( this.cancelled > 1 )
+                    status = this.cancelled
+            else if( status == 15 )
+                    status = 12
+            else if( status == 16 )
+                    status = 1
+            if( status < 1 )
+                    status = 1
+
+            axios
+            .post(JsonApiURL+'api/orders_json.php', {update_status: { objectId: this.order_id,  status: status,  sessionId: session_t.sessionId }}, {withCredentials: true})
+            .then(response => { 
+                this.info9 = response.data
+                  console.log(response)
+	        axios
+                .post(JsonApiURL+'api/orders_json.php', {update: {objectId: this.order_id,  date_begin: this.date_begin, date_end: this.date_end, date_completed: this.date_completed,     payer_id: this.payer_id, balance_pay: this.balance_pay, refund_check: this.refund_check,  refund: this.refund,  payment_receipt: this.payment_receipt, payment_receipt_date: this.payment_receipt_date, invoice: this.invoice,  sessionId: session_t.sessionId } }, {withCredentials: true})
+                .then(response => {
+                    console.log(response)
+                    if(response.data.status==0) {
+                        this.uploadGoP(this.order_id)
+                        this.$router.push({ name: 'orders_list', params: {counterpartyid: this.a_counterparty_id_rc  }}) 
+                    }
+                    else {
+                        console.log(response)
+                        this.message = response.data.error
+                    }
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+                  
+            })
+            .catch(error => {
+                  console.log(error.response)
+            })
+
+        },
+
+
+        orderCreate (is_make) {
+            if( this.counterparty_c_id == 0 )
+                    this.counterparty_c_id = this.a_counterparty_id
+
+            if( this.counterparty_c_id == 0 ){
+              alert('Ошибка: Не определен контрагент')
+              return
+            } 
+
+            session_var.order_page = 1
+            session_var.order_namesearch = ''
+            session_var.order_counterparty_с_id = ''
+            session_var.order_counterparty_с = ''
+            session_var.order_datesearch = ''
+            session_var.order_datesearch2 = ''
+            session_var.order_status = ''
+
+            if( this.payer_check != true)         
+                    this.payer_id = 0
+
+            if(this.payer_check == true && this.payer_check_type >0 )
+                    this.payer_id = 1
+
+            if( this.payer_id > 0 &&  this.payer_check == true ) {
+	            axios
+                    .post(JsonApiURL+'api/order_payer_json.php', {replace: {objectId: this.order_id,  lastname: this.counterparty_c_lastname,  firstname: this.counterparty_c_firstname,  middlename: this.counterparty_c_middlename, snils: this.counterparty_c_snils, sessionId: session_t.sessionId } }, {withCredentials: true})
+                    .then(response => {
+                        console.log(response)
+                    })
+                    .catch(error => {
+                        console.log(error.response)
+                    })
+            }        
+                
+                    
+    	    axios
+            .post(JsonApiURL+'api/orders_json.php', {insert: {counterparty_id: this.counterparty_c_id,  date_order: this.date_order,  date_begin: this.date_begin, date_end: this.date_end,  payer_id: this.payer_id, balance_pay: this.balance_pay, invoice: this.invoice,  sessionId: session_t.sessionId } }, {withCredentials: true})
+            .then(response => {
+              console.log(response)
+              this.info9 = response.data
+              if(response.data.status==0) {
+                   this.uploadGoP(this.order_id)
+                   if(is_make>0 && this.info9.result>0 )
+                         this.$router.push({ name: 'order_items', params: {orderid: this.info9.result,  counterpartyid: this.a_counterparty_id_rc  }}) 
+                   else
+                         this.$router.push({ name: 'orders_list', params: {counterpartyid: this.a_counterparty_id_rc  }}) 
+
+              }
+              else {
+                    console.log(response)
+                    this.message = response.data.error
+              }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+        },
+
+        onChangeDate(){
+	   if(this.date_begin <  this.date_order) {
+	       if(this.role!='counterparty' && this.date_begin!='') {
+                var fl = confirm("Дата начала обучения ранее текущей даты")
+                if(! fl)
+                    this.date_begin = this.date_order
+                //else
+                //    this.date_order = this.date_begin 
+	       }
+	       else
+              this.date_begin = this.date_order
+         }
+       },
+
+
+
+    search2(index){
+       this.counterparty_с = this.info2.list[index].shortname 
+       this.counterparty_c_id = this.info2.list[index].counterparty_id
+       this.info2.list = []
+    },
+
+    search2_2(index){
+       this.counterparty_c2 = this.info4.list[index].shortname 
+       this.payer_id = this.info4.list[index].counterparty_id
+       this.info4.list = []
+    },
+
+
+
+    load_combo(){
+      if(this.counterparty_с!=''){
+       axios
+        .post(JsonApiURL+'api/counterparty_json.php', {list: {conditions: {"type": 0}, search: this.counterparty_с, sessionId: session_t.sessionId }}, {withCredentials: true})
+        .then(response => { 
+              console.log(response)
+            this.info2 = response.data
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+      }
+      else {
+          this.info2.list = []
+      }
+    },
+
+    load_combo2(){
+      if(this.counterparty_с2!=''){
+       axios
+        .post(JsonApiURL+'api/counterparty_json.php', {list: {conditions: {"type": 0}, search: this.counterparty_c2, sessionId: session_t.sessionId }}, {withCredentials: true})
+        .then(response => { 
+            this.info4 = response.data
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+      }
+      else {
+          this.info4.list = []
+      }
+    },
+
+    newStatus(){
+       if(this.status == 1){
+           alert('При переходе на статус "Новая заявка" будут заново созданы учебные группы, и необходимо будет заново сформировать потоки')
+       }
+    },
+
+
+     uploadGoP(orderId) {
+        this.wait = 1
+        if((this.uploadorder_type == 'application/pdf' || this.uploadorder_type == 'image/png') && this.upload_order_id==orderId && orderId>0){
+                const formData = new FormData();
+                formData.append('uploadorder', this.uploadorder)
+                formData.append('uploadorder_name', this.uploadorder_name)
+                formData.append('order_id', orderId)
+                formData.append('sessionId', session_t.sessionId)
+
+                axios
+                    .post(JsonApiURL+'api/orders_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+                    .then(response => {
+                      this.info10 = response.data
+                      this.wait = 0;
+                      // console.log(response)
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+        }
+
+     },
+
+     handleUpload(orderId) {
+            this.upload_order_id = orderId
+            this.uploadorder = document.getElementById('input_uploadorder').files[0];
+            this.uploadorder_name = this.uploadorder.name;
+            this.uploadorder_type = this.uploadorder.type;
+     },
+
+
+
+  },
+
+
+
+	template: `<div><navigation></navigation><h3>Заявка на обучение</h3> 
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+    <br />
+    <h4  v-if="role!='counterparty' && a_counterparty_id>0"   style="text-align: right;" > {{info3.result.shortname}} </h4>
+
+<div align="left">
+<div class="container">
+ <div  v-if="balance>0 && items_count==0 && status<2" class="row" style="padding-top: 10px; padding-bottom: 20px;"><div class="col-2"> <b>Баланс: {{balance}} &#8381;.</b></div> <div class="col-4"><div class="form-check"><label class="form-check-label" for="CheckPay">Списать</label><input v-model="balance_pay" type="checkbox" class="form-check-input" id="CheckPay"></div></div></div>
+
+ <div class="row">
+ <div class="col-2">
+  <div class="mb-2">	
+  <label for="input_date_order" class="form-label">Дата<span v-if="order_id>0">, номер</span> заявки</label>
+    <input  v-if="order_id>0" v-model="date_order"   class="form-control" id="input_date_order"   type="text" readonly >
+    <input v-else v-model="date_order"   class="form-control" id="input_date_order"   type="date"  >
+  </div>
+ </div>
+
+ 
+ <div v-if="role!='counterparty' && counterparty_id>0 && order_id>0  && cancelled<=1"  class="col-4">
+  <div class="mb-2">
+   <span >
+    <label for="input_status" class="form-label">Статус</label><br />
+	<select  v-model="status"  id="input_status"  aria-label="Статус" class="form-control" @change="newStatus()"  >
+	    <option value="0"> - статус - </option>
+            <option v-for="item_status in status_array" :value="item_status.status_id">
+	    {{item_status.name}} 
+	</option>
+	</select>
+    </span>
+  </div> 
+ </div>
+
+
+<div  class="col-4">
+<label v-if="this.upload_file!=''" for="input_scane_file" class="form-label"><a :href="'uploads/orders/'+this.upload_file" target="_blank"  class="nav-link" title="Скан заявки" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> &nbsp;Скан заявки <span v-if="this.upload_file!=''"><i class="fa-solid fa-check" style="color:green"></i></span> </a></label>
+<label v-if="this.upload_file==''" class="form-label">Скан заявки &nbsp;<span class="icon"> <br /></label>
+<input type="file" v-model="upload_m1p" placeholder="Скан заявки"   class="form-control"  :id="'input_uploadorder'"  @change="handleUpload(order_id)"  type="file"  placeholder="Файл скана" >
+</div>
+<div class="col-md-1">
+<br/><br/>.pdf
+   
+
+
+<!--<span v-if="import_total==0"><button type="button" class="btn btn-primary" @click="uploadGoP(order_id)" > Загрузить </button></span>-->
+
+                         
+
+</div>
+
+
+ <div class="row">
+ <div class="col-3">
+  <div class="mb-2">	
+  <label for="input_invoice" class="form-label">Номер счета</label>
+    <input  v-if="status>2" v-model="invoice"   class="form-control" id="input_invoice"    readonly >
+    <input v-else v-model="invoice"   class="form-control" id="input_invoice"   >
+  </div>
+  </div>
+  <div class="col-2">
+  <label  class="form-label"> <br /> </label>
+       <p v-if="invoice==''">[CED-<span v-if="order_id>0">{{order_id}}</span><span v-else>...</span>]</p>
+  </div>
+ </div>
+
+
+ <div v-if="a_counterparty_id==0 && order_id==0 && role!='counterparty'" class="col">
+
+   <div class="mb-2">
+      <div class ="container">
+        <label for="input_counterparty_c" class="form-label">Организация</label>
+      </div>
+      <div class ="container">
+        <input  v-model="counterparty_с"  class="form-control" id="input_counterparty_c"  type="text" @input="load_combo()">
+		<ul class ="list-group" id ="listItem" style="text-align: left;">
+			<li  v-for="(item2, index) in info2.list" class ="list-group" @click="search2(index)" > {{item2.shortname.substring(0, 72)}}</li>
+		</ul>
+      </div>
+   </div>
+
+
+     <div  v-if="a_counterparty_id==0 && order_id==0 && role!='counterparty' && counterparty_с!='' && counterparty_с!=null  " style="text-align: right; padding-top: 15px;"><button  class="btn btn-light" > <router-link  :to="{ name: 'counterparty_base_edit', params: { counterpartyid: 0, make: 1 }}"   title="Добавить учетную запись" ><div><nobr><i class="fa-solid fa-file-circle-plus"></i> Новый контрагент <i class="fa-solid fa-circle-right"></i></nobr></div></router-link >  </button></div>
+  </div>
+
+  <div v-if="a_counterparty_id>1 && order_id>0 && role!='counterparty'" class="col">
+    <label  class="form-label"> </label>
+    <p style="font-size: smaller; color: red;">Внимание! Изменение статуса непосредственно в данном поле, используется только в слусае крайней необходимости<br />
+    Статус следует изменять по шагам, в соответсвии со стандартными пунутами в списке заявок</p>
+  </div>
+
+  <div v-if="a_counterparty_id==1" class="col">
+    <label  class="form-label"> </label>
+    <h5 style="text-align: right;">Частное лицо</h5>
+  </div>
+ </div>
+ 
+<br />
+
+  <br />
+  <div class="row">
+   <div class="mb-2 col-4">	
+    <label for="input_date_begin" class="form-label">Дата начала обучения</label>
+      <input v-if="status<=2" v-model="date_begin"  class="form-control" id="input_date_begin"  type="date"   @input="onChangeDate()">
+      <input v-else v-model="date_begin"  class="form-control" id="input_date_begin"  type="date"   @input="onChangeDate()"  readonly>
+   </div>
+   <div class="mb-4 col-2"> </div>
+   <div class="mb-2 col-4">	
+    <label for="input_date_end" class="form-label">Дата завершения</label>
+      <input v-if="status<=2"  v-model="date_end"  class="form-control" id="input_date_end"  type="date">
+      <input v-else v-model="date_end"  class="form-control" id="input_date_end"  type="date"  readonly>
+   </div>
+   <div class="mb-4 col"> </div>
+  </div>
+
+  <br />
+  <div v-if="status>10 || status==3 || status==4"  class="row">
+   <div class="mb-2 col-4">	
+    <p v-if="status==3">
+        <br />
+        <div class="form-check">
+        <input v-model="pre_check" class="form-check-input" type="checkbox"  id="PreCheck">
+        <label class="form-check-label" for="PreCheck">
+            дополнительно
+        </label>
+        </div>
+    </p>
+   </div>
+   <div class="mb-4 col-2"> </div>
+   <div  v-if="status>10  || status==4 || pre_check==true" class="mb-2 col-4">
+    <label for="input_date" class="form-label">Дата Акта Выполненных работ</label>
+      <input  v-if="status==3 || status==11 "  v-model="date_completed"  class="form-control" id="input_date_completed"  type="date">
+      <input  v-else  v-model="date_completed"  class="form-control" id="input_date_completed"  type="date" readonly>
+   </div>
+   <div class="mb-4 col"> </div>
+  </div>
+
+  <div v-if="order_id>0">
+  <p><hr /></p>
+  <div class="row">
+   <div class="mb-2 col-4">	
+    <label for="input_payment_receipt" class="form-label">Оплачено</label>
+        <input type="text" v-model="payment_receipt" placeholder="Сумма"  id="input_payment_receipt"  class="form-control" >
+   </div>
+   <div class="mb-2 col-1"><p><br /></p><p>руб.</p> </div>
+   <div class="mb-3 col-1"> </div>
+   <div class="mb-2 col-4">	
+    <label for="input_payment_receipt_date" class="form-label">Дата оплаты</label>
+        <input type="date" v-model="payment_receipt_date" placeholder="Дата" id="input_payment_receipt_date"  class="form-control" >
+    </div>
+   <div class="mb-4 col"> </div>
+
+  </div>
+  </div>
+
+        <p></p>
+
+  <br />
+  <p  v-if="payer_check"><hr /></p>
+  <div class="mb-2 row">
+        <div class="mb-2 col-8">
+            <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="inline_payer_check" v-model="payer_check">
+            <label class="form-check-label" for="inline_payer_check"> плательщик не совпадает с заказчиком </label>&nbsp;&nbsp;
+            </div>
+        </div>
+  </div>
+
+  <div v-if="payer_check"  class="mb-2 row">
+        <div class="mb-2 col-2">
+            <div class="form-check form-check-inline">
+                <input v-model="payer_check_type" value="0" class="form-check-input" type="radio"  id="inline_payer_radio_c" >
+                <label class="form-check-label" for="inline_payer_radio_c">Юр. лицо</label>
+            </div>
+        </div>
+        <div class="mb-2 col-2">
+            <div class="form-check form-check-inline">
+                <input v-model="payer_check_type" value="1"  class="form-check-input" type="radio"  id="inline_payer_radio_f" >
+                <label class="form-check-label" for="inline_payer_radio_f">Частное лицо</label>
+            </div>
+        </div>
+  </div>
+
+  <div v-if="payer_check && payer_check_type==0" class="row">
+   <div class="mb-4  col-12">	
+      <div class ="container">
+        <label for="input_counterparty_c2" class="form-label">Плательщик</label>
+      </div>
+      <div class ="container">
+        <input  v-model="counterparty_c2"  class="form-control" id="input_counterparty_c2"  type="text" @input="load_combo2()">
+		<ul class ="list-group" id ="listItem" style="text-align: left;">
+			<li  v-for="(item4, index) in info4.list" class ="list-group" @click="search2_2(index)" > {{item4.shortname.substring(0, 72)}}</li>
+		</ul>
+      </div>
+   </div>
+ </div>
+
+  <div v-if="payer_check && payer_check_type==1" class="row">
+   <div class="mb-4  col-8">	
+      <div class="row">
+        <label for="input_counterparty_c0_l" class="form-label col-2">Фамилия</label>
+        <input  v-model="counterparty_c_lastname"  class="form-control col" id="input_counterparty_c0_l"  type="text" >
+      </div>
+      <br />
+      <div class="row">
+        <label for="input_counterparty_c0_f" class="form-label col-2">Имя</label>
+        <input  v-model="counterparty_c_firstname"  class="form-control col" id="input_counterparty_c0_f"  type="text" >
+      </div>
+      <br />
+      <div class="row">
+        <label for="input_counterparty_c0_m" class="form-label col-2">Отечество</label>
+        <input  v-model="counterparty_c_middlename"  class="form-control col" id="input_counterparty_c0_m"  type="text" >
+      </div>
+      <br />
+      <div class="row">
+        <label for="input_counterparty_c0_s" class="form-label col-2">СНИЛС</label>
+        <input  v-model="counterparty_c_snils"  class="form-control col" id="input_counterparty_c0_s"  type="text" >
+      </div>
+   </div>
+  </div>
+
+
+<p v-if="secondary_order_id>0">
+ <hr />
+Связанная запись: {{info.result.secondary_order.date_order}}/{{info.result.secondary_order.number}}:   <b>CED-{{secondary_order_id}}</b> 
+</p>
+
+ <p  v-if="balance>0 && secondary_order_id==0 && status>=2" class="row" style="padding-top: 10px; padding-bottom: 20px;">
+ <hr />
+    <div class="col-2"> <b>Баланс: {{balance}} &#8381;.</b></div> 
+        <div class="mb-4 col-10">	
+          <input class="form-check-input" type="checkbox" id="refund_txt_check" v-model="refund_check"> <label for="refund_txt_check" class="form-label "> возврат </label>
+            <input v-if="refund_check==true" v-model="refund"   class="form-control col-sm-10" id="refund_txt"   type="text"  >
+        </div>
+ </p>
+
+
+  <div v-if="order_id>0" class="mb-2 row">
+ <hr />
+ Запись создана пользователем: {{account_name}}
+  </div>
+
+  <div v-if="order_id>0" class="mb-2 row">
+ <hr />
+   <div   class="col-2"> 
+      <!--<label for="input_cancelled" class="form-label col-sm-1">  </label>-->
+	<select  v-model="cancelled"  id="input_cancelled"  aria-label="Статус2" class="form-control">
+	    <option value="1"> Активная заявка </option>
+            <option v-for="item2_status in status2_array" :value="item2_status.status_id"  >
+	         {{item2_status.name}} 
+	    </option>
+	</select>
+    </div>
+    <div class="col-8"> </div>
+  </div>
+
+
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+    <span v-if="a_counterparty_id==1">
+    <button v-if="order_id==0"  class="btn btn-success"  @click="orderCreate(1)"> Заполнить данные слушателя <i class="fa-solid fa-circle-right"></i> </button>
+    </span>
+    <span v-else>
+    <button v-if="order_id>0"  class="btn btn-primary"    @click="orderSave()"> Сохранить </button>
+    <button v-if="order_id==0"  class="btn btn-success"  @click="orderCreate(1)"> Сформировать список слушателей <i class="fa-solid fa-circle-right"></i> </button>
+    &nbsp<button v-if="order_id==0"  class="btn btn-primary"    @click="orderCreate(0)"> Создать заявку </button>
+    </span>
+       &nbsp<button v-if="order_id==0 "  class="btn btn-primary"    @click="orderCreate(0)"> Создать заявку </button>
+      &nbsp<router-link  :to="{ name: 'orders_list', params: {counterpartyid: this.a_counterparty_id_rc}}" ><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </div>
+  </div>
+ </div>
+
+
+</div>`
+
+};
+
+
+
+

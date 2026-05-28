@@ -1,0 +1,172 @@
+<?php
+/**
+ * @copyright 2022
+ */
+
+
+require_once 'config.php';
+$dbhost = $cfg->host;
+$dbuser = $cfg->user;
+$dbpassword = $cfg->password;
+$dbname = $cfg->name;
+
+
+try {  
+    $dbh = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+session_start();
+$userid = 0;    // User id.
+
+
+
+
+function user_import( $group_id ) {
+    global $api_arg, $user_id_session, $is_siteadmin,  $dbh;
+    
+    $i_organization = 8;
+    $i_position = 7;
+    $i_subdivision = 9;
+    $i_date_of_birth = 6;
+
+    if($_FILES["csvfile"]['type'] == 'application/vnd.ms-excel'){
+	$rnd_file = md5(time());
+	$file = '/var/www/mng/tmp/' . $rnd_file . '.csv';
+	$cmd = '/var/www/mng/moodle/users/conv.sh  ' .  $_FILES['csvfile']['tmp_name'] . ' '  . $rnd_file ;
+        system( $cmd  );
+    }
+    else {
+	$file = $_FILES["csvfile"]['tmp_name'];
+    }
+
+    $handle = @fopen($file, "r");
+    $rows_count = 0;
+    if($handle) {
+        while (($buffer = fgets($handle, 4096)) !== false) {
+	$rows_count = $rows_count +1;
+	$buffer= trim($buffer);
+	$rec = explode(';', $buffer);
+	if($rows_count == 1) {
+	    $i = 0;
+	    foreach ($rec as  $value){
+		if($value == 'Место работы')
+		    $i_organization = $i;
+
+		if($value == 'Должность')
+		    $i_position = $i;
+
+		if($value == 'Структурное подразделение')
+		    $i_subdivision = $i;
+
+		if($value == 'День месяц рождения')
+		    $i_date_of_birth = $i;
+
+		$i = $i+1;
+	    }
+	    continue;
+	}
+	$position_id = 0;
+	$organization_id = 0;
+
+
+	$count_p = 0;
+	$stmt = $dbh->prepare("select `position_id` FROM  `a_positions`  WHERE `name`=?   ");
+        $stmt->execute([trim($rec[$i_position])]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	    $count_p = 1;
+	    $position_id = $row->position_id;
+	}
+	if($count_p == 0 && trim($rec[$i_position]) != '') {
+	    $stmt = $dbh->prepare("INSERT INTO `a_positions`(`name`) VALUES(?)");
+    	    $stmt->execute([trim($rec[$i_position])]);
+	    $position_id = $dbh->lastInsertId(); 
+	}
+
+	$count_o = 0;
+	$stmt = $dbh->prepare("select `organization_id` FROM  `a_organizations`  WHERE `name`=?   ");
+        $stmt->execute([trim($rec[$i_organization])]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	    $count_o = 1;
+	    $organization_id = $row->organization_id;
+	}
+	if($count_o == 0 && trim($rec[$i_organization]) != '') {
+	    $stmt = $dbh->prepare("INSERT INTO `a_organizations`(`name`) VALUES(?)");
+    	    $stmt->execute([trim($rec[$i_organization])]);
+	    $organization_id = $dbh->lastInsertId(); 
+	}
+
+	$count_u = 0;
+	//$stmt = $dbh->prepare("SELECT `user_id` FROM  `a_users`  WHERE `lastname`=? AND  `firstname`=? AND  `middlename`=? AND `organization_id`=?  ");
+        //$stmt->execute([trim($rec[0]), trim($rec[1]) ,trim($rec[2]), $organization_id ]);
+	$stmt = $dbh->prepare("SELECT `user_id` FROM  `a_users`  WHERE `lastname`=? AND  `firstname`=? AND  `middlename`=?   ");
+        $stmt->execute([trim($rec[0]), trim($rec[1]) ,trim($rec[2])]);
+	while($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	    $count_u =  $count_u +1;
+	    $id_user = $row->user_id; 
+
+    	    if($group_id >0) {
+    		$stmt = $dbh->prepare('DELETE FROM `a_groups_users` WHERE `group_id`=? AND   `user_id`=? ');
+		$stmt->execute([$group_id,  $id_user]);
+
+    		$stmt = $dbh->prepare('INSERT INTO `a_groups_users`(`group_id`,  `user_id`) VALUES ( ?, ?)');
+		$stmt->execute([$group_id,  $id_user]);
+	    }
+	}
+
+
+	if($count_u == 0) {
+	    $stmt = $dbh->prepare("INSERT INTO `a_users`(`lastname`, `firstname`, `middlename`, `email`, `login`, `password`, `organization_id`, `position_id`, `subdivision`, `date_of_birth`) VALUES(?,?,?,?,?,?,?,?,?,?)");
+    	    $stmt->execute([trim($rec[0]), trim($rec[1]), trim($rec[2]), '', '', '', $organization_id, $position_id, trim($rec[$i_subdivision]), trim($rec[$i_date_of_birth]) ]);
+	    $id_user = $dbh->lastInsertId(); 
+
+	    if($id_user>0) {
+		$passwd_chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ23456789';
+		$login = 'p' . str_pad("$id_user", 5, '0', STR_PAD_LEFT); 
+		$email = $login . '@mng.cppk.ru';
+		$shfl = str_shuffle($passwd_chars);
+		$password = substr($shfl,0,8);
+ 
+    		$stmt2 = $dbh->prepare('UPDATE `a_users` SET `email`=?, `login`=?, `password`=?  WHERE `user_id`=?');
+    		$stmt2->execute([$email, $login, $password,  $id_user ]);
+	    }
+
+    	    if($group_id >0 && $id_user>0) {
+    		$stmt = $dbh->prepare('DELETE FROM `a_groups_users` WHERE `group_id`=? AND   `user_id`=? ');
+		$stmt->execute([$group_id,  $id_user]);
+
+    		$stmt = $dbh->prepare('INSERT INTO `a_groups_users`(`group_id`,  `user_id`) VALUES ( ?, ?)');
+		$stmt->execute([$group_id,  $id_user]);
+	    }
+	}
+
+        }
+        fclose($handle);
+    }
+    if($_FILES["csvfile"]['type'] == 'application/vnd.ms-excel' && $file!=''){
+        system( 'rm -f ' . $file  );
+    }
+
+    $result = ["status"=>0, "error"=>'',  "isSysAdmin"=>$is_siteadmin, "action"=>"user_import",  "userId"=>$user_id_session, "userInfo"=>["total"=>$rows_count,  "file"=>$_FILES["csvfile"]["name"],  "type"=>$_FILES["csvfile"]["type"]] ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+
+
+if($_POST["group_id"]!='' &&  $_FILES){
+     user_import( intval($_POST["group_id"]) ); 
+}
+
+else {
+    $result = array('POST'=>$_POST, 'GET'=>$_GET, 'FILES'=>$_FILES, 'SERVER'=>$_SERVER);
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+?>

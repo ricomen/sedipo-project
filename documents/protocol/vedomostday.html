@@ -1,0 +1,77 @@
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.7cm; margin-right: 1.7cm; margin-top: 1cm; margin-bottom: 1cm; size: A4 landscape; }
+	p {  direction: ltr;  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-bottom: 2px;  margin-top: 2px; }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 2px;  margin-top: 10px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center; margin-bottom: 2px;  margin-top: 2px; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 14pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-bottom: 2px;  margin-top: 2px; line-height: 96%; }
+	td.boss { text-align:top; font-size: 8pt; line-height: 0%;}
+	td.comand { text-align:middle; font-size: 8pt; margin-right: 20px; }
+	.footer {
+    	width: 100%;
+    	text-align: center;
+    	position: fixed;
+	}
+	.footer {
+	    bottom: 2px;
+	}
+	.pagenum:before {
+		font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: right; margin-bottom: 2px;  margin-top: 2px;
+	}
+
+
+
+    </style>
+	<title>Ведомость</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+
+	<div class="footer">
+		<p class="western"  style="margin-top: 7px; text-align: right;" >
+		<span class="pagenum">Рег. № <u><i><!--({$order_data['invoice']})</i>-->{$course['list_documents_num']}</u></span>
+		</p>
+	</div>
+	<!--<div style="position: absolute; top: -10px; left: 0px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/logo_text.png" width="200px" align="top" ></div>-->
+
+	<h4  class="western" style="margin-top: 0; margin-bottom: 5px;  text-transform: uppercase;">{$self_data['name']}</h4>
+<h2 class="western" style="margin-top: 5px; margin-bottom: 2px; " >ВЕДОМОСТЬ </h2>
+<p  class="center" style="margin-top: 4px;  margin-left: 250px;  margin-right: 250px; line-height: 95%;" >выдачи документов </p>
+
+
+
+<p class="western"  style="margin-top: 7px;" > {$protocol['directive']}</p>
+
+<p class="center" style="margin-bottom: 6px;  margin-top: 6px; line-height: 96%;" > 
+	{$course['category_name']}
+	<!--{$protocol['protocol_p1']}
+    <i>«{$course['name']}»</i>{if $protocol['is_hours_p']} в объеме {$course['hours']} {/if}{$protocol['protocol_p2']}--></p>
+
+
+<table width="107%" cellpadding="2" cellspacing="0">
+	<tr><th   style="border: 1px solid #00000a; padding-left: 3px;  padding-right: 3px; text-align: center; font-size:8pt;" >№ <br /><nobr>п/п</nobr></th>
+	{foreach from=$users_header item=cell name=users_header}
+			<th   style="border: 1px solid #00000a; padding-left: 3px;  padding-right: 3px; text-align: center;" >{$cell}</th>
+	{/foreach}
+	<th rowspan="2" style="border-left: 1px solid #00000a; border-right: none; border-top: none; border-bottom: none;"><div style="transform: rotate(90deg); font-size: 8pt;"><nobr>Рег. № <!--<i>({$order_data['invoice']})</i>-->{$course['list_documents_num']}</nobr></div></th>
+	</tr>
+	{foreach from=$users item=row name=users}
+		<tr><td   style="border: 1px solid #00000a; padding-left: 3px;  padding-right: 3px; text-align: center;" ><nobr>{$smarty.foreach.users.iteration}.</nobr></td>
+		{foreach from=$row item=cell name=users_cell}
+			<td   style="border: 1px solid #00000a; padding-left: 3px;  padding-right: 3px; text-align: center; " >{$cell}</td>
+		{/foreach}
+		<td ></td>
+		</tr>
+	{/foreach}
+	</tr>
+</table>
+
+</body>

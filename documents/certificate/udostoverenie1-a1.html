@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page {padding-left: 0;  margin-left: 0.7cm; margin-right: 0cm; margin-top: 0; margin-bottom: 0; size: A5 portrait; }
+	p {  direction: ltr;  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify;  margin-bottom: 4px;  margin-top: 4px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;   margin-bottom: 4px;  margin-top: 4px;  }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: left;   margin-bottom: 4px;  margin-top: 4px;  }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 16pt; text-align: center;  margin-bottom: 15px;  margin-top: 15px;  }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center;  margin-bottom: 7px;  margin-top: 7px;  }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;  margin-bottom: 5px;  margin-top: 5px;  }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;  margin-bottom: 5px;  margin-top: 5px;  }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	th { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left }
+	td { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left }
+    </style>
+	<title>Документ о квалификации</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#000000" vlink="#000000" alink="#000000">
+<div style="position: relative; top: 0px; right: 0px;">
+  <div style="position: absolute; top: 20px; left: 0px; "> 
+  {if $print_v=="false"}
+    <p class="western"  style="margin-bottom: 15px; ; margin-top: 0px;" ><img src="https://{$smarty.server.SERVER_NAME}/documents/udostoverenie1_1.png" width="250px"></p>
+  {/if}
+  </div>
+  <div style="position: absolute; top: 730px; left: 250px; ">             
+    {if $print_v=="false"}
+      <p class="western" style="text-align: left; font-size: 9pt; " ><i>Действительно до {$cert['date_finish']|date_format:"%e.%m.%Y"}</i></p>
+    {else}
+      <p class="western" style="text-align: left; font-size: 9pt;  margin-left: 120px;" ><i>{$cert['date_finish']|date_format:"%e.%m.%Y"}</i></p>
+    {/if}
+  </div>
+  
+</div>
+<table border="0" width="100%" >
+<tr valign="top">
+<td  align="left"  width="42%">
+<!--<p class="western"  style="margin-bottom: 15px; ; margin-top: 0px;" ><img src="https://ipo.sedipo.ru/documents/udostoverenie1_1.png" width="250px"></p>-->
+<h2 class="western"  style="margin-bottom: 5px;  margin-top: 180px;" ><b>
+  {if $print_v=="false"}
+    УДОСТОВЕРЕНИЕ  №  {$cert['certificate_num']}
+  {else}
+    <span style="margin-left: 210px;" >  {$cert['certificate_num']}</span>
+  {/if}
+</b></h2>
+
+<p class="center"  style="margin-bottom: 15px;  margin-top: 5px;" >о повышении квалификации </p>
+<h4 class="western"  style="margin-bottom: 15px;  margin-top: 5px;" >ПРИЛОЖЕНИЕ </h4>
+
+<table width="100%" border="1" cellspacing="0" cellpadding="5">
+<tr>
+    <th>
+        Наименование модулей
+    </th>
+    <th width="10%" style="text-align: center;">
+        Количество часов
+    </th>
+</tr>    
+<tr>
+    <td>
+        Общепрофессиональный модуль
+    </td>
+    <td style="text-align: center;">
+        {$cert['hours']}
+    </td>
+</tr>    
+{foreach $modules as $item} 
+<tr>
+    <td>
+        {$item['name']}
+    </td>
+    <td style="text-align: center;">
+        {$item['hours']}
+    </td>
+</tr>    
+{/foreach}
+<tr>
+    <td>
+        Итоговая аттестация
+    </td>
+    <td style="text-align: center;">
+        2
+    </td>
+</tr>    
+</table>
+
+
+</td>
+
+<td  align="center" valign="middle" width="8%" >
+    {if $print_v=="false"}
+    <img src="https://{$smarty.server.SERVER_NAME}/documents/udostoverenie1_2.svg" width="80px">
+    {/if}
+</td>
+
+<!--<td width="50%">
+    <p class="western" > &nbsp;</p>
+</td>-->
+</tr>
+</table>
+
+
+
+</body>
+</html>

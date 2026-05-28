@@ -1,0 +1,350 @@
+var Wordvariables = { 
+	data: function () {
+    return {
+	info9: '',
+        role: '',
+		status1: '',
+		textToCopy: '',
+     }
+   },
+
+
+   mounted() {
+    this.session = session_t
+
+
+    },
+
+	methods: {
+
+
+
+	// copyToClipboard(){
+	// try {
+	// 	navigator.clipboard.writeText(this.textToCopy.value);
+	// 	this.status1.value = 'Скопировано!';
+	// } catch (err) {
+	// 	this.status1.value = 'Ошибка при копировании';
+	// 	console.error('Ошибка:', err);
+	// }
+	// }
+
+	async copyToClipboard(textToCopy) {
+      try {
+        // Используем navigator.clipboard.writeText для записи [6]
+        await navigator.clipboard.writeText(textToCopy);
+        //alert('Текст скопирован: ' + textToCopy);
+			// Показ уведомления
+			var x = document.getElementById("toast");
+			x.className = "toast show";
+			
+			// Исчезновение через 3 секунды
+			setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+      } catch (err) {
+        console.error('Ошибка при копировании:', err);
+      }
+    },
+  
+
+	copyText() {
+	// Логика копирования
+	navigator.clipboard.writeText("Текст для копирования");
+	
+	// Показ уведомления
+	var x = document.getElementById("toast");
+	x.className = "toast show";
+	
+	// Исчезновение через 3 секунды
+	setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+	}
+
+
+	},
+
+
+
+	template: `<div><navigation></navigation><h3></h3>
+	<div class="wrapper" >
+	
+	<div style="margin-bottom:30px;"><h2>Список переменных для добавления в шаблон документа MSword</h2>
+	</div>
+	<div style="align:left; margin-left:25px" >
+	
+	<div style="text-align: left" class="accordion border-bottom-0">
+	<div id="toast" class="toast" style="position:sticky; top: 0; width:100%; text-align:center; z-index:999; width:100%">Скопировано</div>
+	<details class="accordion-item">
+    <summary class="accordion-button" style="padding-bottom: 8px; ">
+        <div class="accordion-header user-select-none" style="color:#158cba; font-size:17pt;">Переменные для удостоверений, свидетельств, дипломов и приложений к ним</div>
+    </summary>
+
+	<!--<div style="margin-bottom:30px; color:#158cba;"><h4>Переменные для удостоверений, свидетельств, дипломов и приложений к ним</h4>
+
+	</div>-->
+	<table class="table table-striped" width="100%" border="1">
+	<tbody>
+			<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные курса</b></td></tr>
+	    	<tr><td width="40%" style="text-align:left">Название курса</td><td style="text-align:left" @click="copyToClipboard('\${name}')">\${name}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${name}')" style="color:#158cba;"></i>
+			</td></tr>
+            <tr><td width="40%" style="text-align:left">Краткое название курса</td><td style="text-align:left" @click="copyToClipboard('\${shortname}')" >\${shortname}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${shortname}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Навыки</td><td style="text-align:left" @click="copyToClipboard('\${competence}')" >\${competence}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${competence}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Количество часов</td><td style="text-align:left" @click="copyToClipboard('\${hours}')" >\${hours}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${hours}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Количество часов. Лекции</td><td style="text-align:left" @click="copyToClipboard('\${hours_l}')" >\${hours_l}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${hours_l}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Количество часов. Практические занятия</td><td style="text-align:left" @click="copyToClipboard('\${hours_p}')" >\${hours_p}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${hours_p}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Количество часов. Итоговая аттестация</td><td style="text-align:left" @click="copyToClipboard('\${hours_c}')" s>\${hours_c}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${hours_c}')" style="color:#158cba;"></i></td></tr> 
+			<tr><td width="40%" style="text-align:left">Дата начала</td><td style="text-align:left" @click="copyToClipboard('\${date_begin}')" >\${date_begin}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_begin}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата начала(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${date_begin_rus}')" >\${date_begin_rus}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_begin_rus}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата начала, месяц(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${date_begin_rus_m}')" >\${date_begin_rus_m}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_begin_rus_m}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата завершения</td><td style="text-align:left" @click="copyToClipboard('\${date_end}')" >\${date_end}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_end}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата завершения(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${date_end_rus}')" >\${date_end_rus}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_end_rus}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата завершения, месяц(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${date_end_rus_m}')" >\${date_end_rus_m}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_end_rus_m}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата протокола</td><td style="text-align:left" @click="copyToClipboard('\${date_protocol}')" >\${date_protocol}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_protocol}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата протокола(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${date_protocol_rus}')" >\${date_protocol_rus}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_protocol_rus}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата протокола, месяц(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${date_protocol_rus_m}')" >\${date_protocol_rus_m}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_protocol_rus_m}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата окончания срока действия обучения</td><td style="text-align:left" @click="copyToClipboard('\${date_finish}')" >\${date_finish}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_finish}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата окончания срока действия обучения(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${date_finish_rus}')" >\${date_finish_rus}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_finish_rus}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Дата окончания срока действия обучения. Месяц(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${date_finish_rus_m}')" >\${date_finish_rus_m}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${date_finish_rus_m}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Квалификация</td><td style="text-align:left" @click="copyToClipboard('\${qualification}')" >\${qualification}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${qualification}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Номер протокола</td><td style="text-align:left" @click="copyToClipboard('\${protocol_num}')" >\${protocol_num}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${protocol_num}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Разряд / Уровень</td><td style="text-align:left" @click="copyToClipboard('\${rank_of_profession}')" >\${rank_of_profession}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${rank_of_profession}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Номер бланка строгой отчётности</td><td style="text-align:left" @click="copyToClipboard('\${blank_number}')" >\${blank_number}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${blank_number}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Квалификационная работа</td><td style="text-align:left" @click="copyToClipboard('\${qualification_work}')" >\${qualification_work}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${qualification_work}')" style="color:#158cba;"></i></td></tr>
+            <tr><td width="40%" style="text-align:left">Область деятельности</td><td style="text-align:left" @click="copyToClipboard('\${area}')" >\${area}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${area}')" style="color:#158cba;"></i></td></tr>
+
+			<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные слушателя</b></td></tr>
+			<tr><td width="40%" style="text-align:left">Уровень образования</td><td style="text-align:left" @click="copyToClipboard('\${level_of_education}')" >\${level_of_education}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${level_of_education}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Фамилия</td><td style="text-align:left" @click="copyToClipboard('\${lastname}')" >\${lastname}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${lastname}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Имя</td><td style="text-align:left" @click="copyToClipboard('\${firstname}')" >\${firstname}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${firstname}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Отчество</td><td style="text-align:left" @click="copyToClipboard('\${middlename}')" >\${middlename}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${middlename}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Серия диплома</td><td style="text-align:left" @click="copyToClipboard('\${diplom_series}')" >\${diplom_series}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${diplom_series}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Номер диплома</td><td style="text-align:left" @click="copyToClipboard('\${diplom_number}')" >\${diplom_number}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${diplom_number}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Фамилия в дипломе</td><td style="text-align:left" @click="copyToClipboard('\${diplom_lastname}')" >\${diplom_lastname}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${diplom_lastname}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Уровень Диплома(Диплом о среднем профессиональном образовании, Диплом о высшем образовании)</td><td style="text-align:left" @click="copyToClipboard('\${level_of_diplom}')" >\${level_of_diplom}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${level_of_diplom}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Фамилия в дательном падеже</td><td style="text-align:left" @click="copyToClipboard('\${lastname_d}')" >\${lastname_d}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${lastname_d}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Имя в дательном падеже</td><td style="text-align:left" @click="copyToClipboard('\${firstname_d}')" >\${firstname_d}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${firstname_d}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Отчество в дательном падеже</td><td style="text-align:left" @click="copyToClipboard('\${middlename_d}')" >\${middlename_d}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${middlename_d}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">ФИО в дательном падеже</td><td style="text-align:left" @click="copyToClipboard('\${fio_d}')" >\${fio_d}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${fio_d}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Название организации</td><td style="text-align:left" @click="copyToClipboard('\${counterparty_name}')" >\${counterparty_name}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${counterparty_name}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Краткое название организации</td><td style="text-align:left" @click="copyToClipboard('\${counterparty_shortname}')" >\${counterparty_shortname}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${counterparty_shortname}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Должность</td><td style="text-align:left" @click="copyToClipboard('\${job_title}')" >\${job_title}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${job_title}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Категория</td><td style="text-align:left" @click="copyToClipboard('\${rank_of_profession}')" >\${rank_of_profession}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${rank_of_profession}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Номер бланка</td><td style="text-align:left" @click="copyToClipboard('\${blank_number}')" >\${blank_number}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${blank_number}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Номер документа</td><td style="text-align:left" @click="copyToClipboard('\${certificate_num}')" >\${certificate_num} </td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${certificate_num}')" style="color:#158cba;"></i></td></tr>
+
+			<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные организации</b></td></tr>
+			<tr><td width="40%" style="text-align:left">Название</td><td style="text-align:left" @click="copyToClipboard('\${self-name}')" >\${self-name}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-name}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Краткое название</td><td style="text-align:left" @click="copyToClipboard('\${self-shortname}')" >\${self-shortname}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-shortname}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">ИНН</td><td style="text-align:left" @click="copyToClipboard('\${self-inn}')" >\${self-inn}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-inn}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">КПП</td><td style="text-align:left" @click="copyToClipboard('\${self-kpp}')" >\${self-kpp}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-kpp}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">ОГРН</td><td style="text-align:left" @click="copyToClipboard('\${self-ogrn}')" >\${self-ogrn}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-ogrn}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Юридический адрес</td><td style="text-align:left" @click="copyToClipboard('\${self-addres1}')" >\${self-addres1}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-addres1}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Фактический адрес</td><td style="text-align:left" @click="copyToClipboard('\${self-addres2}')" >\${self-addres2}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-addres2}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Телефон</td><td style="text-align:left" @click="copyToClipboard('\${self-phone}')" >\${self-phone}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-phone}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Должность руководителя</td><td style="text-align:left" @click="copyToClipboard('\${self-position_head}')" >\${self-position_head}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-position_head}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">ФИО руководителя</td><td style="text-align:left" @click="copyToClipboard('\${self-enterprise_manager}')" >\${self-enterprise_manager}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-enterprise_manager}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Должность руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${self-position_head2}')" >\${self-position_head2}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-position_head2}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">ФИО руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${self-enterprise_manager2}')" >\${self-enterprise_manager2}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-enterprise_manager2}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Фамилия И.О. руководителя</td><td style="text-align:left" @click="copyToClipboard('\${self-enterprise_manager3}')" >\${self-enterprise_manager3}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-enterprise_manager3}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">И.О. Фамилия руководителя</td><td style="text-align:left" @click="copyToClipboard('\${self-enterprise_manager4}')" >\${self-enterprise_manager4}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-enterprise_manager4}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Банк</td><td style="text-align:left" @click="copyToClipboard('\${self-bank}')" >\${self-bank}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-bank}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Расчетный счёт</td><td style="text-align:left" @click="copyToClipboard('\${self-checking_account}')" >\${self-checking_account}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-checking_account}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Корреспондентский счёт</td><td style="text-align:left" @click="copyToClipboard('\${self-correspondent_account}')" >\${self-correspondent_account}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-correspondent_account}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">БИК</td><td style="text-align:left" @click="copyToClipboard('\${self-bik}')" >\${self-bik}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-bik}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Лицензия</td><td style="text-align:left" @click="copyToClipboard('\${self-license}')" >\${self-license}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-license}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Аккредитация</td><td style="text-align:left" @click="copyToClipboard('\${self-accreditation}')" >\${self-accreditation}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-accreditation}')" style="color:#158cba;"></i></td></tr>
+			<tr><td width="40%" style="text-align:left">Город</td><td style="text-align:left" @click="copyToClipboard('\${self-city}')" >\${self-city}</td><td> <i class="fa-solid fa-clone" @click="copyToClipboard('\${self-city}')" style="color:#158cba;"></i></td></tr>
+	</tbody>
+	</table>	
+	</details>
+		<details class="accordion-item">
+    <summary class="accordion-button" style="padding-bottom: 8px; ">
+        <div class="accordion-header user-select-none" style="color:#158cba; font-size:17pt;">Переменные для договоров, приложений к договорам, согласиям по обработке данных </div>
+    </summary>
+
+	
+	<!--<div style="margin-bottom:30px; color:#158cba;"><h4>Переменные для договоров, приложений к договорам, согласиям по обработке данных </h4>
+
+	</div>-->
+	<table class="table table-striped" width="100%" border="1">
+	<tbody>
+
+	
+		<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные слушателя</b></td></tr>
+
+		 <tr><td width="40%" style="text-align:left">Номер слушателя</td><td style="text-align:left" @click="copyToClipboard('\${students-number}')" >\${students-number}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-number}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Фамилия</td><td style="text-align:left" @click="copyToClipboard('\${students-lastname}')" >\${students-lastname}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-lastname}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Имя</td><td style="text-align:left" @click="copyToClipboard('\${students-firstname}')" >\${students-firstname}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-firstname}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Отчество</td><td style="text-align:left" @click="copyToClipboard('\${students-middlename}')" >\${students-middlename}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-middlename}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Должность</td><td style="text-align:left" @click="copyToClipboard('\${students-job_of_title}')" >\${students-job_of_title}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-job_of_title}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Дата рождения</td><td style="text-align:left" @click="copyToClipboard('\${students-date_of_birth}')" >\${students-date_of_birth}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-date_of_birth}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Возраст</td><td style="text-align:left" @click="copyToClipboard('\${students-user_age}')" >\${students-user_age}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-user_age}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">СНИЛС</td><td style="text-align:left" @click="copyToClipboard('\${students-snils}')" >\${students-snils}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-snils}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Адрес</td><td style="text-align:left" @click="copyToClipboard('\${students-address}')" >\${students-address}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-address}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Серия паспорта</td><td style="text-align:left" @click="copyToClipboard('\${students-pasport_series}')" >\${students-pasport_series}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-pasport_series}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Номер паспорта</td><td style="text-align:left" @click="copyToClipboard('\${students-pasport_number}')" >\${students-pasport_number}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-pasport_number}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Кто выдал</td><td style="text-align:left" @click="copyToClipboard('\${students-pasport_unit}')" >\${students-pasport_unit}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-pasport_unit}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Номер подразделения</td><td style="text-align:left" @click="copyToClipboard('\${students-pasport_unit_number}')" >\${students-pasport_unit_number}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-pasport_unit_number}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Емайл</td><td style="text-align:left" @click="copyToClipboard('\${students-email}')" >\${students-email}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-email}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Телефон</td><td style="text-align:left" @click="copyToClipboard('\${students-phone}')" >\${students-phone}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-phone}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">id договора</td><td style="text-align:left" @click="copyToClipboard('\${students-contr_id}')" >\${students-contr_id}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-contr_id}')" style="color:#158cba;"></i></td></tr>
+         <tr><td width="40%" style="text-align:left">Фамилия И.О.</td><td style="text-align:left" @click="copyToClipboard('\${students-fullname3}')" >\${students-fullname3}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${students-fullname3}')" style="color:#158cba;"></i></td></tr>
+
+
+
+
+		<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные курса</b></td></tr>	
+
+		<tr><td width="40%" style="text-align:left">Номер </td><td style="text-align:left" @click="copyToClipboard('\${courses-number}')" >\${courses-number}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-number}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Название </td><td style="text-align:left" @click="copyToClipboard('\${courses-name}')" >\${courses-name}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-name}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Краткое название </td><td style="text-align:left" @click="copyToClipboard('\${courses-shortname}')" >\${courses-shortname}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-shortname}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Цена курса</td><td style="text-align:left" @click="copyToClipboard('\${courses-price}')" >\${courses-price}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-price}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Количество курсов в заявке</td><td style="text-align:left" @click="copyToClipboard('\${courses-count}')" >\${courses-count}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-count}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Часы</td><td style="text-align:left" @click="copyToClipboard('\${courses-hours}')" >\${courses-hours}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-hours}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Форма обучения</td><td style="text-align:left" @click="copyToClipboard('\${courses-form_of_study}')" >\${courses-form_of_study}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-form_of_study}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Категория</td><td style="text-align:left" @click="copyToClipboard('\${courses-category_id}')" >\${courses-category_id}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-category_id}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Вид образовательной услуги</td><td style="text-align:left" @click="copyToClipboard('\${courses-type_of_education}')" >\${courses-type_of_education}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-type_of_education}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Подвид образовательной услуги</td><td style="text-align:left" @click="copyToClipboard('\${courses-subtype_of_education}')" >\${courses-subtype_of_education}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-subtype_of_education}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Вид образовательной программы</td><td style="text-align:left" @click="copyToClipboard('\${courses-type_of_program}')" >\${courses-type_of_program}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-type_of_program}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Название документа об образовании</td><td style="text-align:left" @click="copyToClipboard('\${courses-certificate_name}')" >\${courses-certificate_name}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-certificate_name}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Квалификация</td><td style="text-align:left" @click="copyToClipboard('\${courses-qualification}')" >\${courses-qualification}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-qualification}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Название второго документа об образовании</td><td style="text-align:left" @click="copyToClipboard('\${courses-certificate2_name}')" >\${courses-certificate2_name}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-certificate2_name}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">?</td><td style="text-align:left" @click="copyToClipboard('\${courses-order_service}')" >\${courses-order_service}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-order_service}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">?</td><td style="text-align:left" @click="copyToClipboard('\${courses-units}')" >\${courses-units}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-units}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Адрес места обучения</td><td style="text-align:left" @click="copyToClipboard('\${courses-addres}')" >\${courses-addres}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-addres}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Дата начала</td><td style="text-align:left" @click="copyToClipboard('\${courses-date_begin}')" >\${courses-date_begin}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-date_begin}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Дата завершения</td><td style="text-align:left" @click="copyToClipboard('\${courses-date_end}')" >\${courses-date_end}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-date_end}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Дата протокола</td><td style="text-align:left" @click="copyToClipboard('\${courses-date_protocol}')" >\${courses-date_protocol}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-date_protocol}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Дата протокола(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${courses-date_protocol_rus}')" >\${courses-date_protocol_rus}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-date_protocol_rus}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Навыки</td><td style="text-align:left" @click="copyToClipboard('\${courses-competence}')" >\${courses-competence}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-competence}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Область</td><td style="text-align:left" @click="copyToClipboard('\${courses-area}')" >\${courses-area}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${courses-area}')" style="color:#158cba;"></i></td></tr>
+
+		<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные заказчика</b></td></tr>
+
+		<tr><td width="40%" style="text-align:left">Номер заказа</td><td style="text-align:left" @click="copyToClipboard('\${order_num}')" >\${order_num}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${order_num}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Название</td><td style="text-align:left" @click="copyToClipboard('\${name}')" >\${name}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${name}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Краткое название</td><td style="text-align:left" @click="copyToClipboard('\${shortname}')" >\${shortname}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${shortname}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">id организации</td><td style="text-align:left" @click="copyToClipboard('\${counterparty_id}')" >\${counterparty_id}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${counterparty_id}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">ИНН</td><td style="text-align:left" @click="copyToClipboard('\${inn}')" >\${inn}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${inn}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">КПП</td><td style="text-align:left" @click="copyToClipboard('\${kpp}')" >\${kpp}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${kpp}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">ОГРН</td><td style="text-align:left" @click="copyToClipboard('\${ogrn}')" >\${ogrn}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${ogrn}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Юридический адрес</td><td style="text-align:left" @click="copyToClipboard('\${addres1}')" >\${addres1}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${addres1}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Фактический адрес</td><td style="text-align:left" @click="copyToClipboard('\${addres2}')" >\${addres2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${addres2}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Телефон</td><td style="text-align:left" @click="copyToClipboard('\${phone}')" >\${phone}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${phone}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Должность руководителя</td><td style="text-align:left" @click="copyToClipboard('\${position_head}')" >\${position_head}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${position_head}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Должность руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${position_head2}')" >\${position_head2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${position_head2}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">ФИО руководителя</td><td style="text-align:left" @click="copyToClipboard('\${enterprise_manager}')" >\${enterprise_manager}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${enterprise_manager}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">ФИО руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${enterprise_manager2}')" >\${enterprise_manager2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${enterprise_manager2}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Фамилия И.О. руководителя</td><td style="text-align:left" @click="copyToClipboard('\${enterprise_manager3}')" >\${enterprise_manager3}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${enterprise_manager3}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Банк</td><td style="text-align:left" @click="copyToClipboard('\${bank}')" >\${bank}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${bank}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Расчетный счёт</td><td style="text-align:left" @click="copyToClipboard('\${checking_account}')" >\${checking_account}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${checking_account}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Корреспондентский счёт</td><td style="text-align:left" @click="copyToClipboard('\${correspondent_account}')" >\${correspondent_account}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${correspondent_account}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">БИК</td><td style="text-align:left" @click="copyToClipboard('\${bik}')" >\${bik}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${bik}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Дата заказа</td><td style="text-align:left" @click="copyToClipboard('\${date_order}')" >\${date_order}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${date_order}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Номер</td><td style="text-align:left" @click="copyToClipboard('\${number}')" >\${number}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${number}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Дата начала</td><td style="text-align:left" @click="copyToClipboard('\${date_begin}')" >\${date_begin}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${date_begin}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Дата завершения</td><td style="text-align:left" @click="copyToClipboard('\${date_end}')" >\${date_end}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${date_end}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Дата Акта</td><td style="text-align:left" @click="copyToClipboard('\${date_completed}')" >\${date_completed}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${date_completed}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Сумма</td><td style="text-align:left" @click="copyToClipboard('\${price_sum}')" >\${price_sum}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${price_sum}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Сумма(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${price_sum_str}')" >\${price_sum_str}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${price_sum_str}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">НДС</td><td style="text-align:left" @click="copyToClipboard('\${price_nds}')" >\${price_nds}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${price_nds}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">НДС(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${price_nds_str}')" >\${price_nds_str}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${price_nds_str}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Сумма с НДС</td><td style="text-align:left" @click="copyToClipboard('\${price_sum_nds}')" >\${price_sum_nds}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${price_sum_nds}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Сумма с НДС(русскими прописными буквами)</td><td style="text-align:left" @click="copyToClipboard('\${price_sum_nds_str}')" >\${price_sum_nds_str}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${price_sum_nds_str}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Номер договора</td><td style="text-align:left" @click="copyToClipboard('\${contract_number}')" >\${contract_number}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${contract_number}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Дата действия договора</td><td style="text-align:left" @click="copyToClipboard('\${date_order_finish}')" >\${date_order_finish}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${date_order_finish}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Долгосрочный договор</td><td style="text-align:left" @click="copyToClipboard('\${longtime_contract}')" >\${longtime_contract}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${longtime_contract}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">id платильщика</td><td style="text-align:left" @click="copyToClipboard('\${payer_id}')" >\${payer_id}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer_id}')" style="color:#158cba;"></i></td></tr>
+		<tr><td width="40%" style="text-align:left">Номер счёта</td><td style="text-align:left" @click="copyToClipboard('\${invoice}')" >\${invoice}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${invoice}')" style="color:#158cba;"></i></td></tr>
+
+		<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные платильщика</b></td></tr>
+
+		<tr><td width="40%" style="text-align:left">Название</td><td style="text-align:left" @click="copyToClipboard('\${payer-name}')" >\${payer-name}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-name}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Краткое название</td><td style="text-align:left" @click="copyToClipboard('\${payer-shortname}')" >\${payer-shortname}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-shortname}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ИНН</td><td style="text-align:left" @click="copyToClipboard('\${payer-inn}')" >\${payer-inn}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-inn}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">КПП</td><td style="text-align:left" @click="copyToClipboard('\${payer-kpp}')" >\${payer-kpp}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-kpp}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ОГРН</td><td style="text-align:left" @click="copyToClipboard('\${payer-ogrn}')" >\${payer-ogrn}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-ogrn}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Юридический адрес</td><td style="text-align:left" @click="copyToClipboard('\${payer-addres1}')" >\${payer-addres1}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-addres1}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Фактический адрес</td><td style="text-align:left" @click="copyToClipboard('\${payer-addres2}')" >\${payer-addres2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-addres2}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Город</td><td style="text-align:left" @click="copyToClipboard('\${payer-city}')" >\${payer-city}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-city}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Емаил</td><td style="text-align:left" @click="copyToClipboard('\${payer-email}')" >\${payer-email}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-email}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Телефон</td><td style="text-align:left" @click="copyToClipboard('\${payer-phone}')" >\${payer-phone}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-phone}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Должность руководителя</td><td style="text-align:left" @click="copyToClipboard('\${payer-position_head}')" >\${payer-position_head}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-position_head}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ФИО руководителя</td><td style="text-align:left" @click="copyToClipboard('\${payer-enterprise_manager}')" >\${payer-enterprise_manager}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-enterprise_manager}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Должность руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${payer-position_head2}')" >\${payer-position_head2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-position_head2}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ФИО руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${payer-enterprise_manager}')" >\${payer-enterprise_manager2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-enterprise_manager}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Фамилия И.О. руководителя</td><td style="text-align:left" @click="copyToClipboard('\${payer-enterprise_manager}')" >\${payer-enterprise_manager3}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-enterprise_manager}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Подпись руководителя</td><td style="text-align:left" @click="copyToClipboard('\${payer-enterprise_manager_signs}')" >\${payer-enterprise_manager_signs}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-enterprise_manager_signs}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Банк</td><td style="text-align:left" @click="copyToClipboard('\${payer-bank}')" >\${payer-bank}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-bank}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Расчетный счёт</td><td style="text-align:left" @click="copyToClipboard('\${payer-checking_account}')" >\${payer-checking_account}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-checking_account}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Корреспондентский счёт</td><td style="text-align:left" @click="copyToClipboard('\${payer-correspondent_account}')" >\${payer-correspondent_account}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-correspondent_account}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Бик</td><td style="text-align:left" @click="copyToClipboard('\${payer-bik}')" >\${payer-bik}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-bik}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Лицензия</td><td style="text-align:left" @click="copyToClipboard('\${payer-license}')" >\${payer-license}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-license}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Аккредитация</td><td style="text-align:left" @click="copyToClipboard('\${payer-accreditation}')" >\${payer-accreditation}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${payer-accreditation}')" style="color:#158cba;"></i></td></tr>
+
+		<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные организации</b></td></tr>
+
+	    <tr><td width="40%" style="text-align:left">Название</td><td style="text-align:left" @click="copyToClipboard('\${self-name}')" >\${self-name}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-name}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Краткое название</td><td style="text-align:left" @click="copyToClipboard('\${self-shortname}')" >\${self-shortname}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-shortname}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ИНН</td><td style="text-align:left" @click="copyToClipboard('\${self-inn}')" >\${self-inn}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-inn}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">КПП</td><td style="text-align:left" @click="copyToClipboard('\${self-kpp}')" >\${self-kpp}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-kpp}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ОГРН</td><td style="text-align:left" @click="copyToClipboard('\${self-ogrn}')" >\${self-ogrn}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-ogrn}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Юридический адрес</td><td style="text-align:left" @click="copyToClipboard('\${self-addres1}')" >\${self-addres1}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-addres1}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Фактический адрес</td><td style="text-align:left" @click="copyToClipboard('\${self-addres2}')" >\${self-addres2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-addres2}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Город</td><td style="text-align:left" @click="copyToClipboard('\${self-city}')" >\${self-city}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-city}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Емайл</td><td style="text-align:left" @click="copyToClipboard('\${self-email}')" >\${self-email}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-email}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Телефон</td><td style="text-align:left" @click="copyToClipboard('\${self-phone}')" >\${self-phone}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-phone}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Должность руководителя</td><td style="text-align:left" @click="copyToClipboard('\${self-position_head}')" >\${self-position_head}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-position_head}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ФИО руководителя</td><td style="text-align:left" @click="copyToClipboard('\${self-enterprise_manager}')" >\${self-enterprise_manager}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-enterprise_manager}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Должность руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${self-position_head2}')" >\${self-position_head2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-position_head2}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ФИО руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${self-enterprise_manager2}')" >\${self-enterprise_manager2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-enterprise_manager2}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Фамилия И.О. руководителя</td><td style="text-align:left" @click="copyToClipboard('\${self-enterprise_manager3}')" >\${self-enterprise_manager3}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-enterprise_manager3}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Подпись руководителя</td><td style="text-align:left" @click="copyToClipboard('\${self-enterprise_manager_signs}')" >\${self-enterprise_manager_signs}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-enterprise_manager_signs}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Банк</td><td style="text-align:left" @click="copyToClipboard('\${self-bank}')" >\${self-bank}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-bank}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Расчетный счёт</td><td style="text-align:left" @click="copyToClipboard('\${self-checking_account}')" >\${self-checking_account}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-checking_account}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Корреспондентский счёт</td><td style="text-align:left" @click="copyToClipboard('\${self-correspondent_account}')" >\${self-correspondent_account}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-correspondent_account}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">БИК</td><td style="text-align:left" @click="copyToClipboard('\${self-bik}')" >\${self-bik}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-bik}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Лицензия</td><td style="text-align:left" @click="copyToClipboard('\${self-license}')" >\${self-license}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-license}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Аккредитация</td><td style="text-align:left" @click="copyToClipboard('\${self-accreditation}')" >\${self-accreditation}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${self-accreditation}')" style="color:#158cba;"></i></td></tr>
+
+	  	<tr><td colspan="3" style="text-align:center; padding-bottom:10px; padding-top:10px;"><b>Данные стороннего обучающего центра</b></td></tr>
+
+		<tr><td width="40%" style="text-align:left">Название</td><td style="text-align:left" @click="copyToClipboard('\${performer-name}')" >\${performer-name}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-name}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Краткое название</td><td style="text-align:left" @click="copyToClipboard('\${performer-shortname}')" >\${performer-shortname}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-shortname}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ИНН</td><td style="text-align:left" @click="copyToClipboard('\${performer-inn}')" >\${performer-inn}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-inn}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">КПП</td><td style="text-align:left" @click="copyToClipboard('\${performer-kpp}')" >\${performer-kpp}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-kpp}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ОГРН</td><td style="text-align:left" @click="copyToClipboard('\${performer-ogrn}')" >\${performer-ogrn}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-ogrn}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Юридический адрес</td><td style="text-align:left" @click="copyToClipboard('\${performer-addres1}')" >\${performer-addres1}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-addres1}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Фактический адрес</td><td style="text-align:left" @click="copyToClipboard('\${performer-addres2}')" >\${performer-addres2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-addres2}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Город</td><td style="text-align:left" @click="copyToClipboard('\${performer-city}')" >\${performer-city}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-city}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Емайл</td><td style="text-align:left" @click="copyToClipboard('\${performer-email}')" >\${performer-email}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-email}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Телефон</td><td style="text-align:left" @click="copyToClipboard('\${performer-phone}')" >\${performer-phone}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-phone}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Должность руководителя</td><td style="text-align:left" @click="copyToClipboard('\${performer-position_head}')" >\${performer-position_head}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-position_head}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ФИО руководителя</td><td style="text-align:left" @click="copyToClipboard('\${performer-enterprise_manager}')" >\${performer-enterprise_manager}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-enterprise_manager}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Должность руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${performer-position_head2}')" >\${performer-position_head2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-position_head2}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">ФИО руководителя в родительном падеже</td><td style="text-align:left" @click="copyToClipboard('\${performer-enterprise_manager2}')" >\${performer-enterprise_manager2}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-enterprise_manager2}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Фамилия И.О. руководителя</td><td style="text-align:left" @click="copyToClipboard('\${performer-enterprise_manager3}')" >\${performer-enterprise_manager3}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-enterprise_manager3}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Подпись руководителя</td><td style="text-align:left" @click="copyToClipboard('\${performer-enterprise_manager_signs}')" >\${performer-enterprise_manager_signs}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-enterprise_manager_signs}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Банк</td><td style="text-align:left" @click="copyToClipboard('\${performer-bank}')" >\${performer-bank}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-bank}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Расчетный счёт</td><td style="text-align:left" @click="copyToClipboard('\${performer-checking_account}')" >\${performer-checking_account}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-checking_account}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Корреспондентский счёт</td><td style="text-align:left" @click="copyToClipboard('\${performer-correspondent_account}')" >\${performer-correspondent_account}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-correspondent_account}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">БИК</td><td style="text-align:left" @click="copyToClipboard('\${performer-bik}')" >\${performer-bik}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-bik}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Лицензия</td><td style="text-align:left" @click="copyToClipboard('\${performer-license}')" >\${performer-license}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-license}')" style="color:#158cba;"></i></td></tr>
+        <tr><td width="40%" style="text-align:left">Аккредитация</td><td style="text-align:left" @click="copyToClipboard('\${performer-accreditation}')" >\${performer-accreditation}</td><td><i class="fa-solid fa-clone" @click="copyToClipboard('\${performer-accreditation}')" style="color:#158cba;"></i></td></tr>
+
+
+
+	</tbody>
+	</table>	
+	</details>
+	</div>
+	</div>
+
+  <br />
+  <div class="mb-2">
+    <div align="right">
+      <router-link :to="{name: 'template_list'}" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+    </div>
+  </div>
+ </div>
+
+	</div>`
+};

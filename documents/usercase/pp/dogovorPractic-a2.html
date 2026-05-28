@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p { margin-bottom: 0.25cm; direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0.4cm; margin-bottom: 0.4cm;  }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cmargin-top: 0.1cm; m; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+	<title>Приложение 2</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+    
+    <table width="100%" cellpadding="7" cellspacing="0">
+        <tr>
+            <td width="30%">
+                
+            </td>
+            <td>
+                <p class="western" style="text-align: right;">
+                <b>Приложение № 2</b> <br />
+                к договору №{$order_data['contract_number']} от {$order_data['date_order']|date_format:"%e.%m.%Y"} г.<br />
+                на организацию и проведение производственной практики
+                </p>
+            </td>
+        </tr>
+        </table>
+        <!-- <p class="western" style="text-align:center;  margin-bottom: 0;"><b>Спецификация № {$order_data['contract_number']}</b><br \>
+            к договору возмездного оказания услуг №  CED-ОТ/{$order_data['contract_number']} от {$order_data['date_order']|date_format:"%e.%m.%Y"} г.   
+        </p>-->
+
+<p class="western" style="text-align:center;  margin-bottom: 0;"><b>Стоимость услуг
+    </b></p>
+    <p class="western"  style="page-break-before: auto; margin-top: 0; margin-bottom: 0.3cm; text-indent: 40px;">
+        Стоимость оказываемых услуг составляет {$order_data['price_sum']} рублей ({$order_data['price_sum_str']})
+    </p>
+    <table width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid;" >
+	<tr valign="top">
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			№
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			Профессия
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			Количество, <br \>чел.
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			Стоимость <br />руб.
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			Общая стоимость <br />руб.
+		</th>
+	</tr>
+{foreach from=$courses item=row name=course}
+    <tr>
+        <td  style="background: transparent; border: 1px solid #000000; text-align:center;">{$smarty.foreach.course.iteration}. </td>
+        <td  style="background: transparent; border: 1px solid #000000; ">{$row['name']} </td>
+        <td  style="background: transparent; border: 1px solid #000000; text-align:center;">{$row['count']} </td>
+        <td  style="background: transparent; border: 1px solid #000000; text-align:center;">{$row['price']}</td>
+        <td  style="background: transparent; border: 1px solid #000000; text-align:center;">{$row['price'] * $row['count']} </td>
+    </tr>
+{/foreach}
+    <tr style="page-break-before: avoid;">
+        <td  style="background: transparent; border: nome; "></td>
+        <td  style="background: transparent; border: nome; "></td>
+        <td  style="background: transparent; border: nome; "> </td>
+        <td  style="background: transparent; border: nome; text-align:right;">Итого: </td>
+        <td  style="background: transparent; border: nome; text-align:center; ">{$order_data['price_sum']}</td>
+    </tr>
+    </table>
+
+
+
+    <table width="100%" cellpadding="7" cellspacing="0">
+    <tr>
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            <b>Заказчик: <br />
+            {$order_data['name']}
+            <br />
+            <br />
+            <br />
+            </b>
+
+            Директор ________________/<u>{$order_data['enterprise_manager3']}</u>/ <br />
+            М.П.
+            </p>
+
+        </td>
+        <td style="vertical-align:top">
+            <p class="western" style="text-align: left;">
+            <b>
+            Исполнитель:<br />
+            ООО «ИПО»<br />
+            <br />
+            <br />
+            <br />
+            <br />
+            </b>
+ 
+
+            Директор_______________ /<u>{$self_data['enterprise_manager3']}</u>/<br />
+            М.П.
+            </p>
+
+        </td>
+    </tr>
+    </table>
+</body>
+</html>

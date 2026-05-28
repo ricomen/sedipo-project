@@ -1,0 +1,251 @@
+var SetTemplateContract  = {
+  data: function () {
+    return {
+      role: '',
+      info: [],
+      info1: [],
+      info2: [],
+      info4: [],
+      info5: [],
+      info9: [],
+      message: '',
+      contract_id: [],
+      contract_name: [],
+      contract_prefix: [],
+      contract1_id: [],
+      contract2_id: [],
+      contract3_id: [],
+      b_contract_id: [],
+      b_contract_prefix: [],
+      }
+   },
+
+   mounted() {
+
+    var conditions =  {"type": 0}
+    axios
+      .post(JsonApiURL+'api/contract_json.php', {list: {conditions,  sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+            var contracs_count = this.info.list.length
+
+            for(var i = 0; i<contracs_count; i++){
+                 this.contract_name[i] = this.info.list[i].name
+                 this.contract_id[i] = this.info.list[i].template_id
+                 this.contract1_id[i] = this.info.list[i].template1_id
+                 this.contract2_id[i] = this.info.list[i].template2_id
+                 this.contract3_id[i] = this.info.list[i].template3_id
+                 this.contract_prefix[i] = this.info.list[i].prefix
+            }
+
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+
+    conditions =  {"type": 1}
+    axios
+      .post(JsonApiURL+'api/contract_json.php', {list: {conditions,  sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info1 = response.data
+            var contracs_count = this.info1.list.length
+
+            for(var i = 0; i<contracs_count; i++){
+                 this.contract1_name[i] = this.info1.list[i].name
+                 this.contract1_id[i] = this.info1.list[i].template_id
+
+            }
+
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+
+
+    conditions =  {"type": 10}
+    axios
+      .post(JsonApiURL+'api/contract_json.php', {list: {conditions,  sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info2 = response.data
+            var contracs_count = this.info2.list.length
+
+            for(var i = 0; i<contracs_count; i++){
+                 this.b_contract_id[i] = this.info2.list[i].template_id
+
+            }
+
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+
+
+    conditions =  {"type": 5}
+    axios
+      .post(JsonApiURL+'api/template_json.php', {list: {conditions,  sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info5 = response.data
+
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+
+    conditions =  {"type": 4}
+    axios
+      .post(JsonApiURL+'api/template_json.php', {list: {conditions,  sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info4 = response.data
+
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+
+  },
+
+//    updated() {
+//      .post(JsonApiURL+'api/set_template_contract_json.php', {object: {objectId: this.course_id, sessionId: session_t.sessionId } })
+
+//  },
+
+
+  methods: {
+    objectSave() {
+ this.$router.push({ name: 'template_list' }) 
+
+        axios
+            .post(JsonApiURL+'api/set_template_contract_json.php', {update: {objectId: 0,   sessionId: session_t.sessionId } })
+            .then(response => {
+              console.log(response)
+    	      //this.info9 = response.data
+              this.$router.push({ name: 'template_list' }) 
+
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+         }
+
+   },
+
+
+	template: `<div><navigation></navigation><h3>Шаблоны договоров</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+<div  v-if="role=='admin' || role=='metodist' " align="left">
+<br />
+
+
+  <span  v-for="(item, index) in info.list" >
+  <div class="mb-2 row">
+      <label for="input_directive" class="form-label col-sm-2">Наименование  </label>
+      <div class="form-label col-sm">
+      <input v-model="contract_name[index]"   class="form-control" id="input_directive" type="text" readonly />
+      </div>
+      <label for="input_prefix" class="form-label col-sm-1" style="text-align: right;">Префикс:  </label>
+      <div class="form-label col-sm-2">
+      <input v-model="contract_prefix[index]"   class="form-control" id="input_prefix" type="text" />
+      </div>
+      <!--<div clacc="col-1"> </div>-->
+  </div>
+
+  <div  class="mb-3 row">
+      <label for="input_protocol" class="form-label col-sm-2">Шаблон договора </label>
+      <div class="mb-3 col">
+      	<select  v-model="contract_id[index]"  id="input_protocol" class="form-select col" aria-label="template" >
+	        <option value="0"> -  Шаблон договора  - </option>
+            <option v-for="item2 in info5.list" :value="item2.template_id">
+	            {{item2.name.substring(0, 70)}} 
+	        </option>
+	    </select>
+      </div>
+    <div class="col-1" style="text-align: right;"><span v-if="item.performer>0"><i class="fa-regular fa-handshake"></i></span><span v-else><i class="fa-brands fa-leanpub"></i></span></div>
+  </div>
+
+  <div  class="mb-3 row">
+      <label for="input_protocol" class="form-label col-sm-2">Шаблон приложения №1 к договору </label>
+      <div class="mb-3 col">
+      	<select  v-model="contract1_id[index]"  id="input_protocol" class="form-select col" aria-label="template" >
+	        <option value="0"> -  Шаблон   - </option>
+            <option v-for="item2 in info5.list" :value="item2.template_id">
+	            {{item2.name.substring(0, 70)}} 
+	        </option>
+	    </select>
+      </div>
+    <div class="col-1">  </div>
+  </div>
+  <div  class="mb-3 row">
+      <label for="input_protocol" class="form-label col-sm-2">Шаблон приложения №2 к договору </label>
+      <div class="mb-3 col">
+      	<select  v-model="contract2_id[index]"  id="input_protocol" class="form-select col" aria-label="template" >
+	        <option value="0"> -  Шаблон   - </option>
+            <option v-for="item2 in info5.list" :value="item2.template_id">
+	            {{item2.name.substring(0, 70)}} 
+	        </option>
+	    </select>
+      </div>
+    <div class="col-1">  </div>
+  </div>
+  <div  class="mb-3 row">
+      <label for="input_protocol" class="form-label col-sm-2">Шаблон приложения №3 к договору </label>
+      <div class="mb-3 col">
+      	<select  v-model="contract3_id[index]"  id="input_protocol" class="form-select col" aria-label="template" >
+	        <option value="0"> -  Шаблон   - </option>
+            <option v-for="item2 in info5.list" :value="item2.template_id">
+	            {{item2.name.substring(0, 70)}} 
+	        </option>
+	    </select>
+      </div>
+    <div class="col-1">  </div>
+  </div>
+
+
+  <hr />
+  </span>
+
+  <span  v-for="(item, index) in info2.list" >
+  <div class="mb-2 row">
+      <label for="input_protocol" class="form-label col-sm-2">{{item.name}} </label>
+      <div class="mb-3 col">
+      	<select  v-model="b_contract_id[index]"  id="input_protocol" class="form-select col" aria-label="template" >
+	        <option value="0"> -  Шаблон   - </option>
+            <option v-for="item2 in info4.list" :value="item2.template_id">
+	            {{item2.name.substring(0, 70)}} 
+	        </option>
+	    </select>
+      </div>
+    <div class="col-1">  </div>
+  </div>
+  </span>
+
+
+  <br /><hr />
+
+
+  <br / >
+  <div class="mb-2">
+    <div align="right">
+    <button   class="btn btn-primary"    @click="objectSave()"> Сохранить </button>
+      &nbsp<router-link  :to="{ name: 'template_list'}" ><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </div>
+  </div>
+ </div>
+</span>
+
+
+
+</div>
+	</div>`
+
+};
+
+
+
+
+
+
+
+

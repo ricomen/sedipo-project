@@ -1,0 +1,111 @@
+var AccountsList  = {
+  data: function () {
+    return {
+      info: [],
+      info1: [],
+      role: '',
+      role_name: '',
+      message: '',
+      namesearch: '',
+     }
+   },
+
+
+   mounted() {
+//    updated() {
+    this.role = session_t.role
+    
+//  v-if="role=='admin'" 
+
+    axios
+      .post(JsonApiURL+'api/account_json.php', {list: {where: "`role`!='counterparty' ", sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+
+    axios
+      .post(JsonApiURL+'api/role_json.php', {list: {where: "`role_id`!='0' ", sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info1 = response.data
+            this.role_name = this.info1.role_name
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+
+
+  },
+
+
+  methods: {
+
+    argDelete(argId, name ){
+    var fl = confirm('Удалить  запись: ' + name + '?');
+    if(fl) {
+    axios
+          .post(JsonApiURL+'api/account_json.php', {delete: {objectId: argId}})
+          .then(response => { 
+            //this.info9 = response.data
+	    axios
+    	    .post(JsonApiURL+'api/account_json.php', {list: { sessionId: session_t.sessionId }})
+    	    .then(response2 => { 
+        	this.info = response2.data
+    	    })
+    	    .catch(error2 => {
+              console.log(error2.response)
+            })
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+     }
+
+   }
+
+},
+
+
+    template: `<div><navigation></navigation><h3>Аккаунты администраторов</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+    <table class="table">
+      <thead>
+        <tr  align="left">
+          <th scope="col"> Логин  </th>
+          <th scope="col"> Имя  </th>
+          <th scope="col"> Роль  </th>
+          <th scope="col"> Роль ID  </th>
+          <th scope="col"> <div style="float: right"><router-link  :to="{ name: 'accountedit', params: { accountid:0 }}"   title="Добавить Аккаунт" ><b style=" font-size: larger;"><i class="far fa-plus-square"></i></b></router-link ></div>  </th>
+        </tr>
+      </thead>
+     
+     <tbody>   
+        <tr v-for="item in info.list"  align="left">  
+            <td>{{item.login}}</td>
+            <td>{{item.fullname}}</td>
+            <td>{{item.role}}</td>
+            <td><div v-for="item1 in info1.list"><div v-if="item1.role_id==item.role_id" >{{item1.role_name}}</div></div></td>
+            <!--<td v-for="item in info1.list[item.role_id-1]">{{this.info1.list[item.role_id-1]}}</td>-->
+            <td> <div style="float: right">
+	<table border="0"><tr><td style="padding-left: 0px; padding-right: 5px;">
+	<router-link   :to="{ name: 'accountedit', params: { accountid: item.account_id }}"   title="Редактировать" ><i class="fas fa-edit"></i></router-link >
+	</td><td  style="padding-left: 5px; padding-right: 0px;">
+	<a  @click="argDelete(item.account_id, item.login)"   title="Удалить" style="color: red;" ><i class="far fa-trash-alt"></i></a>
+	</td></tr></table>
+        </div></td>
+          </tr>
+  </tbody>
+  </table>
+
+    </div>`
+
+
+};
+
+

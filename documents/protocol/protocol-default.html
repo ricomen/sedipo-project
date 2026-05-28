@@ -1,0 +1,81 @@
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.7cm; margin-right: 1.7cm; margin-top: 1cm; margin-bottom: 1cm; size: A4 landscape; }
+	p {  direction: ltr;  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-bottom: 2px;  margin-top: 2px; }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 2px;  margin-top: 10px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center; margin-bottom: 2px;  margin-top: 2px; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 14pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	th { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	td { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left margin-bottom: 2px;  margin-top: 2px; line-height: 96%; }
+	td.boss { text-align:top; font-size: 10pt; line-height: 0%;}
+	td.comand { text-align:middle; font-size: 10pt; margin-right: 20px; }
+    </style>
+	<title>Протокол</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+<h4  class="western" style="margin-top: 0; margin-bottom: 5px; text-transform: uppercase;">ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ <br />«ИНЖЕНЕРНО-ТЕХНИЧЕСКИЙ ЦЕНТР «БЕЗОПАСНОСТЬ»</h4>
+<h2 class="western" style="margin-top: 5px; margin-bottom: 2px; " >ПРОТОКОЛ №  {$course['protocol_num']} </h2>
+<p  class="center" style="margin-top: 4px;  margin-left: 250px;  margin-right: 250px; line-height: 95%;" >{$protocol['protocol_h']} </p>
+
+<table width="100%"><tr><td style="font-size: 12pt;"><p class="western" > {$course['date_protocol']|date_format:"%02e.%m.%Y"} </p></td><td> </td> <td width="10%" style="font-size: 12pt; text-align: right;"><p class="western"  style="text-align: right;"> г. Уфа</p></td></tr></table>
+
+<p class="western"  style="margin-top: 7px;" > {$teachers_commission['directive_num']}</p>
+
+{$teachers_commission['html1']}
+
+
+<p class="western" style="margin-bottom: 6px;  margin-top: 6px; line-height: 96%;" > {$protocol['protocol_p1']}:
+    <i>«{$course['name']}»</i>{if $protocol['is_hours_p']} в объеме {$course['hours']} ч.{/if}{$protocol['protocol_p2']}</p>
+
+<p class="western" >
+<table width="100%" cellpadding="2" cellspacing="0">
+<tr><th   style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; font-size:8pt;" >№ <br /><nobr>п/п</nobr></th>
+{foreach from=$users_header item=cell name=users_header}
+		<th   style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell}</th>
+{/foreach}
+</tr>
+{foreach from=$users item=row name=users}
+    <tr><td   style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" ><nobr>{$smarty.foreach.users.iteration}.</nobr></td>
+    {foreach from=$row item=cell name=users_cell}
+	    <td   style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; " >{$cell}</td>
+    {/foreach}
+    </tr>
+{/foreach}
+</table>
+<p class="western" style="margin-top: 15px;" >
+</p>
+
+</table>
+<table style="margin-top: 15px; page-break-inside: avoid; page-break-before: avoid;">
+<tr style="margin-top: 15px; page-break-inside: avoid; page-break-before: avoid;">
+	<td style="margin-top: 15px; page-break-inside: avoid; page-break-before: avoid;" >
+		<p class="western" style="margin-top: 15px; page-break-inside: avoid; page-break-before: avoid;" >
+			{$teachers_commission['html2_shortb']}
+		</p>
+	</td>
+{if $protocol['is_eisot']=='true'}
+	<td width="50%" style="padding-left: 100px;"><img src="https://{$smarty.server.SERVER_NAME}/documents/fonimages/qrcode-eisot.png" width="100px" height="100px" align="bottom" style="float: right;"  >Проверить рег. № в ЕИСОТ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td>
+
+{/if}	
+</tr>
+</table>
+
+
+
+{if strlen($protocol['protocol_p3']) > 0 }
+<p class="western" > {$protocol['protocol_p3']} </p>
+{/if}
+
+{if $print_v=="false"} 
+<div style="position: relative; top: 0px; left: 0px;">        
+<div style="position: absolute; top: -105px; left: 75px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+</div>
+{/if}
+</body>

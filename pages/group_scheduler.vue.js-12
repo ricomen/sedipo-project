@@ -1,0 +1,530 @@
+var GroupScheduler = {
+  data: function () {
+    return {
+      info: [],
+      info2: [],
+      info3: [],
+      info4: [],
+      message: '',
+      cohort_id: 0,
+      lstream_id: 0,
+      lstream_name: '',
+      lstream_cohort_count: 0,
+      group_id: 0,
+      name: '',
+      lstream_e: 0,
+      status: 0,
+      date_begin: '',
+      date_begin2: '',
+      date_end: '',
+      date_protocol: '',
+      date_prev: '',
+      prev_id: 0,
+      main_teacher: '',
+      main_teacher_id: '',
+      course_id: '',
+      course_name: '',
+      course_shortname: '',
+      category: 0,
+      consulting: 0,
+      cohort_name: '',
+      moodle_cohort_id: '',
+      list_length: 0,
+      order_id: 0,
+      a_counterparty_id: 0,
+      counterparty_name: '',
+      days: 0,
+      
+      hours: 0,
+      hours_l: 0,
+      hours_p: 0,
+      hours_i: 0,
+      hours_c: 0,
+      hours_need: 0,
+      days_name: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+      month_name: [ 'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь' ],
+      date_a: [],
+      g_calendar: [],
+      to_calc2: 0,
+      read_calendar: [],
+      step2: 0,
+      HoursPerDay: Number(HoursPerDay),
+      scheduler: [],
+
+     }
+   },
+
+   mounted() {
+    this.group_id = Number(this.$route.params.groupid)
+    this.cohort_id = Number(this.$route.params.groupid)
+    this.order_id  = Number(this.$route.params.orderid)
+    this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+
+    if(this.cohort_id > 0){
+	        axios
+                .post(JsonApiURL+'api/groups_json.php', {object: {objectId: this.cohort_id, sessionId: session_t.sessionId } })
+                .then(response => { 
+        	    this.info = response.data
+        	    this.status = this.info.result.status
+        	    this.date_begin = this.info.result.date_begin
+        	    this.date_begin2 = this.info.result.date_begin2
+        	    this.date_end = this.info.result.date_end
+        	    this.date_protocol = this.info.result.date_protocol
+        	    this.date_prev = this.info.result.date_prev
+        	    this.prev_id = this.info.result.prev_id
+        	    this.hours = parseInt(this.info.result.hours)
+        	    this.hours_l = parseInt(this.info.result.hours_l)
+        	    this.hours_p = parseInt(this.info.result.hours_p)
+        	    this.hours_i = parseInt(this.info.result.hours_i)
+        	    this.hours_c = parseInt(this.info.result.hours_c)
+              
+        	    if(this.hours_i>0 && (this.hours_l + this.hours_p) % HoursPerDay >0 )        // Дата начала и конца практики  с нового дня
+        	            this.hours = this.hours + (this.hours_l+this.hours_p) % HoursPerDay
+        	    if(this.hours_i>0 && this.hours_c % HoursPerDay > 0 && this.hours > HoursPerDay )     // Дата итоговой атестации с нового дня
+        	            this.hours = this.hours + this.hours_c % HoursPerDay
+        	    //this.days = this.info.result.days
+        	    
+                    //this.lstream_e = this.info.result.lstream_id
+        	    //this.order_id = this.info.result.order_id
+        	    this.lstream_id = this.info.result.lstream_id
+        	    this.lstream_name = this.info.result.name
+                    this.lstream_cohort_count = this.info.result.lstream_cohort_count
+        	    this.name = this.info.result.name
+        	    this.date_protocol = this.info.result.date_protocol
+        	    this.main_teacher = this.info.result.main_teacher
+        	    this.main_teacher_id = this.info.result.main_teacher_id
+                    this.cohort_name = this.info.result.name
+                    this.category = this.info.result.category
+                    this.consulting = this.info.result.consulting
+            	    this.course_id = this.info.result.course_id
+            	    this.course_name = this.info.result.course_name
+            	    this.course_shortname = this.info.result.course_shortname
+                    this.moodle_cohort_id = this.info.result.moodle_cohort_id
+                    this.directive = this.info.result.directive
+                    //this.step2 = this.info.result.lstream_id
+                    if(this.date_begin == this.date_end || this.date_end=='')
+                        this.to_calc2 = true
+
+                    if( this.date_end!='' && this.date_begin2==''){
+		            var currentDate = new Date(this.date_end)
+		            currentDate.setDate(currentDate.getDate() - this.days )
+		            this.date_begin2 = currentDate.toLocaleDateString('en-CA')
+                    }
+                    this.scheduler = this.info.result.scheduler
+                    if(this.scheduler.length>0) {
+                        var week = []
+                        var month_n = -1
+                        var month = []
+                        var month_name_i = ''
+                        var num_b = 0
+                        for (var i = 0; i < this.scheduler.length; i++) { 
+                              var date_i = new Date(this.scheduler[i].date)
+                              var num = date_i.getDay()
+                              week.push( { date: date_i.getDate(),  num: num,  timestamp_i: date_i.getTime(), index: i  } )
+                              if(num == 0){
+                                    if(month_name_i == '')
+                                          month_name_i = this.month_name[date_i.getMonth()]
+                                    if(month_n== -1)
+                                          month_n = date_i.getMonth()
+                                    month.push(week)
+                                    if(month_n!=date_i.getMonth()){
+                                          this.date_a.push({week: month, month: month_name_i})
+                                          month = []
+                                          month_n = date_i.getMonth()
+                                          month_name_i = this.month_name[date_i.getMonth()]
+                                    }
+                                    week = []
+                              }
+
+                              if(this.scheduler[i].work == '1')
+                                     this.g_calendar[i] = true
+                              else
+                                     this.g_calendar[i] = false
+
+                        }
+                        month.push(week)
+                       this.date_a.push({week: month, month: month_name_i})
+                   }
+
+                axios
+                .post(JsonApiURL+'api/groups_json.php', {cohort_scheduler_list: {objectId: this.cohort_id,  sessionId: session_t.sessionId } })
+                .then(response => {
+        	        this.info2 = response.data
+        	        this.read_calendar = this.info2.list
+                    //this.calc(true)
+                })
+                .catch(error => {
+                console.log(error.response)
+                })
+
+
+    	    })
+    	    .catch(error => {
+        	  console.log(error.response)
+            })
+    }
+
+
+  },
+
+
+  methods: {
+        schedulerSave(rebuild) {
+         if(this.cohort_id > 0){
+           var scheduler = []
+           var v = []
+           var j, k, date_i
+           var nn =0
+           for (var i = 0; i < this.date_a.length; i++) { 
+               for ( j = 0; j < this.date_a[i].week.length; j++) {
+                    w = this.date_a[i].week[j]                   
+                    for ( k = 0; k < w.length; k++) { 
+                        date_i = new Date(w[k].timestamp_i)
+                        scheduler[nn] = {date:  date_i.toLocaleDateString('en-CA'), work: this.g_calendar[nn] }
+                        //alert(w[k].timestamp_i)
+                        nn++
+                    }    
+               }
+           }       
+           axios
+            .post(JsonApiURL+'api/groups_json.php', {cohort_scheduler_save: {objectId: this.cohort_id,  date_begin: this.date_begin,  date_end: this.date_end, date_protocol: this.date_protocol, scheduler: scheduler, rebuild: rebuild, sessionId: session_t.sessionId } })
+            .then(response => {
+              console.log(response)
+              if(response.data.status==0) {
+                   this.$router.push({ name: 'groups_list', params: {orderid: this.order_id, make: 0, counterpartyid: this.a_counterparty_id }} ) 
+              }
+              else {
+                    this.message = response.data.error
+              }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+          }
+        },
+
+        toLstreamSave() {
+         if(this.cohort_id > 0 && this.lstream_e){
+            axios
+            .post(JsonApiURL+'api/groups_json.php', {cohort_lstream_save: {objectId: this.cohort_id,  lstream_id: this.lstream_e,   sessionId: session_t.sessionId } })
+            .then(response => {
+              console.log(response)
+              if(response.data.status==0) {
+                   this.$router.push({ name: 'groups_list', params: {orderid: this.order_id, make: 0, counterpartyid: this.a_counterparty_id }} ) 
+              }
+              else {
+                    this.message = response.data.error
+              }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+          }
+        },
+
+
+        calc( is_mounted ){
+            var day1 = new Date(this.date_begin).getTime()
+            var day2 = new Date(this.date_end).getTime()
+            var date_i, date_rc, days_r, num, date_s, chck
+            var hours = 0
+            var month_n  = 0
+            //this.date_a = []
+            var week = []
+            var month = []
+            var month_name_i = ''
+            days_r = (day2 - day1) / (24 * 60 * 60 * 1000)
+            this.days = days_r
+            var HoursPerDay = this.HoursPerDay
+            
+            for(var i = 0; i <= days_r; i++) {
+                date_i = new Date(day1 + 24 * 60 * 60 * 1000 * i);
+                num = date_i.getDay()
+                if(num==0 || num==6 || hours>=this.hours ) {
+                    this.g_calendar[i] = false
+                }
+                else {
+                    this.g_calendar[i] = true
+                    hours = hours + HoursPerDay
+                    date_rc = date_i
+                }
+                if(is_mounted){
+                    date_s = date_i.toLocaleDateString('en-CA')
+                    chck = this.read_calendar.find(item => item[0] == date_s)
+                    if(chck[1]>0) 
+                        this.g_calendar[i] = true
+                    else
+                        this.g_calendar[i] = false
+                }
+                week.push( { date: date_i.getDate(),  num: num,  timestamp_i: date_i.getTime(), index: i  } )
+                if(month_name_i == '')
+                        month_name_i = this.month_name[date_i.getMonth()]
+                if(num == 0){
+                    if(month_n==0)
+                            month_n = date_i.getMonth()
+                    month.push(week)
+                    if(month_n!=date_i.getMonth() ){
+                        this.date_a.push({week: month, month: month_name_i})
+                        month = []
+                        month_n = date_i.getMonth()
+                        month_name_i = this.month_name[date_i.getMonth()]
+                    }    
+                    week = []
+                    //else {
+                      //  month.push(week)
+                    //}
+                    //month_n = date_i.getMonth()
+                }
+                //this.date_a[i] = { date: date_i.getDate(), day: this.days_name[date_i.getDay()], num: num, month: this.month_name[date_i.getMonth()], timestamp_i: date_i.toLocaleDateString('en-CA')  }
+            }
+            month.push(week)
+            this.date_a.push({week: month, month: month_name_i })
+
+            this.hours_need = this.hours - hours 
+	        this.date_protocol = this.date_end
+       },
+
+        calc2(){
+            var day1 = new Date(this.date_begin).getTime()
+            var date_i, date_rc,   num
+            var date_b = 0
+            var hours = 0
+            var month_n = -1
+            this.date_a = []
+            var week = []
+            var month = []
+            var month_name_i = ''
+            var HoursPerDay = this.HoursPerDay
+            
+            for(var i = 0; i < 500; i++) {
+                date_i = new Date(day1 + 24 * 60 * 60 * 1000 * i);
+                num = date_i.getDay()
+                if( hours>=this.hours || this.g_calendar[i] === false ) {
+                    if(hours>=this.hours){
+                        this.days = i
+                        break;
+                    }
+                    this.g_calendar[i] = false
+                }
+                else if((num==0 || num==6) && this.g_calendar.length<=i) {
+                    this.g_calendar[i] = false
+                }
+                else {
+                    this.g_calendar[i] = true
+                    hours = hours + HoursPerDay
+                    date_rc = date_i
+                    if(date_b==0)
+                        date_b = date_rc
+                }
+                week.push( { date: date_i.getDate(),  num: num,  timestamp_i: date_i.getTime(), index: i  } )
+                if(month_name_i == '')
+                        month_name_i = this.month_name[date_i.getMonth()]
+                if(num == 0){
+                    if(month_n== -1)
+                            month_n = date_i.getMonth()
+                    month.push(week)
+                    if(month_n!=date_i.getMonth()){
+                        this.date_a.push({week: month, month: month_name_i})
+                        month = []
+                        month_n = date_i.getMonth()
+                        month_name_i = this.month_name[date_i.getMonth()]
+                    }    
+                    week = []
+                    //else
+                      //  this.date_a.push({week: week, month: ''})
+                    //week = []
+                    
+                }
+                //this.date_a[i] = { date: date_i.getDate(), day: this.days_name[date_i.getDay()], num: num, month: this.month_name[date_i.getMonth()], timestamp_i: date_i.getTime()  }
+            }
+            //this.date_a.push({week: week, month: ''})
+            month.push(week)
+            this.date_a.push({week: month, month: month_name_i})
+            this.g_calendar.splice(this.days)
+            this.hours_need = this.hours - hours 
+
+            for(i = this.g_calendar.lenght; i>0; i--) {
+                if( this.g_calendar[i] === false ) 
+                      this.date_a.pop()
+            }
+
+            this.date_end = date_rc.toLocaleDateString('en-CA')
+            this.date_protocol = this.date_end
+            //this.date_begin = date_b.toLocaleDateString('en-CA')
+       },
+
+        setDateBegin(){
+            this.g_calendar = []
+            this.date_begin = this.date_prev
+            this.to_calc2=true
+            this.calc2()
+       },
+
+        onChangeDateBegin(){
+            this.g_calendar = []
+            if(this.date_begin == '' || this.date_begin == null)
+                     this.date_begin =  new Date().toLocaleDateString('en-CA')
+
+            //if(this.date_end=='' || this.to_calc2){
+                    this.date_end = '';
+                    this.calc2()
+                    this.to_calc2 = false
+            //}        
+            //else        
+            //        this.calc(false)
+		    //this.date_begin2 = this.date_begin
+       },
+
+
+
+        onChangeDateEnd(){
+            //this.g_calendar = []
+            this.calc(false)
+            this.to_calc2 = false
+		    //this.date_protocol = this.date_end
+		  /*if( this.date_end!='' ){
+		      this.date_protocol = this.date_end
+		      var currentDate = new Date(this.date_end)
+		      currentDate.setDate(currentDate.getDate() - this.days )
+		      this.date_begin2 = currentDate.toLocaleDateString('en-CA')
+		  }*/
+       }
+
+
+
+
+  },
+
+
+
+	template: `<div><navigation></navigation>
+    <h4>Группа: {{name}}</h4> 
+    <h4 style="text-align: right;" > {{counterparty_name}} </h4>
+
+<!--{{HoursPerDay/3}}-->
+<div align="left">
+
+  <h5> {{course_name}}<h5>
+
+ <span v-if="consulting==0">
+  <br />
+  <div class="row">
+    <p><nobr>Количество часов: {{hours}} <span v-if="hours==0" class="text-danger"><i class="fa-solid fa-circle-exclamation"></i></span></nobr></p>
+  </div>
+  <p>Дата начала обучения не ранее:  {{new Date(date_prev).toLocaleDateString("ru")}}</p>
+  <br />
+
+   <p  v-if="lstream_cohort_count>1">
+   <div class="card">
+   <div class="card-body row">
+     <div class="col" style="text-align: center; font-weight: bolder;">
+       Эта группа включена в поток: {{lstream_name}}<br /> Редактирование параметров распространяется на все группы  потока
+     </div>
+     <div class="col-1" style="padding-top: 13px; text-align: right">
+       <a @click="lstream_unlink(this.cohort_name, this.lstream_name )" style="color: red;" title="Открепить группу от учебного потока"><i class="fa-solid fa-thumbtack-slash"></i></a>
+     </div>
+    </div>
+   </div>
+   <br />
+  </p>
+
+  <span v-if="lstream_cohort_count<=1"> 
+     <h4>Включить в cуществующий учебный поток</h4>
+     <div class="row">
+      <div class="mb-2 col">	
+         <select v-model="lstream_e"  class="form-control" id="input_lstream">
+           <option v-for="item in info2.list" :value="item.lstream_id">дата:&nbsp&nbsp&nbsp{{new Date(item.date_begin).toLocaleDateString("ru")}}&nbsp&nbsp-&nbsp&nbsp{{new Date(item.date_end).toLocaleDateString("ru")}}&nbsp&nbsp&nbsp(поток&nbsp{{item.name}})</option>
+         </select>
+      </div>
+      <div v-if="lstream_e>0" class="mb-4 col-4"><button v-if="lstream_e>0" class="btn btn-primary"    @click="toLstreamSave()"> Включить в поток и сохранить </button> </div>
+      <div v-else class="mb-4 col-4"></div>
+      </div>
+       <hr />
+  </span>
+
+  <br />
+  <h4>Составить расписание нового учебного потока  &nbsp; <button v-if="hours>0"  @click="setDateBegin()"  type="button" class="btn btn-success">&nbsp;сгенерировать автоматически&nbsp;&nbsp;<i class="fa-solid fa-arrow-turn-down"></i></button></p></h4>
+  <br />
+
+  <h5>Указать вручную:</h5>
+  <br />
+  <div class="row">
+   <div class="mb-2 col-3">	
+    <label for="input_date" class="form-label"><b>Дата начала обучения</b></label>
+      <input v-model="date_begin"  class="form-control" id="input_date"  type="date"   ><!--@input="onChangeDateBegin()"-->
+   </div>
+   <div class="mb-4 col"> <p class="form-label">&nbsp;</p> <button v-if="hours>0"   @click="onChangeDateBegin()"  type="button" class="btn btn-success" title="Составить расписание" ><i class="fa-solid fa-arrow-turn-down"></i></button> </div>
+   <div class="mb-2 col-3">	
+    <label for="input_date_end" class="form-label"><i>Дата завершения</i></label>
+      <input v-model="date_end"  class="form-control" id="input_date_end"  type="date"    ><!--@input="onChangeDateEnd()"-->
+   </div>
+   <div class="mb-4 col"> <p class="form-label">&nbsp;</p> <!--<button v-if="hours>0"   @click="onChangeDateEnd()"  type="button" class="btn btn-outline-success"><i class="fa-solid fa-arrow-turn-down"></i></button>--> </div>
+  </div>
+
+
+  <div class="row">
+   <div class="mb-2 col-3">	
+      <label v-if="lstream_id==0" for="input_date" class="form-label form-control-sm">-</label>
+      <input v-if="lstream_id==0" v-model="date_begin2"  class="form-control" id="input_date"  type="date"  >
+   </div>
+   <div class="mb-4 col"> </div>
+
+   <div class="mb-2 col-3">	
+    <br /><label for="input_date_protocol" class="form-label">Дата оформления протокола</label>
+      <input v-model="date_protocol"  class="form-control" id="input_date_protocol"  type="date" >
+   </div>
+   <div class="mb-4 col"> </div>
+  </div>
+
+
+  <hr />
+  <div  v-for="(month, index0) in  date_a"  >	
+  <b>{{month.month}}</b>
+  <table cellpadding="5"  width="75%" >
+    <tr ><td  v-for="n in  6" align="left"><small><i><span v-if="n==6" style="color: red;">{{days_name[n]}}</span><span v-else>{{days_name[n]}}</span></i></small></td><small><i><td style="color: red;" align="left">{{days_name[0]}}</i></small></td></tr>
+    <tr v-for="(week, index1) in  month.week" >
+        <td v-if="week[0]['num']>1" v-for="n in week[0]['num']-1"  width="14%">&nbsp;</td> 
+        <td v-if="week[0]['num']==0" v-for="n in 6"  width="14%">&nbsp;</td> 
+        <td v-for="(item, index1) in  week" align="left"  width="14%">
+           <div class="form-check">
+            <input v-model="g_calendar[item.index]" type="checkbox" class="form-check-input" :id="'checkbox_date_'+item.index" @change="calc2()">
+            <label class="form-check-label" :for="'checkbox_date_'+item.index"> {{item.date}} </label>
+           </div>    
+        </td>
+    </tr> 
+  </table>
+  </div>
+
+
+  <div v-if="hours_need>0" class="row">
+   <div class="mb-2 col-6">	
+        <p>Не распределено часов: {{hours_need}}</p> 
+   </div>
+   <div class="mb-4 col"> <button @click="this.to_calc2=true; calc2()" class="btn btn-success">Распределить</button></div>
+  </div>
+
+
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+    <span  v-if="step2==0">
+      <button v-if="0 && consulting==0  &&  days>0  && prev_id==0  && date_begin!=null && date_end!=null &&  date_protocol!=null " class="btn btn-success"    @click="schedulerSave(1)"> Сохранить и пересчитать сроки последующих групп </button>
+      &nbsp<button v-if="consulting==0 &&  days>0   && date_begin!=null && date_end!=null &&  date_protocol!=null " class="btn btn-primary"    @click="schedulerSave(0)"> Сохранить </button>
+      &nbsp<router-link  :to="{ name: 'groups_list', params: {orderid: this.order_id, make: 0, counterpartyid: this.a_counterparty_id } }" > <button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </span>
+    <span v-else>
+      &nbsp<router-link  :to="{ name: 'groups_list', params: {orderid: this.order_id, make: 0, counterpartyid: this.a_counterparty_id } }" > <button  class="btn btn-outline-primary">Закрыть</button></router-link>
+    </span>
+    </div>
+  </div>
+ </div>
+
+ </div>
+
+	</div>`
+
+};
+
+
+
+

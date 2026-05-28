@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p {  direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; line-height:1; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cm;  margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+	<title>Приложение № 1</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+    
+    <table width="100%" cellpadding="7" cellspacing="0">
+        <tr>
+            <td width="40%">
+                
+            </td>
+            <td>
+                <p class="western" style="text-align: right;">
+                <b>Приложение № 1</b> <br />
+                к договору № {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%e.%m.%Y"} г.<br />
+                на оказание услуг
+                </p>
+            </td>
+        </tr>
+        </table>
+
+<p class="western" style="text-align:center;  margin-bottom: 0;"><b>Акт оказанных услуг
+    </b></p>
+    <table border="0" width="100%"><tr><td><p class="westernli" >г.Уфа</p></td><td></td> <td align="right" style="text-align: right">{$order_data['date_order']|date_format:"%e.%m.%Y"}</td></tr></table>
+
+<p class="western" > <span style="margin-right:35px;"> </span><b>Общество с ограниченной ответственностью «Институт профессионального образования» (ООО «ИПО»),</b>
+именуемое в дальнейшем «Исполнитель», в лице директора {$self_data['enterprise_manager2']},
+действующего на основании Устава, с одной стороны и <br />
+<span style="margin-right:35px;"> </span><b>{$order_data['name']}</b>, именуемое в дальнейшем «Заказчик»,  
+в лице {$order_data['position_head2']}  
+{$order_data['enterprise_manager2']},
+действующего на основании Устава, с другой стороны,
+а совместно именуемые «Стороны», составили настоящий Акт оказанных услуг (далее – Акт) по Договору № {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%e.%m.%Y"} г. на оказание услуг (далее – Договор):
+<br />
+<span style="margin-right:5px;">1.</span>Исполнитель оказал Заказчику услуги по подбору образовательной организации и образовательных программ в области дополнительного образования и профессионального обучения. 
+<br />
+
+<span style="margin-right:5px;">2.</span>Услуги оказаны своевременно, в необходимом объеме и в соответствии с требованиями Договора.     
+<br />
+
+
+<span style="margin-right:5px;">3.</span>Заказчик претензий по объему, качеству и срокам оказания услуг не имеет.    
+<br />
+
+
+<span style="margin-right:5px;">4.</span>Стоимость оказанных услуг составила ({$order_data['price_sum_str']|lower}), НДС не облагается (в связи с применением Исполнителем упрощенной системы налогообложения).
+<br />
+
+<span style="margin-right:5px;">5.</span>Настоящий Акт составлен в двух экземплярах, по одному для Исполнителя и Заказчика.
+</p>
+
+
+
+<p class="western"">Форма согласована</p>
+
+
+<table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0">
+    <tr valign="top">
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            <b>Заказчик: <br />
+            {$order_data['shortname']}
+            <br />
+            <br />
+            <br />
+            </b>
+            </p>
+
+        </td>
+        <td style="vertical-align:top" style="text-align: left;">
+            <p class="western">
+            <b>
+            Исполнитель:<br />
+            ООО «ИПО»<br />
+            <br />
+            <br />
+            </b>
+            </p>
+        </td>
+
+    </tr>
+    <tr>
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            Директор ________________/<u>{$order_data['enterprise_manager3']}</u>/ <br />
+            М.П.
+            </p>
+            </td>
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            Директор_______________ /<u>{$self_data['enterprise_manager3']}</u>/<br />
+            М.П.
+            </p>
+			{if $print_v=="false"} 
+			<div style="position: relative; top: 0px; left: 0px;">        
+			<div style="position: absolute; top: -110px; right: 200px; "><img src="https://ipo.sedipo.ru/documents/{$self_data['enterprise_manager_signs']}" width="150px" align="top" ></div>
+			<div style="position: absolute; top: -60px; right: 110px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+			</div>
+			{/if}
+        </td>
+    </tr>
+    </table>
+</body>
+</html>

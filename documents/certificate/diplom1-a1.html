@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page {padding-left: 0;  margin-left: 0.3cm; margin-right: 0.3cm; margin-top: 0.1cm; margin-bottom: 0.1cm; size: A4 landscape;  }
+	p {  direction: ltr;  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify;  margin-bottom: 4px;  margin-top: 4px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;   margin-bottom: 4px;  margin-top: 4px;  }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: left;   margin-bottom: 4px;  margin-top: 4px;  }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 14pt; text-align: center;  margin-bottom: 15px;  margin-top: 15px;  }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center;  margin-bottom: 7px;  margin-top: 7px;  }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;  margin-bottom: 5px;  margin-top: 5px;  }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;  margin-bottom: 5px;  margin-top: 5px;  }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+    </style>
+	<title>Документ о квалификации</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#000000" vlink="#000000" alink="#000000"  >
+
+
+<table border="0" width="100%" >
+<tr  >
+<td width="50%" style="background-image: url(https://{$smarty.server.SERVER_NAME}/documents/diplom3.png); background-repeat: no-repeat;" >
+    <p class="center" style=" margin-bottom: 4px;  margin-top: 50px;"> </p>
+
+        <p class="western" style=" margin-bottom: 4px;  margin-top: 60px;  margin-left: 300px;  margin-right: 0px; "><b>{$user['lastname']}<br />
+        {$user['firstname']}<br />
+        {$user['middlename']}</b></p>
+
+<p class="center" style=" margin-bottom: 4px;  margin-top: 270px;  margin-left: 30px; margin-right: 30px;  ">{$cert['name']}</p>
+
+<p class="center" style=" margin-bottom: 4px;  margin-top: 333px;  margin-left: 30px;  margin-right: 30px; "> </p>
+
+</td>
+
+<td  align="left"  width="50%" style="background-image: url(https://{$smarty.server.SERVER_NAME}/documents/diplom4.png); background-repeat: no-repeat;" >
+
+<p class="center" style=" margin-bottom: 4px;  margin-top: 170px;  margin-left: 30px; margin-right: 30px;  ">{$cert['name']}{$cert['hours']}</p>
+
+</td>
+
+</tr>
+</table>
+
+
+
+</body>
+</html>

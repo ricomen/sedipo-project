@@ -1,0 +1,200 @@
+var AccountEdit = {
+  data: function () {
+    return {
+      info: [],
+      message: '',
+      account_id: 0,
+      group_id: 0,
+      fullname: '',
+      email_contact: ' ',
+      login: '',
+      password0: '',
+      password1: '',
+      password2: '',
+     }
+   },
+
+   mounted() {
+//    updated() {
+    this.account_id = Number(this.$route.params.accountid)
+    if(this.account_id > 0 ){
+    axios
+      .post(JsonApiURL+'api/account_json.php', {object: {objectId: this.account_id, sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+	        this.fullname = this.info.result.fullname
+            this.email = this.info.result.email
+            this.login = this.info.result.login
+
+            //this.isSysAdmin = this.info.isSysAdmin
+            //this.userId = this.info.userId
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+    }
+
+  },
+
+
+  methods: {
+        accountSave() {
+	    axios
+            .post(JsonApiURL+'api/account_json.php', {update: {objectId: this.account_id,  fullname: this.fullname,  email: this.email_contact, login: this.login, password0: this.password0, password1: this.password1, password2: this.password2,   sessionId: session_t.sessionId } })
+            .then(response => {
+              console.log(response)
+    	      //this.info9 = response.data
+
+              if(response.data.status==0) {
+		if(this.password1!='' && this.password1==this.password2){
+		    axios
+        	    .post(JsonApiURL+'api/auth_json.php', {update_password: {accountId: this.account_id,   password0: this.password0, password1: this.password1, password2: this.password2,   sessionId: session_t.sessionId } })
+        	    .then(response3 => {
+            		console.log(response3)
+    	    		//this.info9 = response2.data
+
+            		if(response3.data.status==0) {
+	    		    this.$router.push({ path: '/'}) 
+            		}
+            		else {
+                	    this.message = response3.data.error
+            		}
+        	    })
+        	    .catch(error3 => {
+            		console.log(error3.response)
+        	    })
+	    	    //this.$router.push({ path: '/'}) 
+		}
+		else {
+                   this.$router.push({ path: '/'}) 
+		}
+              }
+              else {
+                    this.message = response.data.error
+              }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+
+        },
+
+
+        accountCreate() {
+	    axios
+            .post(JsonApiURL+'api/account_json.php', {insert: {  fullname: this.fullname,  email: this.email_contact, login: this.login, role: "admin",  sessionId: session_t.sessionId } })
+            .then(response => {
+              console.log(response)
+    	      //this.info9 = response.data
+
+              if(response.data.status==0) {
+		if(this.password1!='' && this.password1==this.password2){
+		    axios
+        	    .post(JsonApiURL+'api/auth_json.php', {update_password: {accountId: this.account_id,   password0: this.password0, password1: this.password1, password2: this.password2,   sessionId: session_t.sessionId } })
+        	    .then(response3 => {
+            		console.log(response3)
+    	    		//this.info9 = response2.data
+
+            		if(response3.data.status==0) {
+	    		    this.$router.push({ path: '/'}) 
+            		}
+            		else {
+                	    this.message = response3.data.error
+            		}
+        	    })
+        	    .catch(error3 => {
+            		console.log(error3.response)
+        	    })
+	    	    //this.$router.push({ path: '/'}) 
+		}
+		else {
+                   this.$router.push({ path: '/'}) 
+		}
+
+              }
+              else {
+                    this.message = response.data.error
+              }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+
+        }
+
+
+  },
+
+
+
+	template: `<div><navigation></navigation><h3>Редактирование записи</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+<div align="left">
+
+<div class="container">
+
+  <div class="mb-2 row">	
+  <label for="input_fullname"  class="form-label col-sm-2"   >Имя пользователя</label>
+    <input v-model="fullname"   class="form-control col" id="input_fullname"   type="text"  >
+  </div>
+
+  <div class="mb-2 row">	
+    <label for="input_contact" class="form-label col-sm-2">email</label>
+    <input v-model="email_contact"  class="form-control col" id="input_contact"    type="text"  >
+  </div>
+
+  <div class="mb-2 row">	
+      <label for="input_login" class="form-label col-sm-2">login</label>
+      <input v-model="login"   class="form-control col" id="input_login"   type="text"  >
+  </div>
+
+  <div class="mb-2 row">	
+      <label for="input_login" class="form-label col-sm-2">Роль</label>
+      <input v-model="login"   class="form-control col" id="input_login"   type="text"  >
+  </div>
+
+
+  <br /><hr />
+  <h4>Сменить пароль </h4> 
+  <div class="mb-2 row">	
+      <label for="input_password0" class="form-label col-sm-2">Текущий пароль</label>
+      <input v-model="password0"  class="form-control col" id="input_password0"    type="password"  >
+
+   </div>
+
+  <div class="mb-2 row">	
+      <label for="input_password1" class="form-label col-sm-2">Новый пароль</label>
+      <input v-model="password1"  class="form-control col" id="input_password1"    type="password"  >
+
+   </div>
+
+  <div class="mb-2 row">	
+      <label for="input_password2" class="form-label col-sm-2">Новый пароль повторно</label>
+      <input v-model="password2"  class="form-control col" id="input_password2"    type="password"  >
+
+   </div>
+
+
+  <div class="mb-2">	
+    <div align="right">
+    <button v-if="account_id>0"   class="btn btn-primary"    @click="accountSave()"> Сохранить </button>
+    <button v-if="account_id==0"  class="btn btn-primary"    @click="accountCreate()"> Добавить учетную запись </button>
+      &nbsp<router-link to="/" ><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </div>
+  </div>
+ </div>
+
+
+
+
+</div>
+	</div>`
+
+};
+
+
+
+

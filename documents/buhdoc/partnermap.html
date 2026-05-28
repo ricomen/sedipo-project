@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.4cm; margin-right: 0.9cm; margin-top: 2cm; margin-bottom: 1.5cm; size: A4 portrait;}
+	p { margin-bottom: 0.25cm; direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western {  font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0; margin-bottom: 0.1cm; text-indent:40px; line-height:1;}
+	p.westernli {  font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0.1cm; margin-bottom: 0.1cm; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; line-height: 90%; margin-top: 0cm; margin-bottom: 0.2cm; margin-left: 1cm; margin-right: 1cm }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center; margin-bottom: 0; }
+	li.western { font-family: "DejaVu Serif", serif; font-weight:bold; font-size: 10pt; text-align: center; margin-left:-40px;}
+	li.westernnormal { font-family: "DejaVu Serif", serif; font-weight:normal; font-size: 10pt; text-align: justify; margin-left:-40px;}
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.2cm; margin-bottom: 0.2cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm; text-indent:20px; }
+	td, th { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+    
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+	ol {
+    list-style: none;
+    counter-reset: li;
+    }
+    li:before {
+    counter-increment: li;
+    content: counters(li,".") ". ";
+    }
+	</style>
+
+	<title>Карта партнера</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+
+<h1 class="western">Карта партнера {$order_data['name']}</h1>
+
+<table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid;">
+	<tr valign="top"><td><p class="table" >Полное название:</p></td><td><p class="table" >{$order_data['name']}  </p></td></tr>
+	<tr valign="top"><td><p class="table" >Сокращённое название:</p></td><td><p class="table" > {$order_data['shortname']}  </p></td></tr>
+	<tr valign="top"><td><p class="table" >Адрес:</p></td><td><p class="table" >  {$order_data['addres1']} </p></td></tr>
+	<tr valign="top"><td><p class="table" >ИНН:</p></td><td><p class="table" > {$order_data['inn']}</p></td></tr>
+	<tr valign="top"><td><p class="table" >КПП:</p></td><td><p class="table" > {$order_data['kpp']}</p></td></tr>
+	<tr valign="top"><td><p class="table" >Расчетный счет:</p></td><td><p class="table" > {$order_data['checking_account']}</p></td></tr>
+	<tr valign="top"><td><p class="table" ></p></td><td><p class="table" > {$order_data['bank']} </p></td></tr>
+	<tr valign="top"><td><p class="table" >БИК:</p></td><td><p class="table" > {$order_data['bik']}</p></td></tr>
+	<tr valign="top"><td><p class="table" >ОГРН:</p></td><td><p class="table" > {$order_data['ogrn']}</p></td></tr>
+	<tr valign="top"><td><p class="table" ></p></td><td><p class="table" ><br/></p></td></tr>
+	<tr valign="top"><td><p class="table" > {$order_data['position_head']}</p></td><td ><p class="table"  >{$order_data['enterprise_manager3']}</p></td></tr>
+</table>
+
+
+</body>
+</html>

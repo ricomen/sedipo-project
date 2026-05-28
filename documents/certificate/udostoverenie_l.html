@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.5cm; margin-right: 1cm; margin-top: 1cm; margin-bottom: 0.73cm }
+	p {  direction: ltr;  text-align: left; western: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: justify;  margin-bottom: 4px; margin-top: 4px;  margin-left: 14px; margin-right: 14px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;  margin-bottom: 4px; ; margin-top: 4px;}
+	p.left { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: left; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 14pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: left }
+    </style>
+	<title>Документ о квалификации</title>
+</head>
+<body lang="ru-RU" link="#000080" vlink="#800000" dir="ltr">
+<table width="100%" cellpadding="15" cellspacing="0">
+
+	<tr valign="top">
+		<td width="50%"  style="border: 1px solid #000000; padding: 0mm 1.91mm"><p class="center" align="center" style=" margin-bottom: 0mm;  text-transform: uppercase;  font-size: 7pt;" >
+			<b>{$self_data['name']}</b></p>
+			<br/>
+
+			<p  class="center"  style=" margin-bottom: 0mm">         
+			<b>УДОСТОВЕРЕНИЕ № </b><b> {$cert['certificate_num']}</b></p>
+			<br/>
+
+			<p  class="western"  style="  margin-bottom: 0mm">
+			<b>Выдано:</b>
+			           <font size="+1"><i>{$user['lastname_d']} {$user['firstname_d']} {$user['middlename_d']}</i></font></p>
+			
+			<br/>
+			<p class="western"  style=" margin-bottom: 0mm">Место работы: <b>{$user['counterparty_name']}</b></p>
+			<p class="western"  style=" margin-bottom: 0mm">Должность: <b>{$user['position_name']}</b></p>
+			<br/>
+
+			<p class="western"  ><small>Лицензия на осуществление образовательной
+			деятельности Управления по контролю и надзору  в сфере образования Республики
+			Башкортостан  серия серия Л035-01198-02/00962026 от 12.12.2023 г.</small></p>
+		</td>
+		
+		
+		<td  style="border: 1px solid #000000; padding: 0mm 1.91mm">
+		    <p  class="western"   style=" margin-bottom: 0mm">
+			Проведено обучение и проверка знаний по программе: «{$cert['name']}»</p>
+			<br/>
+
+			<p  class="western" style=" margin-bottom: 4mm"><b>Протокол
+			</b><b>№ 257-ОТ от {$cert['date_protocol']|date_format:"%e.%m.%Y"}</b></p>
+			<br/>
+
+			
+			<p  class="western"  style=" margin-bottom: 0mm"><b>Председатель</b></p>
+			<p  class="western"  style=" margin-bottom: 0mm"><b>комиссии____________ {$cert['chairman']}</b></p>
+			<p style=" margin-bottom: 0mm"><br/>
+
+			</p>
+			<p  class="western"  style="widows: 0"><b>Действительно до	</b></p>
+		</td>
+	</tr>
+</table>
+</body>
+</html>

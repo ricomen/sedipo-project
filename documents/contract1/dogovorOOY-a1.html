@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p { margin-bottom: 0.25cm; direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0.4cm; margin-bottom: 0.4cm;  }
+    p.westernd { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0; margin-bottom: 0;  }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cm; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+	<title>Приложение № 1</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+    
+    <table width="100%" cellpadding="7" cellspacing="0">
+    <tr>
+        <td width="50%">
+            
+        </td>
+        <td>
+            <p class="western" style="text-align: right;">
+            <b>Приложение № 1</b> <br />
+            к договору № {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%e.%m.%Y"}<br />
+            на оказание платных образовательных услуг
+            </p>
+        </td>
+    </tr>
+    </table>
+
+    <p class="western" style="text-align:center;  margin-bottom: 0;"><b>Спецификация № {$order_data['order_num']} <!--от {$order_data['date_order']|date_format:"%e.%m.%Y"} г.--></b><br \>
+        к договору оказания платных образовательных услуг №  {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%e.%m.%Y"} г.   
+    </p>
+
+<!--//////////////////////////////////////////////////////////////////////////////////////////////-->
+
+<p class="western"  style="margin-top: 0.3cm; margin-bottom: 0.3cm;">
+Период обучения: с&nbsp;{$order_data['date_begin']|date_format:"%e.%m.%Y"} по&nbsp;{$order_data['date_end']|date_format:"%e.%m.%Y"}<br />
+</p>  
+<p class="western"  style="margin-top: 0.3cm; margin-bottom: 0.3cm;">
+    Список сотрудников {$order_data['shortname']}, направляемых на обучение:
+</p>  
+
+
+{foreach from=$courses item=row name=course}
+    <table width="100%" cellpadding="7" cellspacing="0">
+	<col width="10%"/>
+	<col width="30%"/>
+	<col width="15%"/>
+	<col width="15%"/>
+
+	<tr valign="top">
+		<th  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; "><p class="table" style="text-align:center">
+			№<br \>п/п</p>
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; text-align:center "><p class="table" style="text-align:center">
+			Ф.И.О.</p>
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; text-align:center"><p class="table" style="text-align:center">
+			Дата рождения</p>
+		</th>
+        <th  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; text-align:center"><p class="table" style="text-align:center">
+			СНИЛС</p>
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; text-align:center"><p class="table" style="text-align:center">
+			Адрес регистрации</p>
+		</th>
+        <th  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; text-align:center"><p class="table" style="text-align:center">
+			Телефон</p>
+		</th>
+	</tr>
+
+    {foreach from=$row['users'] item=row2 name=user}
+    <tr>
+        <td  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; "><p class="table" style="text-align:center">{$smarty.foreach.user.iteration}.</p> </td>
+        <td  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; "><p class="table" style="text-align:center">{$row2['lastname']} {$row2['firstname']}  {$row2['middlename']} </p></td>
+        <td  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; "><p class="table" style="text-align:center">{$row2['date_of_birth']}</p></td>
+        <td  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; "><p class="table" style="text-align:center">{$row2['snils']}</p></td>
+        <td  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; "><p class="table" style="text-align:center">{$row2['address']}</p> </td>
+        <td  style="background: transparent; border: 1px solid #000000; padding: 0mm 1.91mm; "><p class="table" style="text-align:center">{$row2['phone']}</p> </td>
+    </tr>
+    {/foreach}
+    </table>
+<p class="western" style="line-height: 100%; margin-bottom: 0mm"><!--{$smarty.foreach.course.iteration}.--><br />
+
+Описание образовательной услуги:<br />
+вид / подвид  образовательной услуги: {$row['type_of_education']}, {$row['subtype_of_education']};<br />
+вид программы:  {$row['type_of_program']};<br />
+наименование программы - <u>{$row['name']};</u><br />
+нормативный срок обучения: {$row['hours']} ч.;<br />
+форма обучения: {$row['form_of_study']};<br />
+итоговый документ: {$row['certificate_name']};<br />
+дата обучения: согласно расписанию;<br />
+место обучения: {$row['addres']}<br />
+
+</p>
+
+    <p></p>
+
+    <p><br /></p>
+{/foreach}
+
+
+
+<p class="westernd" ><span style="margin-right:5px;">3.</span>Заказчик ознакомлен:
+</p>
+
+<p class="westernd" ><span style="margin-right:5px;">3.1.</span>С копиями следующих документов: Уставом ООО «ИПО», лицензией Министерства образования и науки Республики Башкортостан на право оказания образовательных услуг, регистрационный номер лицензии: № Л035-01198-02/00962026 от 12 декабря 2023 года, «Правилами приема обучающихся», с программой обучения, с учебной документацией, другими документами, регламентирующими организацию и осуществление образовательной деятельности {$self_data['shortname']}. 
+</p>
+
+<p class="westernd" style="page-break-before: avoid;"><span style="margin-right:5px;">3.2.</span>С Правилами оказания платных образовательных услуг (утв. Постановлением Правительства РФ от 15.09.2020 № 1441), Федеральным законом от 29.12.2012 г. № 273-ФЗ «Об образовании в Российской Федерации».
+</p>
+
+<p class="westernd" style="page-break-before: avoid;">Форма согласована.</p>
+
+
+    <table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0">
+    <tr valign="top">
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            <b>Заказчик: <br />
+            {$order_data['shortname']}
+            <br />
+            <br />
+            <br />
+            </b>
+            </p>
+
+        </td>
+        <td style="vertical-align:top" style="text-align: left;">
+            <p class="western">
+            <b>
+            Исполнитель:<br />
+            {$self_data['shortname']}<br />
+            <br />
+            <br />
+            </b>
+            </p>
+        </td>
+
+    </tr>
+    <tr>
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            {$order_data['position_head']} ________________/<u>{$order_data['enterprise_manager3']}</u>/ <br />
+            М.П.
+            </p>
+            </td>
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            {$self_data['position_head']}_______________ /<u>{$self_data['enterprise_manager3']}</u>/<br />
+            М.П.
+            </p>
+			{if $print_v=="false"} 
+			<div style="position: relative; top: 0px; left: 0px;">        
+			<div style="position: absolute; top: -110px; right: 200px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/{$self_data['enterprise_manager_signs']}" width="150px" align="top" ></div>
+			<div style="position: absolute; top: -60px; right: 110px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+			</div>
+			{/if}
+        </td>
+    </tr>
+    </table>
+</body>
+</html>

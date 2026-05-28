@@ -1,0 +1,81 @@
+Array
+(
+    [0] => Array
+        (
+            [0] => Array
+                (
+                    [shortname] => ООО "ВолгаПромАльянс"
+                    [order_id] => 2431
+                    [order_name] => 25-08-05/1
+                    [counterparty_id] => 87
+                    [cohort_id] => 4070
+                )
+
+        )
+
+    [1] => Array
+        (
+            [0] => Array
+                (
+                    [shortname] => ООО "Булгаковский ХЛЕБ"
+                    [order_id] => 2471
+                    [order_name] => 25-11-03/1
+                    [counterparty_id] => 82
+                    [cohort_id] => 4128
+                )
+
+        )
+
+    [2] => Array
+        (
+            [0] => Array
+                (
+                    [shortname] => ООО "Булгаковский ХЛЕБ"
+                    [order_id] => 2471
+                    [order_name] => 25-11-03/1
+                    [counterparty_id] => 82
+                    [cohort_id] => 4126
+                )
+
+        )
+
+    [3] => Array
+        (
+            [0] => Array
+                (
+                    [shortname] => 000 "ПРОМСЕРВИС"
+                    [order_id] => 2468
+                    [order_name] => 25-10-24/1
+                    [counterparty_id] => 1129
+                    [cohort_id] => 4123
+                )
+
+        )
+
+    [4] => Array
+        (
+            [0] => Array
+                (
+                    [shortname] => ООО "ВолгаПромАльянс"
+                    [order_id] => 2431
+                    [order_name] => 25-08-05/1
+                    [counterparty_id] => 87
+                    [cohort_id] => 4068
+                )
+
+        )
+
+    [5] => Array
+        (
+            [0] => Array
+                (
+                    [shortname] => 000 "ПРОМСЕРВИС"
+                    [order_id] => 2468
+                    [order_name] => 25-10-24/1
+                    [counterparty_id] => 1129
+                    [cohort_id] => 4122
+                )
+
+        )
+
+)

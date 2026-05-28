@@ -1,0 +1,1067 @@
+<?php
+/**
+ * @copyright 2022
+ */
+
+
+require_once '../../config/config-auth.php';
+$dbhost = $cfg_auth->host;
+$dbuser = $cfg_auth->user;
+$dbpassword = $cfg_auth->password;
+$dbname = $cfg_auth->name;
+
+
+try {  
+    $dbh_a = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+require_once '../config.php';
+require_once 'lib.php';
+$dbhost = $cfg->host;
+$dbuser = $cfg->user;
+$dbpassword = $cfg->password;
+$dbname = $cfg->name;
+
+
+try {  
+    $dbh = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+session_start();
+
+$_JSON =  json_decode(file_get_contents('php://input'), true);
+foreach ($_JSON as $key => $value) {
+    $api_function = $key;
+    $api_arg = $value;
+    break; 
+}
+
+
+
+function cohort_make($order_id, $counterparty_id ) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $page_size;
+    global $HoursPerDay;
+
+
+        $group_status = 7; /*Комплектование групп*/ 	
+        $stmt = $dbh->prepare('SELECT `order_id`, `date_order`, `number`, `status_id`, `counterparty_id`, `date_begin`, `date_end`   FROM `a_order`   WHERE `order_id`=?');
+        $stmt->execute([$order_id]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	        $date_order = $row->date_order;
+	        $number = $row->number;
+	        $order_status_id = $row->status_id;
+	        $order_counterparty_id = $row->counterparty_id;
+	        $date_begin = $row->date_begin;
+	        $date_end = $row->date_end;
+        }
+
+            $i = 1;
+            $prev_id = 0;
+	    $stmt = $dbh->prepare('SELECT DISTINCT `a_order_course`.`item_id`, `a_order_course`.`course_id`, `a_order_course`.`group_number`,  `a_course_category`.`consulting`, `a_course`.`shortname`, `group_number`   FROM  `a_order_users` LEFT JOIN `a_order_course` USING(`item_id`)  LEFT JOIN `a_course` USING(`course_id`)  LEFT JOIN `a_course_category` USING(`category_id`) LEFT JOIN  `a_user_counterparty`  USING(`user_counterparty_id`)  LEFT JOIN   `a_users` USING(`user_id`)   WHERE `order_id`=? AND `a_order_course`.`course_id`>0 AND `a_user_counterparty`.`counterparty_id`=?  AND `a_users`.`status`=0 AND `a_user_counterparty`.`status`=0   ORDER BY `a_course`.`shortname`   ');
+	    $stmt->execute([$order_id, $counterparty_id]);
+	    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	        if(intval($row->course_id)<=0)
+	                continue;
+
+                $consulting = 0;
+                $count_cohort = 0;
+                $i_cohort_id = 0;
+                $i_group_number = $row->group_number;
+                if( $i_group_number == 1 )
+                         $i_group_number = 0;
+
+                $stmt2 = $dbh->prepare('SELECT `cohort_id`   FROM  `a_order_users`  LEFT JOIN `a_order_course` USING(`item_id`)   WHERE `order_id`=? AND `course_id`=? AND `group_number`=? AND  `cohort_id`>0  ORDER BY `a_order_users`.`certificate_num` ');
+                $stmt2->execute([$order_id, $row->course_id, $i_group_number]);
+                if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	            //$count_cohort = $row2->count;
+	            $i_cohort_id = $row2->cohort_id;
+	        }
+//file_put_contents("lst.txt", print_r($i_cohort_id, true) );
+                if($i_cohort_id == 0) {
+                    $consulting = $row->consulting;
+
+//$p_group_id =0;
+                    $cohort_name = substr($date_order, 2) .'/'.  $number .'.'.  $i;
+                    $protocol_num = 1;
+                    //$stmt2 = $dbh->query('LOCK TABLES   `a_cohort`  WRITE');
+                    $stmt2 = $dbh->prepare('SELECT max(`protocol_num`)  as `last_protocol_num`    FROM `a_cohort` WHERE `date_num`=?  ');
+                    $stmt2->execute([ $date_order ]);
+                    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+                            $protocol_num = $row2->last_protocol_num + 1;
+                    }
+
+                    $prev_id_i = intval($prev_id);
+                    if($consulting == 1)
+                            $prev_id_i = 0; 
+
+                    $stmt2 = $dbh->prepare("INSERT INTO `a_cohort`(`counterparty_id`,  `name`,  `course_id`, `group_number`,   `protocol_num`,    `date_num`, `prev_id`  ) VALUES ( ?, ?, ?, ?, ?, ?, ? )");
+                    $stmt2->execute([ $counterparty_id,  $cohort_name,  $row->course_id,  $row->group_number,   $protocol_num,   $date_order, $prev_id_i ]);  
+                    $p_cohort_id = $dbh->lastInsertId(); 
+
+//$stmt2 = $dbh->prepare('UPDATE `a_cohort`  SET   `lstream_id`=?  WHERE `cohort_id`=?');
+//$stmt2->execute([ $p_cohort_id,    $p_cohort_id  ]);
+
+//$stmt2 = $dbh->prepare("INSERT INTO `a_lstream`( `lstream_id`,  `name`,  `course_id`,  `date_begin`, `date_end`, `date_protocol`, `date_begin2`, `protocol_num`,  `directive_num`,  `chairman`, `teachers_commission`,  `commission_id`,  `date_num`, `prev_id`  ) VALUES ( ?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )");
+//$stmt2->execute([ $p_cohort_id,  $cohort_name,  $row->course_id,  $date_begin_g, $date_end_g, $date_protocol_g, $date2, $protocol_num, $directive,  $chairman, $teachers_commission, $commission_id,   $date_order, $prev_id_i ]);  
+//$p_lstream_id = $dbh->lastInsertId(); 
+
+                    $stmt2 = $dbh->query('UNLOCK TABLES');
+                
+                    if($p_cohort_id >0 ) {
+
+                           $stmt3 = $dbh->prepare('UPDATE  `a_order_course` SET  `cohort_id`=?  WHERE `item_id`=? AND `course_id`=?  ');
+                           $stmt3->execute([ $p_cohort_id,  $row->item_id,  $row->course_id ]);
+                    }
+            }
+            else {
+                /*$certificate_num = 0;
+                $stmt2 = $dbh->prepare('SELECT   DISTINCT  `user_id`, `certificate_num`, `user_lock`, `rank_of_profession`, `variation`  FROM  `a_order_users`   WHERE `order_id`=? AND `course_id`=?  AND `cohort_id`=0  ORDER BY `certificate_num` ');
+                $stmt2->execute([$order_id,  $row->course_id]);
+                while($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+                    $certificate_num = $certificate_num +1;
+
+                        
+                    $stmt3 = $dbh->prepare('DELETE FROM `a_order_users` WHERE `order_id`=? AND  `course_id`=? AND `user_id`=? AND `cohort_id`=? ');
+                    $stmt3->execute([$order_id, $row->course_id, $row2->user_id, $i_cohort_id ]);
+                        
+                        $record_exist = 0;    
+                        $stmt3 = $dbh->prepare('SELECT count(*) as `count`  FROM `a_order_users` WHERE `order_id`=? AND  `course_id`=? AND `user_id`=? AND `cohort_id`=0 ');
+                        $stmt3->execute([$order_id, $row->course_id, $row2->user_id]);
+                        if($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {
+	                        if($row3->count > 0)
+                                    $record_exist = 1;    
+                        }
+
+                        if($record_exist>0){
+                            $stmt3 = $dbh->prepare('INSERT INTO `a_order_users`(`order_id`, `course_id`, `user_id`, `cohort_id`, `certificate_num`, `user_lock`, `rank_of_profession`, `variation` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )');
+                            $stmt3->execute([$order_id, $row->course_id, $row2->user_id, $i_cohort_id, $certificate_num , $row2->user_lock, $row2->rank_of_profession, $row2->variation ]);
+
+                            $stmt3 = $dbh->prepare('UPDATE  `a_order_course` SET  `cohort_id`=?, `certificate_num`=?  WHERE `item_id`=? AND `course_id`=? AND  `rank_of_profession`=? AND `variation`=? ');
+                            $stmt3->execute([ $i_cohort_id, $certificate_num, $row->item_id, $row->course_id, $row2->rank_of_profession, $row2->variation ]);
+                        }
+	           }*/
+                   $stmt3 = $dbh->prepare('UPDATE  `a_order_course` SET  `cohort_id`=?  WHERE `item_id`=? AND `course_id`=?  ');
+                   $stmt3->execute([ $i_cohort_id,  $row->item_id,  $row->course_id ]);
+            }
+	        $i = $i+1;
+            $date_begin_g = date('Y-m-d', strtotime($date_end_g) +  (60*60*24));
+            if($consulting == 0)
+                    $prev_id = $p_cohort_id;            
+        }
+}
+
+
+
+
+function cohort_list($order_id, $make, $counterparty_id, $date1, $date2, $course, $group,  $status,  $page) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $page_size;
+    global $HoursPerDay;
+
+    $offset=0;
+    if( $page>1 ){
+	    $offset = intval($page-1)*$page_size;
+    }
+    $num_pages = 0;
+
+    $g_list = [];
+    $counterparty_title_shortname = '';
+
+    $addsearch = '';
+    if($counterparty_id>0){
+        $addsearch =  ' AND `counterparty_id`=' . $counterparty_id . ' ';
+    }
+    if($date1!=''){
+        $addsearch = $addsearch . ' AND `a_lstream`.`date_begin`>=' . $dbh->quote($date1) . ' ';
+    }
+    if($date2!=''){
+        $addsearch = $addsearch . ' AND `a_lstream`.`date_end`<=' . $dbh->quote($date2) . ' ';
+    }
+    if($course!=''){
+        $addsearch = $addsearch . ' AND `a_course`.`shortname` LIKE \'%' . addslashes(trim($course)) . '%\' ';
+    }
+    if($group!=''){
+        $addsearch = $addsearch . ' AND `a_cohort`.`name` LIKE \'%' . addslashes(trim($group)) . '%\' ';
+    }
+    //if($status>0){
+    //    $addsearch = $addsearch . ' AND `a_cohort`.`status_id`=' . $status . ' ';
+    //}
+
+
+    $status_id = 1;
+    $date_order = '';
+    $a_counterparty_id = 0;
+    $stmt = $dbh->prepare('SELECT  `date_order`, `number`, `status_id`, `counterparty_id`, `date_begin`, `date_end`   FROM `a_order`   WHERE `order_id`=?');
+    $stmt->execute([$order_id]);
+    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $status_id = $row->status_id;
+        $date_order = $row->date_order;
+        $a_counterparty_id = $row->counterparty_id;
+    }
+    if($a_counterparty_id>0){
+        $stmt2 = $dbh->prepare('SELECT `name`, `shortname` FROM  `a_counterparty`   WHERE `counterparty_id`=? ');
+        $stmt2->execute([$a_counterparty_id]);
+        if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+             $counterparty_title_shortname = $row2->shortname;
+        }
+    }
+
+    $count = 0;
+    if($order_id>0 && $make==1 && $status_id>=7 ){
+	    $stmt = $dbh->prepare('SELECT count(*) as `count`   FROM  `a_order_users` LEFT JOIN  `a_order_course` USING(`item_id`)   WHERE `a_order_users`.`order_id`=?  AND `a_order_course`.`cohort_id`>0 ');
+	    $stmt->execute([$order_id]);
+	    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	        $count = $row->count;
+	    }
+    }
+
+    //if($order_id>0 && $make==1){
+    if($order_id>0 && $make==1 && ($status_id<7 || $count==0)){
+        cohort_make($order_id, $a_counterparty_id ); 
+    }
+
+
+    if($order_id>0) { 
+    	    //$stmt = $dbh->prepare('SELECT DISTINCT  `cohort_id`, `lstream_id`, `a_cohort`.`name`, `a_cohort`.`status_id`, `a_order_users`.`order_id`,  `a_course`.`shortname` as `course_name`,  `a_course`.`course_id`, `a_course`.`hours`, LENGTH(`protocol_html`) as `protocol_html_length`, `upload_certificate1`, `upload_certificate2`, `upload_protocol`   FROM `a_cohort` LEFT JOIN `a_course` USING(`course_id`)  LEFT JOIN `a_order_course` USING(`cohort_id`)  LEFT JOIN `a_order_users` USING(`item_id`)  LEFT JOIN `a_order` USING(`order_id`)  WHERE `order_id`=?  '.$addsearch.' ORDER BY `cohort_id`  LIMIT '.$page_size.'  OFFSET  ' . "$offset");
+    	    $stmt = $dbh->prepare('SELECT DISTINCT  `cohort_id`, `lstream_id`, `a_cohort`.`name`, `a_cohort`.`status_id`, `a_order_users`.`order_id`, `a_order_course`.`course_id`,   LENGTH(`protocol_html`) as `protocol_html_length`, `upload_certificate`,  `modify_certificate1`, `modify_certificate2`, `upload_protocol`, `modify_protocol`   FROM `a_cohort`  LEFT JOIN `a_order_course` USING(`cohort_id`)  LEFT JOIN `a_order_users` USING(`item_id`)  LEFT JOIN `a_order` USING(`order_id`) LEFT JOIN `a_lstream` USING(`lstream_id`) LEFT JOIN `a_course` ON `a_cohort`.`course_id`=`a_course`.`course_id`  WHERE `order_id`=?  '.$addsearch.' ORDER BY `a_cohort`.`name` DESC  LIMIT '.$page_size.'  OFFSET  ' . "$offset");
+	    $stmt->execute([$order_id]);
+    }
+    else {
+	    //$stmt = $dbh->prepare( 'SELECT DISTINCT `cohort_id`, `lstream_id`,  `a_cohort`.`name`, `a_cohort`.`status_id`, `a_order_users`.`order_id`,  `a_course`.`shortname` as `course_name`,  `a_course`.`course_id`, `a_course`.`hours`, LENGTH(`protocol_html`) as `protocol_html_length`, `upload_certificate1`, `upload_certificate2`, `upload_protocol`   FROM `a_cohort` LEFT JOIN `a_course` USING(`course_id`)  LEFT JOIN `a_order_course` USING(`cohort_id`)  LEFT JOIN `a_order_users` USING(`item_id`)   LEFT JOIN `a_order` USING(`order_id`)  WHERE `order_id`>0  '.$addsearch.' ORDER BY `cohort_id`  LIMIT '.$page_size.'  OFFSET  ' . "$offset");
+	    $stmt = $dbh->prepare( 'SELECT DISTINCT `cohort_id`, `lstream_id`,  `a_cohort`.`name`, `a_cohort`.`status_id`, `a_order_users`.`order_id`, `a_order_course`.`course_id`,  LENGTH(`protocol_html`) as `protocol_html_length`, `upload_certificate`,  `modify_certificate1`, `modify_certificate2`, `upload_protocol`, `modify_protocol`   FROM `a_cohort`   LEFT JOIN `a_order_course` USING(`cohort_id`)  LEFT JOIN `a_order_users` USING(`item_id`)   LEFT JOIN `a_order` USING(`order_id`) LEFT JOIN `a_lstream` USING(`lstream_id`) LEFT JOIN `a_course` ON `a_cohort`.`course_id`=`a_course`.`course_id`  WHERE `order_id`>0  '.$addsearch.' ORDER BY `a_cohort`.`name` DESC  LIMIT '.$page_size.'  OFFSET  ' . "$offset");
+	    $stmt->execute([]);
+    }
+    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	    $group_count = 0;
+	    $date2 = date('Y-m-d', strtotime($row->date_end) - $days * (60*60*24));
+
+	    $stmt2 = $dbh->prepare('SELECT count(*) as `count` FROM  `a_order_course` LEFT JOIN `a_order_users` USING(`item_id`)   WHERE `cohort_id`=? AND `user_counterparty_id`>0 ');
+	    $stmt2->execute([$row->cohort_id]);
+	    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	        $group_count = $row2->count;
+	    }
+
+            $scheduler_count = 0;
+	    $stmt2 = $dbh->prepare('SELECT   count(*) as `count`  FROM `a_cohort_scheduler`   WHERE `lstream_id`=?');
+	    $stmt2->execute([$row->lstream_id]);
+	    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	        $scheduler_count = $row2->count;
+	    }
+
+
+            $counterparty_shortname = '';
+	    $stmt2 = $dbh->prepare('SELECT `name`, `shortname` FROM  `a_order`  LEFT JOIN `a_counterparty`  USING(`counterparty_id`)  WHERE `order_id`=? ');
+	    $stmt2->execute([$row->order_id]);
+	    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	        $counterparty_shortname = $row2->shortname;
+	    }
+
+            $date_begin = '';
+            $date_end   = '';
+            $lstream_cohort_count = 0;
+            $lstream_name = '';
+            if($row->lstream_id > 0 ){
+                 $lstream_id = $row->lstream_id;
+                 $stmt2 = $dbh->prepare('SELECT `name`, `date_begin`, `date_end` FROM  `a_lstream`   WHERE `lstream_id`=? ');
+	         $stmt2->execute([$row->lstream_id]);
+	         if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+                      $date_begin = $row2->date_begin;
+                      $date_end   = $row2->date_end;
+                      $lstream_name = $row2->name;
+	         }
+                 $stmt2 = $dbh->prepare('SELECT count(*) as `count`  FROM `a_cohort`  WHERE  `lstream_id`=? ');
+                 $stmt2->execute([$row->lstream_id]);
+                 if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+                      $lstream_cohort_count = $row2->count;
+                 }
+            }
+
+	    $stmt2 = $dbh->prepare('SELECT   `protocol_template`, `certificate1_template`, `certificate2_template`, `certificate1_name`, `certificate2_name`,  `a_course`.`category_id`, `a_course_category`.`consulting`,  `a_course`.`shortname` as `course_name`, `a_course`.`hours`     FROM  `a_cohort` LEFT JOIN `a_course` USING(`course_id`) LEFT JOIN `a_course_category` USING(`category_id`)   WHERE `cohort_id`=? ');
+	    $stmt2->execute([$row->cohort_id]);
+	    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  	        
+                $days =  intval(intval($row2->hours) / $HoursPerDay + 0.9) + intval(intval(intval($row2->hours) / $HoursPerDay  + 0.9) / 5 )*2;
+	        $g_list[] =  [ "name"=>$row->name,  "status_id"=>$row->status_id,   "count"=>$group_count,  "scheduler_count"=>$scheduler_count, "cohort_id"=>$row->cohort_id, "lstream_id"=>$row->lstream_id, "course_id"=>$row->course_id,  "course_name"=>$row2->course_name,    "category_id"=>$row2->category_id, "consulting"=>$row2->consulting,  "protocol_template"=>$row2->protocol_template, "certificate1_template"=>$row2->certificate1_template, "certificate2_template"=>$row2->certificate2_template, "certificate1_name"=>$row2->certificate1_name,  "certificate2_name"=>$row2->certificate2_name,   "counterparty_shortname"=>$counterparty_shortname,   "title_hours"=>intval($row2->hours),  "hours"=>intval($row2->hours), "days"=>$days,   "protocol_template"=>$row2->protocol_template, "date_begin"=>$date_begin, "date_end"=>$date_end, "lstream_cohort_count"=>$lstream_cohort_count,  "lstream_name"=>$lstream_name,   "protocol_html_length"=>intval($row->protocol_html_length),  "upload_certificate"=>$row->upload_certificate, "modify_certificate1"=>$row->modify_certificate1, "modify_certificate2"=>$row->modify_certificate2, "upload_protocol"=>$row->upload_protocol, "modify_protocol"=>$row->modify_protocol  ];
+	    }
+    }
+    if($order_id>0) { 
+    	$stmt0 = $dbh->prepare('SELECT count(DISTINCT `a_cohort`.`cohort_id` ) as `count`  FROM  `a_cohort` LEFT JOIN `a_course` USING(`course_id`)   LEFT JOIN `a_order_course` USING(`cohort_id`)  LEFT JOIN `a_order_users` USING(`item_id`)   LEFT JOIN `a_order` USING(`order_id`)  LEFT JOIN `a_lstream` USING(`lstream_id`)   WHERE `order_id`=?  '.$addsearch);
+        $stmt0->execute([$order_id]);
+    }
+    else {
+        $stmt0 = $dbh->query('SELECT  count(DISTINCT `a_cohort`.`cohort_id` )  as `count`   FROM  `a_cohort` LEFT JOIN `a_course` USING(`course_id`)   LEFT JOIN `a_order_course` USING(`cohort_id`)  LEFT JOIN `a_order_users` USING(`item_id`)   LEFT JOIN `a_order` USING(`order_id`)  LEFT JOIN `a_lstream` USING(`lstream_id`)  WHERE 1  '.$addsearch  );
+    }
+    if($row0 = $stmt0->fetch(PDO::FETCH_OBJ)) {  
+	$members = $row0->count;
+    }
+    $num_pages = intval(($members+0.5)/$page_size+1);
+    if( $page > $num_pages ){
+	    $page = $num_pages;
+    }
+
+
+    $result = ["role"=>$session_role, "action"=>"list",  "list"=>$g_list,  "counterparty_title_shortname"=>$counterparty_title_shortname,   "search"=>$addsearch, "numPages"=>$num_pages, "page"=>$page ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+function cohort_object($cohort_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $HoursPerDay;
+
+    $rc =  ["cohort_id"=>$cohort_id,  "name"=>''  ];
+    $days = 0;
+    $scheduler = [];
+    $lstream_cohort_count = 0;
+    if($cohort_id >0 ) {
+	    $stmt = $dbh->prepare('SELECT   `a_cohort`.`name`, `a_cohort`.`course_id`,  `prev_id`, `lstream_id`,  `variation`, `order_id`   FROM `a_cohort`  LEFT JOIN `a_order_course` USING(`cohort_id`) LEFT JOIN `a_order_users` USING(`item_id`)   WHERE `a_cohort`.`cohort_id`=?');
+	    $stmt->execute([$cohort_id]);
+	    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+                if($row->lstream_id >0 ){
+                    $date_begin = '';
+                    $date_end = '';
+                    $date_protocol = '';
+                    $main_teacher = 0;
+                    $chairman = '';
+                    $teachers_commission = '';
+                    $directive_num = '';
+                    $main_teacher_name = '';
+                    $lstream_name = ''; 
+                    $stmt2 = $dbh->prepare('SELECT  `name`,  `date_begin`, `date_end`, `date_protocol`, `main_teacher`,  `commission_id`, `directive_num`   FROM `a_lstream`   WHERE `lstream_id`=?');
+                    $stmt2->execute([ $row->lstream_id ]);
+                    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+                           $date_begin = $row2->date_begin;
+                           $date_end = $row2->date_end;
+                           $date_protocol = $row2->date_protocol;
+                           $main_teacher = $row2->main_teacher;
+                           $commission_id = $row2->commission_id;
+                           $directive_num = $row2->directive_num;
+                           $lstream_name = $row2->name;
+                    }
+                    $stmt3 = $dbh->prepare('SELECT  `lastname`, `firstname`, `middlename`   FROM  `a_teacher`     WHERE `user_id`=?');
+                    $stmt3->execute([$row->main_teacher]);
+                    if($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {  
+                            $main_teacher_name = $row3->lastname. ' ' . $row3->firstname. ' ' .$row3->middlename ;
+                    }
+
+                    $stmt2 = $dbh->prepare('SELECT count(*) as `count`  FROM `a_cohort`  WHERE  `lstream_id`=? ');
+                    $stmt2->execute([$row->lstream_id]);
+                    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+                          $lstream_cohort_count = $row2->count;
+                    }
+
+                    $stmt2 = $dbh->prepare('SELECT DISTINCT  `date`, `work`   FROM `a_cohort_scheduler`   WHERE `lstream_id`=? ORDER BY `date` ');
+                    $stmt2->execute([$row->lstream_id]);
+                    while($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+                         $scheduler[] = ["date"=>$row2->date, "work"=>$row2->work];
+                    }
+                }
+
+                $stmt1 = $dbh->prepare('SELECT  `category_id`,   `name` as `course_name`, `shortname` as `course_shortname`,  `hours`, `hours_l`, `hours_p`, `hours_i`, `hours_c`,  `hours_add`, `hours_l_add`, `hours_p_add`, `hours_i_add`, `hours_c_add`    FROM  `a_course`  WHERE `course_id`=?');
+	        $stmt1->execute([ $row->course_id  ]);
+	        if($row1 = $stmt1->fetch(PDO::FETCH_OBJ)) {
+                   $course_name = $row1->course_name;
+                   $course_shortname = $row1->course_shortname;
+                   $category = $row1->category_id;
+                   $title_hours = intval($row1->hours);
+                   if($row->variation <= 1){
+                        $hours = intval($row1->hours);
+                        $hours_l = $row1->hours_l;
+                        $hours_p = $row1->hours_p;
+                        $hours_i = $row1->hours_i;
+                        $hours_c = $row1->hours_c;
+                   }
+                   else if($row->variation == 2){
+                        $hours = intval($row1->hours_add);
+                        $hours_l = $row1->hours_l_add;
+                        $hours_p = $row1->hours_p_add;
+                        $hours_i = $row1->hours_i_add;
+                        $hours_c = $row1->hours_c_add;
+                   }
+                   else if($row->variation == 3){
+                        $hours = intval($row1->hours_add2);
+                        $hours_l = $row1->hours_l_add2;
+                        $hours_p = $row1->hours_p_add2;
+                        $hours_i = $row1->hours_i_add2;
+                        $hours_c = $row1->hours_c_add2;
+                   }
+                }
+	        $days =  intval($hours / $HoursPerDay + 0.9) + intval(intval($hours / $HoursPerDay + 0.9) / 5 )*2;
+
+	        $stmt2 = $dbh->prepare('SELECT  `a_order`.`counterparty_id`, `a_counterparty`.`shortname`,  `a_order`.`date_begin`   FROM  `a_order`   LEFT JOIN `a_counterparty` USING(`counterparty_id`)   WHERE `order_id`=?');
+	        $stmt2->execute([$row->order_id]);
+	        $order_date_begin = '';
+	        $counterparty_name = '';
+	        if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	            $counterparty_name = $row2->shortname;
+	            $order_date_begin = $row2->date_begin;
+	        }
+	        $main_teacher_name = '';
+	        
+	        $consulting = 0;
+	        $stmt2 = $dbh->prepare('SELECT  `consulting`   FROM  `a_course_category`     WHERE `category_id`=?');
+	        $stmt2->execute([$row->category_id]);
+	        if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	            $consulting = $row2->consulting ;
+	        }
+
+	        $date_prev = $order_date_begin;
+	        /*if($row->prev_id > 0){
+                    $stmt3 = $dbh->prepare('SELECT  `date_end`   FROM  `a_cohort` LEFT JOIN `a_lstream` USING(`lstream_id`)  WHERE `cohort_id`=?');
+	            $stmt3->execute([$row->prev_id]);
+	            if($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {
+                        if($row3->date_end!=null && $row3->date_end!='')
+	                     $date_prev = date('Y-m-d', strtotime($row3->date_end) + (60*60*24)); 
+//file_put_contents("lst.txt", print_r([$row3->date_end ], true) );
+	            }
+	        }*/
+
+                $date_end3 =  $order_date_begin;
+                $stmt3 = $dbh->prepare('SELECT  `date_end`   FROM  `a_order_users` LEFT JOIN `a_order_course` USING(`item_id`) LEFT JOIN  `a_cohort` USING(`cohort_id`) LEFT JOIN `a_lstream` USING(`lstream_id`)  WHERE `order_id`=?');
+	        $stmt3->execute([ $row->order_id ]);
+	        while($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {
+                    if($row3->date_end!=null && $row3->date_end!=''){
+                        if(strcmp($date_end3,  $row3->date_end) < 0) {
+	                     $date_prev = date('Y-m-d', strtotime($row3->date_end) + (60*60*24)); 
+                             $date_end3 =  $row3->date_end;
+                        }
+                    }
+//file_put_contents("lst.txt", print_r([$row3->date_end ], true) );
+	        }
+
+
+	        $rc =  ["cohort_id"=>$cohort_id,  "name"=>$row->name,   "course_id"=>$row->course_id,  "course_name"=>$course_name,  "course_shortname"=>$course_shortname,  "title_hours"=>$title_hours,  "category"=>$category_id, "consulting"=>$consulting,  "date_begin"=>$date_begin, "date_end"=>$date_end, "date_protocol"=>$date_protocol, "main_teacher"=>$main_teacher_name, "main_teacher_id"=>$main_teacher, "date_begin2"=>"",  "order_id"=>$row->order_id,  "prev_id"=>$row->prev_id, "date_prev"=>$date_prev,  "directive_num"=>$directive_num,   "commission_id"=>$commission_id,   "lstream_id"=>$row->lstream_id, "lstream_name"=>$lstream_name, "lstream_cohort_count"=>$lstream_cohort_count,  "hours"=>$hours, "hours_l"=>$hours_l, "hours_p"=>$hours_p, "hours_i"=>$hours_i, "hours_c"=>$hours_c, "days"=>$days, "counterparty_name"=>$counterparty_name, "scheduler"=>$scheduler ];
+	    }
+    }
+    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"object",  "result"=>$rc ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+
+function cohort_save($cohort_id, $name,   $main_teacher_id  ) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    if($date_begin == '')
+         $date_begin = date('Y-m-d');
+
+    if($date_end == '')
+         $date_end = date('Y-m-d');
+
+    if($date_protocol == '' || $date_protocol == '0000-00-00')
+        $date_protocol = $date_end;
+
+
+    if($cohort_id >0 && $name!='' ) {
+
+        /*$date_protocol_0 = '';
+        $stmt = $dbh->prepare('SELECT   `date_protocol`  FROM `a_cohort` WHERE `cohort_id`=?  ');
+        $stmt->execute([ $cohort_id ]);
+	    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	            $date_protocol_0 = $row->$date_protocol;
+	    }
+        //if($date_protocol_0 != $date_protocol ) {
+
+        if( ) {
+            $protocol_num = 1;
+            $stmt2 = $dbh->query('LOCK TABLES   `a_cohort`  WRITE');
+            $stmt2 = $dbh->prepare('SELECT max(`protocol_num`)  as `last_protocol_num`    FROM `a_cohort` WHERE date_protocol=? ');
+            $stmt2->execute([ $date_protocol ]);
+	        if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	            $protocol_num = $row2->last_protocol_num + 1;
+	        }
+            $stmt2 = $dbh->prepare('UPDATE `a_cohort` SET   `protocol_num`=?  WHERE `cohort_id`=?');
+            $stmt2->execute([ $protocol_num,   $cohort_id ]);
+            $stmt2 = $dbh->query('UNLOCK TABLES');
+
+	        /*$i_certificate_num = 0;
+	        $stmt = $dbh->prepare('SELECT   DISTINCT  `course_id`, `user_id`  FROM  `a_order_users`   WHERE  `cohort_id`=? AND  `course_id`>0');
+	        $stmt->execute([ $cohort_id ]);
+	        while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                $i_certificate_num = $i_certificate_num +1;
+                //$i_certificate_num = 1;
+                //$stmt2 = $dbh->query('LOCK TABLES   `a_order_users`  WRITE');
+                //$stmt2 = $dbh->prepare('SELECT max(`certificate_num`)  as `last_certificate_num`   FROM `a_order_users` LEFT JOIN `a_cohort` USING(`cohort_id`)  WHERE  YEAR(`date_protocol`) = YEAR(?) AND MONTH(`date_protocol`) = MONTH(?) ');
+                //$stmt2->execute([ $date_protocol, $date_protocol ]);
+                //$stmt2 = $dbh->prepare('SELECT max(`certificate_num`)  as `last_certificate_num`   FROM `a_order_users` LEFT JOIN `a_cohort` USING(`cohort_id`)  WHERE  `date_protocol`=?  ');
+                //$stmt2->execute([ $date_protocol ]);
+                //if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+                  //  $i_certificate_num = $row2->last_certificate_num + 1;
+                //}
+
+                $stmt3 = $dbh->prepare('UPDATE `a_order_users` SET  `certificate_num`=?  WHERE  `user_id`=? AND `cohort_id`=? ');
+	            $stmt3->execute([$i_certificate_num,  $row->user_id,  $cohort_id ]);
+                //$stmt2 = $dbh->query('UNLOCK TABLES');
+            }
+        } */
+
+        //$stmt = $dbh->prepare('UPDATE `a_cohort` SET   `name`=?,   `date_begin`=?, `date_end`=?, `date_protocol`=?, `main_teacher`=?, `directive`=?, `chairman`=?, `teachers_commission`=? , `finalexamination`=?, `certificate_grade`=?,  enterprise_manager=?,  enterprise_manager2=?  WHERE `cohort_id`=?');
+        //$stmt->execute([ $name, $date_begin, $date_end, $date_protocol, $main_teacher_id, $directive, $chairman, $teacher, $finalexamination, $certificate_grade, $enterprise_manager, $enterprise_manager2,   $cohort_id ]);
+        $stmt = $dbh->prepare('UPDATE `a_cohort` SET   `name`=?,    `main_teacher`=?    WHERE `cohort_id`=?');
+        $stmt->execute([ $name,  $main_teacher_id,   $cohort_id ]);
+        
+        
+        
+    }
+
+    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"update",  "result"=>$cohort_id ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+
+function cohort_create( $name,  $course_id, $category, $date_begin, $date_end, $date_protocol, $date_order, $main_teacher_id, $chairman, $teacher_c   ) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    if($date_begin == '')
+         $date_begin = date('Y-m-d');
+
+    if($date_end == '')
+         $date_end = date('Y-m-d');
+         
+    if($date_protocol == '' || $date_protocol == '0000-00-00')
+        $date_protocol = $date_end;
+
+    if($group_id >0 ) {
+        if($chairman == '' && $teacher_c == '') {
+            $stmt = $dbh->prepare('SELECT `chairman`, `teachers_commission`  FROM `a_course` LEFT JOIN `a_course_category` USING(`category_id`) WHERE  `a_course`.`course_id`=? ');
+	        $stmt->execute([$course_id]);
+	        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	            $chairman = $row->chairman;
+	            $teacher = $row->teachers_commission;
+	            //$directive_num  = $row->directive_num;
+	        }
+        }     
+
+        $protocol_num = 1;
+        $stmt2 = $dbh->query('LOCK TABLES   `a_cohort`  WRITE');
+        $stmt2 = $dbh->prepare('SELECT max(`protocol_num`)  as `last_protocol_num`    FROM `a_cohort` WHERE date_protocol=? ');
+        $stmt2->execute([ $date_protocol ]);
+	    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	            $protocol_num = $row2->last_protocol_num + 1;
+	    }
+            $stmt2 = $dbh->prepare('INSERT INTO `a_cohort`( `name`,  `course_id`, `category`,  `date_begin`, `date_end`, `date_protocol`,`main_teacher`, `protocol_num`, `chairman`, `teachers_commission`, `enterprise_manager`, `enterprise_manager2`, `date_num` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )');
+	    $stmt2->execute([ $name,  $course_id, $category, $date_begin, $date_end, $date_protocol, $main_teacher_id, $protocol_num,  $chairman, $teacher_c, $enterprise_manager, $enterprise_manager2, $date_order ]);
+	    $cohort_id = $dbh->lastInsertId(); 
+        $stmt2 = $dbh->query('UNLOCK TABLES');
+	    
+    }
+
+    if($cohort_id>0)
+	    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"cohort_save", "userId"=>$user_id_session, "result"=>$cohort_id ];
+    else
+        $result = ["status"=>"1", "error"=>'Ошибка записи в базу данных', "role"=>$session_role, "action"=>"cohort_save", "userId"=>$user_id_session, "result"=>0 ];
+
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function cohort_del($cohort_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    if($cohort_id >0 ) {
+            $stmt = $dbh->prepare('UPDATE  `a_order_course` SET  `cohort_id`=0  WHERE `cohort_id`=?  ');
+            $stmt->execute([ $cohort_id ]);
+	    
+            $stmt = $dbh->prepare('DELETE FROM  `a_cohort_scheduler`  WHERE `cohort_id`=?');
+            $stmt->execute([ $cohort_id  ]);
+
+            $lstream_id = 0;
+	    $stmt = $dbh->prepare('SELECT  `lstream_id`  FROM `a_cohort`   WHERE `cohort_id`=? ');
+	    $stmt->execute([$cohort_id]);
+	    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+                 $lstream_id = $row->lstream_id;
+	    }
+ 
+            if($lstream_id >0 ){
+                $stmt = $dbh->prepare('SELECT count(*) as `count`  FROM `a_cohort`  WHERE  `lstream_id`=? ');
+                $stmt->execute([$lstream_id]);
+                if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+                    if($row->count <= 1){
+                        $stmt2 = $dbh->prepare('DELETE FROM   `a_lstream`   WHERE  `lstream_id`=?  ');
+                        $stmt2->execute([$lstream_id]);
+
+                        $stmt2 = $dbh->prepare('DELETE FROM   `a_cohort_scheduler`   WHERE  `lstream_id`=?  ');
+                        $stmt2->execute([$lstream_id]);
+	            }
+	        }
+	    }     
+
+	    $stmt = $dbh->prepare('DELETE FROM  `a_cohort`   WHERE `cohort_id`=? ');
+	    $stmt->execute([$cohort_id]);
+    }
+
+    $result = ["status"=>0, "error"=>'', "role"=>$session_role, "action"=>"group_del" ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+function cohort_items($cohort_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+
+    $users_list = [];
+    $course_list = [];
+    $counterparty_id = '';
+    $counterparty_name = '';
+    //$rc_list[] = ["userId"=>0,  "name"=>'', "fullname"=>''];
+
+    if($cohort_id >0 ) {
+	    //$stmt2 = $dbh->prepare('SELECT DISTINCT  `a_cohort`.`course_id`,  `a_cohort`.`name`, `a_course`.`shortname` as `course_name`,  `certificate_name`, `certificate_a1_name`, `certificate_template`, `certificate_a1_template`, `counterparty_id`,  `a_counterparty`.`shortname` as `counterparty_name`    FROM `a_cohort`  LEFT JOIN `a_course` USING(`course_id`)  LEFT JOIN `a_course_category` USING(`category_id`)  LEFT JOIN `a_order_users` USING(`cohort_id`) LEFT JOIN `a_order` USING(`order_id`) LEFT JOIN `a_counterparty`  USING(`counterparty_id`)   WHERE `a_cohort`.`cohort_id`=? ');
+	    $stmt2 = $dbh->prepare('SELECT DISTINCT  `a_cohort`.`course_id`,  `a_cohort`.`name`, `a_course`.`shortname` as `course_name`,  `certificate1_name`, `certificate2_name`, `certificate1_template`, `certificate2_template`, `counterparty_id`   FROM `a_cohort`  LEFT JOIN `a_course` USING(`course_id`)  LEFT JOIN `a_course_category` USING(`category_id`)    WHERE `a_cohort`.`cohort_id`=? ');
+            $stmt2->execute([$cohort_id]);
+	    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+		     $result = [ "course_id"=>$row2->course_id, "name"=>$row2->name, "course_name"=>$row2->course_name, "certificate1_name"=>$row2->certificate1_name, "certificate2_name"=>$row2->certificate2_name, "certificate1_template"=>$row2->certificate1_template, "certificate2_template"=>$row2->certificate2_template, "counterparty_id"=>$counterparty_id, "counterparty_name"=>$counterparty_name ];
+	    }
+
+	    $stmt = $dbh->prepare('SELECT DISTINCT  `a_users`.`user_id`,  `lastname`, `firstname`, `middlename`, `email`,  `job_title_id`, `subdivision`, `date_of_birth`, `snils`  FROM `a_order_users`  LEFT JOIN `a_order_course`  USING(`item_id`)   LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)   LEFT JOIN `a_users` ON `a_user_counterparty`.`user_id`=`a_users`.`user_id`   WHERE  `a_order_course`.`cohort_id`=?   ORDER BY `lastname`');
+	    $stmt->execute([$cohort_id]);
+	    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	        $job_title = '';
+	        $stmt2 = $dbh->prepare('SELECT  `name`  FROM `a_job_title`  WHERE `job_title_id`=? ');
+                $stmt2->execute([$row->job_title_id]);
+	        if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+		        $job_title = $row2->name;
+	        }
+
+                $check_sum = checkSnilsControlSum($row->snils);
+
+	        $users_list[] =  ["userId"=>$row->user_id,  "lastname"=>$row->lastname, "firstname"=>$row->firstname, "middlename"=>$row->middlename, "job_title"=>$job_title, "subdivision"=>$row->subdivision, "date_of_birth"=>$row->date_of_birth, "snils"=>$row->snils,  "snils_check_sum"=>$check_sum ];
+       }
+    }
+
+    $result = ["role"=>$session_role, "action"=>"group_items",  "list"=>$users_list,  "result"=>$result, "search"=>$is_search ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function  checkSnilsControlSum($snils) {
+      $numbers = str_split(str_replace(' ', '', str_replace('-', '',  trim($snils))), 1);
+      $controlSum = substr(str_replace(' ', '', str_replace('-', '',  trim($snils))), -2);
+
+      // Расчет контрольной суммы
+      $calculatedSum = 0;
+      for ( $i = 0; $i < 10; $i++) {
+        $calculatedSum += $numbers[$i] * (9 - $i);
+      }
+
+      // Проверка особых случаев
+      if ($calculatedSum > 101) {
+        $calculatedSum %= 101;
+      }
+      if ($calculatedSum == 100 || $calculatedSum == 101) {
+        $calculatedSum = 0;
+      }
+
+      // Форматирование в двузначную строку
+      $formattedCalculatedSum = sprintf('%02d', $calculatedSum);
+
+      return $formattedCalculatedSum == $controlSum;
+}
+
+
+function group_item_del($group_id, $user_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    if($group_id >0 ) {
+	$stmt = $dbh->prepare('DELETE FROM  `a_groups_users`   WHERE `group_id`=? AND `user_id`=? ');
+	$stmt->execute([$group_id, $user_id]);
+    }
+
+    $result = ["status"=>0, "error"=>'', "role"=>$session_role, "action"=>"group_item_del" ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+function cohort_report($cohort_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    $course_id = 0;
+    $rc = [];
+    $list = [];
+    if($cohort_id >0 ) {
+	    $stmt = $dbh->prepare('SELECT  `course_id`  FROM `a_cohort`   WHERE `cohort_id`=?');
+	    $stmt->execute([$group_id]);
+	    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	        $course_id = $row->course_id;
+	    }
+    }
+    if($cohort_id >0 &&  $course_id >0) { 
+	    $stmt = $dbh->prepare('SELECT `user_id`  FROM `a_order_users` WHERE `cohort_id`=?');
+	    $stmt->execute([$cohort_id]);
+	    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	        $rc1 = [];
+	        $user_id = $row->user_id;  
+	        $stmt1 = $dbh->prepare('SELECT  `course`, `date`, `certificate`  FROM `a_reports`   WHERE `user_id`=? AND `course_id`=?' );
+	        $stmt1->execute([$user_id, $course_id]);
+	        while($row1 = $stmt1->fetch(PDO::FETCH_OBJ)) {  
+		        $rc1[] =  ["num"=>$row1->num,  "date"=>$row1->date, "result"=>$row1->result, "course"=>$row1->course ];
+	        }
+	        $list[]  =  ["userId"=>$user_id,  "result"=>$rc1 ];
+	    //array_push($list,  [$user_id=>$rc1]) ;
+	    }
+    }
+    $rc =  ["group_id"=>$group_id,  "course_id"=>$course_id,  "list"=>$list ];
+    $result = ["role"=>$session_role, "action"=>"group_report", "userId"=>$user_id_session, "groupReport"=>$rc ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+/*
+function lstream_create($cohort_id,  $date_begin, $date_end, $date_protocol) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $hours_per_day;
+
+    //$days = 0;
+    $lstream_id = 0;
+    if($cohort_id >0 ) {
+	    $stmt = $dbh->prepare('SELECT   `a_cohort`.`name`,  `date_begin`, `date_end`, `date_protocol`, `lstream_id`, `moodle_cohort_id`,  `a_cohort`.`directive`, `a_cohort`.`chairman`, `a_cohort`.`teachers_commission`, `a_course`.`name` as `course_name`, `a_course`.`shortname` as `course_shortname`, `order_id`, `finalexamination`, `certificate_grade`, `hours`, `hours_l`, `hours_p`, `hours_i`, `hours_c`  FROM `a_cohort` LEFT JOIN `a_course` USING(`course_id`)  LEFT JOIN `a_order_users` USING(`cohort_id`)   WHERE `a_cohort`.`cohort_id`=?');
+	    $stmt->execute([$cohort_id]);
+	    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	        if($row->lstream_id == 0){
+	            //$days = $row->hours / $hours_per_day + (($row->hours / $hours_per_day) % 5)*2;
+	            //$date_end2 = date('Y-m-d', strtotime($row->date_begin) + $days * (60*60*24));
+
+                $num = 1;
+                $stmt2 = $dbh->query('LOCK TABLES   `a_lstream`  WRITE');
+                $stmt2 = $dbh->prepare('SELECT max(`num`)  as `last_num`    FROM `a_lstream` WHERE `date_begin`=? ');
+	            $stmt2->execute([ $date_begin ]);
+	            if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+	                    $num = $row2->last_num + 1;
+	            }
+	            $name =  $date_begin . '.' . $num;
+	    
+                $stmt2 = $dbh->prepare('INSERT INTO `a_lstream`( `name`,  `date_begin`, `date_end`, `date_protocol`, `num`, `directive`, `chairman`, `teachers_commission` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )');
+	            $stmt2->execute([ $name,  $date_begin, $date_end, $date_protocol,  $num,  $row->directive, $row->chairman, $row->teachers_commission  ]);
+	            $lstream_id = $dbh->lastInsertId(); 
+                $stmt2 = $dbh->query('UNLOCK TABLES');
+
+                $stmt2 = $dbh->prepare('UPDATE `a_cohort` SET `lstream_id`=? WHERE `cohort_id`=?');
+                $stmt2->execute([$lstream_id, $cohort_id ]);
+	        }
+	    }
+    }
+    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"lstream_create",  "result"=>$lstream_id ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+*/
+
+
+function cohort_scheduler_list($cohort_id){
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $HoursPerDay;
+
+    $rc =  [];
+    if($cohort_id >0 ) {
+            $course_id = 0;
+            $lstream_id = -1;
+	    $stmt = $dbh->prepare('SELECT `a_order_course`.`course_id`, `lstream_id`  FROM `a_order_course` LEFT JOIN `a_cohort` USING(`cohort_id`)   WHERE `a_order_course`.`cohort_id`=?');
+	    $stmt->execute([$cohort_id]);
+	    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	        $course_id = $row->course_id;
+	        $lstream_id = $row->lstream_id;
+	    }
+            if( $course_id>0 && $lstream_id==0 ){
+                    $stmt = $dbh->prepare('SELECT DISTINCT  `a_cohort`.`lstream_id`, `date_begin`, `date_end`, `date_protocol`, `a_lstream`.`name`  FROM `a_order_course` LEFT JOIN `a_cohort` USING(`cohort_id`) LEFT JOIN `a_lstream` USING(`lstream_id`)   WHERE `a_cohort`.`lstream_id`>0 AND `date_begin` IS NOT NULL   AND  `a_order_course`.`course_id`=?  ORDER BY `date_begin` DESC ');
+                    $stmt->execute([$course_id]);
+                    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                            $rc[] = [ "lstream_id"=>$row->lstream_id, "date_begin"=>$row->date_begin,  "date_end"=>$row->date_end,  "date_protocol"=>$row->date_protocol,  "name"=>$row->name ];
+                    }
+            }
+    }
+    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"cohort_scheduler_object", "cohort_id"=>$cohort_id, "list"=>$rc ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function cohort_scheduler_save($cohort_id,  $date_begin, $date_end, $date_protocol, $scheduler, $rebuild) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $HoursPerDay;
+
+    //$days = 0;
+
+    $lstream_id = 0;
+    if($cohort_id >0 ) {
+        $lstream_id = 0;
+        $course_id = 0;
+        $commission_id = 0; 
+        //$stmt = $dbh->prepare('SELECT  `lstream_id`, `course_id`  FROM `a_cohort`   WHERE `prev_id`=?');
+        $stmt = $dbh->prepare('SELECT `lstream_id`, `a_cohort`.`course_id`, `commission_id`  FROM `a_cohort`  LEFT JOIN `a_course` USING(`course_id`)  WHERE `cohort_id`=?');
+        $stmt->execute([$cohort_id]);
+        $i_cohort_id = 0;
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                $course_id = $row->course_id;
+                $lstream_id = $row->lstream_id;
+                $commission_id = $row->commission_id;
+        }
+
+        if($lstream_id >0 ){
+                //$stmt = $dbh->prepare('SELECT count(*) as `count`  FROM `a_cohort`  WHERE  `lstream_id`=? ');
+	        //$stmt->execute([$lstream_id]);
+	        //if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	        //    if($row->count <= 1){
+	        $stmt2 = $dbh->prepare('DELETE FROM  `a_cohort_scheduler`   WHERE  `lstream_id`=?  ');
+	        $stmt2->execute([$lstream_id]);
+	        //    }
+	        //}
+                //$stmt2 = $dbh->prepare('UPDATE `a_lstream` SET `date_begin`=?, `date_end`=?, `date_protocol`=?, `date_num`=? WHERE `lstream_id`=?');
+                //$stmt2->execute([ $date_begin,  $date_end, $date_protocol, $date_protocol, $lstream_id ]);
+                $stmt2 = $dbh->prepare('UPDATE `a_lstream` SET `date_begin`=?, `date_end`=?, `date_protocol`=?  WHERE `lstream_id`=?');
+                $stmt2->execute([ $date_begin,  $date_end, $date_protocol, $lstream_id ]);
+         }     
+//       $stmt = $dbh->prepare('UPDATE `a_cohort` SET `lstream_id`=0     WHERE `cohort_id`=?');
+//       $stmt->execute([ $cohort_id ]);
+
+//file_put_contents("lst.txt", print_r([$lstream_id ], true) );
+        /* Проверка на попытку создать дублирующий поток для той же заявки по тому же курсу */
+/*
+        $lstream_id = 0;
+        $order_id = 0;
+        $stmt = $dbh->prepare('SELECT  `order_id`  FROM  `a_order_course` LEFT JOIN `a_order_users` USING(`item_id`)   WHERE `cohort_id`=?');
+        $stmt->execute([$cohort_id]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+              $order_id = $row->order_id;
+         }
+        $stmt = $dbh->prepare('SELECT  `lstream_id` FROM  `a_order_users` LEFT JOIN `a_order_course` USING(`item_id`) LEFT JOIN `a_cohort` USING(`course_id`)   WHERE `order_id`=?  AND `a_order_course`.`cohort_id`<>?  AND `course_id`=? ');
+        $stmt->execute([$order_id, $cohort_id, $course_id]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                 $lstream_id = $row->lstream_id;
+        }
+*/
+        if($lstream_id == 0) {
+/*            $chairman = '';
+            $teachers_commission = '';
+            $consulting = 0;
+            $commission_id = 0;
+            $stmt2 = $dbh->prepare('SELECT  `a_course_category`.`consulting`, `a_course`.`commission_id`   FROM  `a_course` LEFT JOIN `a_course_category` USING(`category_id`)   WHERE  `a_course`.`course_id`=? ');
+            $stmt2->execute([ $course_id ]);
+            if ($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+                $consulting = $row2->consulting;
+            }
+*/
+//file_put_contents("lst.txt", print_r([$commission_id, $course_id, $stmt2 ], true) );
+
+
+            $number = 0;
+            $stmt = $dbh->prepare('SELECT  MAX(`num`) as `number`   FROM  `a_lstream`   WHERE  `date_begin`=?');
+            $stmt->execute([ $date_begin ]);
+            if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                    $number = $row->number +1;
+            }
+
+
+            $stmt = $dbh->prepare('INSERT INTO `a_lstream`(`name`, `date_begin`, `date_end`, `date_protocol`, `num`, `commission_id` ) VALUES( ?, ?, ?, ?, ?, ? )');
+            $stmt->execute([  substr($date_begin, 2). '.' .$number,   $date_begin, $date_end, $date_protocol, $number, $commission_id  ]);
+            $lstream_id = $dbh->lastInsertId(); 
+
+
+            //$stmt = $dbh->prepare('DELETE FROM  `a_cohort_scheduler`  WHERE `cohort_id`=?');
+            //$stmt->execute([ $cohort_id  ]);
+
+            $stmt = $dbh->prepare('UPDATE `a_cohort` SET `lstream_id`=?     WHERE `cohort_id`=?');
+            $stmt->execute([ $lstream_id,   $cohort_id ]);
+        }
+
+        foreach ($scheduler as $value) {
+            $stmt = $dbh->prepare('INSERT INTO `a_cohort_scheduler`(`cohort_id`, `lstream_id`,  `date`, `work` ) VALUES ( ?, ?, ?, ? )');
+            $stmt->execute([ $cohort_id, $lstream_id,  $value["date"],  $value["work"] ]);
+        }
+
+
+/*
+        $i_cohort_id = $cohort_id;
+        $date_end2 = $date_end;
+        while($i_cohort_id > 0 && $rebuild>0){ 
+            $stmt = $dbh->prepare('SELECT  `cohort_id`, `date_begin`, `date_end`, `date_protocol`   FROM `a_cohort`   WHERE `prev_id`=?');
+            $stmt->execute([$i_cohort_id]);
+            $i_cohort_id = 0;
+            if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                    $i_cohort_id = $row->cohort_id;
+                    if($i_cohort_id > 0){
+                        $days2_timestamp = strtotime($row->date_end) - strtotime($row->date_begin);
+                        $date_begin2 = date('Y-m-d', strtotime($date_end2) + (60*60*24));
+                        $date_end2 = date('Y-m-d', strtotime($date_begin2) + $days2_timestamp );
+                        $date_protocol2 = $date_end2; 
+
+                        $stmt2 = $dbh->prepare('UPDATE `a_cohort` SET `date_begin`=?, `date_end`=?, `date_protocol`=?  WHERE `cohort_id`=?');
+                        $stmt2->execute([$date_begin2, $date_end2, $date_protocol2,  $i_cohort_id ]);
+                    }
+            }         
+        }     
+*/
+
+    }
+
+    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"lstream_create",  "result"=>$lstream_id ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+//file_put_contents("lst.txt", print_r($value, true) );
+
+
+function cohort_lstream_save($cohort_id, $lstream_id ) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $HoursPerDay;
+
+    if($cohort_id >0 && $lstream_id >0  ) {
+            $stmt = $dbh->prepare('SELECT  `cohort_id`   FROM `a_cohort`   WHERE `lstream_id`=?');
+            $stmt->execute([$lstream_id]);
+            if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                    $i_cohort_id = $row->cohort_id;
+            }
+            $stmt = $dbh->prepare('SELECT `date`, `work` FROM  `a_cohort_scheduler`   WHERE `cohort_id`=? ');
+            $stmt->execute([ $i_cohort_id  ]);
+            while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                $stmt2 = $dbh->prepare('INSERT INTO `a_cohort_scheduler`(`cohort_id`, `lstream_id`,  `date`, `work` ) VALUES ( ?, ?, ?, ? )');
+                $stmt2->execute([ $cohort_id, $lstream_id,  $row->date,  $row->work ]);
+            }
+
+            $stmt = $dbh->prepare('UPDATE `a_cohort` SET `lstream_id`=?     WHERE `cohort_id`=?');
+            $stmt->execute([ $lstream_id,   $cohort_id ]);
+//file_put_contents("lst.txt", print_r([$i_cohort_id, $row->date] , true) );
+    }
+
+    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"cohort_lstream",  "result"=>$lstream_id ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+function lstream_unlink($cohort_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    if( $cohort_id>0) {
+        $lstream_id = 0;
+        $stmt = $dbh->prepare('SELECT `lstream_id`  FROM  `a_cohort`   WHERE `cohort_id`=?');
+        $stmt->execute([ $cohort_id ]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) { 
+              $lstream_id = $row->lstream_id;
+        }
+
+        if($lstream_id >0) {
+            $stmt = $dbh->prepare('SELECT count(*) as `count` FROM  `a_cohort`   WHERE `lstream_id`=?');
+            $stmt->execute([ $lstream_id ]);
+            if($row = $stmt->fetch(PDO::FETCH_OBJ)) { 
+                if($row->count == 1) {
+                    $stmt2 = $dbh->prepare('DELETE FROM  `a_cohort_scheduler`   WHERE  `lstream_id`=?  ');
+                    $stmt2->execute([$lstream_id]);
+
+                    $stmt2 = $dbh->prepare('DELETE FROM  `a_lstream`  WHERE `lstream_id`=?');
+                    $stmt2->execute([ $lstream_id  ]);
+                }
+                $stmt2 = $dbh->prepare('UPDATE `a_cohort` SET   `lstream_id`=0   WHERE `cohort_id`=?');
+                $stmt2->execute([ $cohort_id ]);
+            }
+        }
+    }
+
+    $result = ["status"=>0, "error"=>'', "role"=>$session_role, "action"=>"lstream_unlink" ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+
+
+$session_counterparty_id = -1;
+$session_account_id = -1;
+$session_role = '';
+$stmt = $dbh_a->prepare('SELECT `login`, `role`, `a_account`.`account_id`, `counterparty_id`  FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`)  WHERE `token`=? ');
+//$stmt = $dbh->prepare('SELECT `account_id`, `counterparty_id`  FROM `a_session`  WHERE `token`=? ');
+$stmt->execute([ $api_arg['sessionId'] ]);
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+     $session_counterparty_id = $row->counterparty_id;
+     $session_account_id = $row->account_id;
+     $session_role = $row->role;
+     $session_login = $row->login;
+}
+
+
+
+api_journal('groups', $api_function, $api_arg, $session_login);
+if($api_function=='list'){
+    if(isset($api_arg["date1"]))
+	    $date1 = $api_arg["date1"];
+    else
+	    $date1 = "";
+
+    if(isset($api_arg["date2"]))
+	    $date2 = $api_arg["date2"];
+    else
+	    $date2 = "";
+
+    if(isset($api_arg["course"]))
+        $course = $api_arg["course"];
+    else
+        $course = '';
+
+    $counterparty_id = intval($api_arg["counterparty_id"]);
+    if($counterparty_id == 0)
+        $counterparty_id = $session_counterparty_id;
+        
+    cohort_list(intval($api_arg["order_id"]), intval($api_arg["make"]), $counterparty_id, $date1,  $date2, $course, $api_arg["group"], intval($api_arg["status"]),  $api_arg["page"] );
+}
+else if($api_function=='object'){
+    cohort_object(intval($api_arg["objectId"]));
+}
+else if($api_function=='insert'){
+    cohort_create( $api_arg["name"], intval($api_arg["courseId"]), intval($api_arg["category"]), $api_arg["date_begin"], $api_arg["date_end"],  $api_arg["date_protocol"], $api_arg["date_order"],  $api_arg["main_teacher"],  $api_arg["chairman"], $api_arg["teachers_commission"]  );
+}
+else if($api_function=='update'){
+    cohort_save(intval($api_arg["objectId"]), $api_arg["name"],   $api_arg["main_teacher"] );
+}
+else if($api_function=='delete'){
+    cohort_del(intval($api_arg["objectId"]) );
+}
+else if($api_function=='items'){
+    cohort_items(intval($api_arg["objectId"]) );
+}
+else if($api_function=='item_del'){
+    cohort_item_del(intval($api_arg["objectId"]), intval($api_arg["userId"]) );
+}
+else if($api_function=='lstream_create'){
+    lstream_create(intval($api_arg["objectId"]),  $api_arg["date_begin"], $api_arg["date_end"], $api_arg["date_protocol"] );
+}
+else if($api_function=='cohort_scheduler_list'){
+    cohort_scheduler_list(intval($api_arg["objectId"]) );
+}
+else if($api_function=='cohort_scheduler_save'){
+    cohort_scheduler_save(intval($api_arg["objectId"]),  $api_arg["date_begin"], $api_arg["date_end"], $api_arg["date_protocol"], $api_arg["scheduler"], intval($api_arg["rebuild"]) );
+}
+else if($api_function=='cohort_lstream_save'){
+    cohort_lstream_save(intval($api_arg["objectId"]),   intval($api_arg["lstream_id"]) );
+}
+else if($api_function=='lstream_unlink'){
+    lstream_unlink( intval($api_arg["cohort_id"]) );
+}
+
+else {
+    $result = array('JSON'=>$_JSON, 'POST'=>$_POST, 'GET'=>$_GET, 'SERVER'=>$_SERVER );
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+//    cohort_save(intval($api_arg["objectId"]), $api_arg["name"],  $api_arg["date_begin"], $api_arg["date_end"], $api_arg["date_protocol"], $api_arg["main_teacher"],  $api_arg["directive"], $api_arg["chairman"], $api_arg["teachers_commission"],  $api_arg["finalexamination"], $api_arg["certificate_grade"], $api_arg["enterprise_manager"], $api_arg["enterprise_manager2"] );
+
+?>
+

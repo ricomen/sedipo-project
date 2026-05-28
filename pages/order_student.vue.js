@@ -1,0 +1,255 @@
+var OrderUser = {
+  data: function () {
+    return {
+      order_id: 0,
+      item_id: 0,
+      info: [],
+      info2: [],
+      info3: [],
+      info4: [],
+      info9: [],
+      role: '',
+      message: '',
+      date_order: '',
+      counterparty_id: 0,
+      status: -1,
+      lastname: '',
+      firstname: '',
+      middlename: '',
+      position: '',
+      //subdivision: '',
+      date_of_birth: '',
+      snils: '',
+      view_link_button: 0,
+      user2_id: 0,
+      user2_counterparty_id: 0,
+      lastname2: '',
+      firstname2: '',
+      middlename2: '',
+      job_title2: '',
+      subdivision2: '',
+      date_of_birth2: '',
+      snils2: '',
+      user_counterparty_r: '',
+      user_single: 0,
+      message: ''
+     }
+   },
+
+   mounted() {
+//    updated() {
+    this.order_id = Number(this.$route.params.orderid)
+    this.role = session_t.role
+
+    this.item_id = Number(this.$route.params.item)
+    if(isNaN(this.item_id))
+        this.item_id = 0
+
+
+    if(this.order_id > 0){
+	    axios
+    	    .post(JsonApiURL+'api/orders_json.php', {object: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    	    .then(response => { 
+                this.info = response.data
+                this.counterparty_id  = this.info.result.counterparty_id
+                this.date_order = this.info.result.date_order
+                this.status = this.info.result.status
+                //this.date_begin = this.info.result.date_begin
+                //this.date_end = this.info.result.date_end
+
+
+                 if(this.counterparty_id > 0) {
+    	            axios
+    		            .post(JsonApiURL+'api/counterparty_json.php', {object: {objectId: this.counterparty_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		            .then(response3 => { 
+        	                console.log(response3)
+        	                this.info3 = response3.data
+    		            })
+    		            .catch(error => {
+            	             console.log(error.response)
+        	            })
+                 }
+
+    	    })
+    	    .catch(error => {
+        	  console.log(error.response)
+            })
+    }
+  },
+
+
+  methods: {
+
+        UserSearch () {
+	       axios
+            .post(JsonApiURL+'api/students_json.php', {search: { order_id: this.order_id, item_id: this.item_id,  lastname: this.lastname, firstname: this.firstname, middlename: this.middlename,  date_of_birth: this.date_of_birth, snils: this.snils, job_title: this.job_title } }, {withCredentials: true})
+            .then(response => {
+              console.log(response)
+              //if(response.data.status==0) {
+                this.info4 = response.data;
+            	if(this.info4.status==0 && this.info4.result.user_id > 0){
+            	    this.view_link_button = 1;
+            	    this.user2_id = this.info4.result.user_id;
+                    this.user2_counterparty_id = this.info4.result.user_counterparty_id
+            	    this.lastname2 = this.info4.result.lastname;
+            	    this.firstname2 = this.info4.result.firstname;
+            	    this.middlename2 = this.info4.result.middlename;
+    	            this.snils2 = this.info4.result.snils;
+                    this.user_single = this.info4.userSingle;
+    	            this.date_of_birth2 = this.info4.result.date_of_birth;
+                    this.job_title2 = this.info4.result.job_title;
+                    this.user_counterparty_r = this.info4.result.jobs[0].user_counterparty_id
+                 }
+                else {
+            	    this.view_link_button = 0;
+	            this.user_single = 0;
+            	    this.user2_id = 0;
+            	    this.lastname2 = '';
+            	    this.firstname2 = '';
+            	    this.middlename2 = '';
+                    this.date_of_birth2 = '';
+                    this.snils2 = '';
+            	    
+                    this.job_title2 = '';
+                    this.subdivision2 = '';
+                }
+
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+        },
+
+
+        UserLink () {
+	    axios
+            .post(JsonApiURL+'api/students_json.php', {link: {order_id: this.order_id, user_counterparty_id: this.user_counterparty_r,  objectId: this.user2_id,  item_id: this.item_id} }, {withCredentials: true})
+            .then(response => {
+              console.log(response)
+              if(response.data.status==0) {
+                   this.$router.push({ name: 'order_items', params: {orderid: this.order_id }})
+              }
+              else {
+                    this.message = response.data.error
+              }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+        },
+
+
+  },
+
+
+
+	template: `<div><navigation></navigation><h3>Добавить существующую учетную запись в заявку</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+<!--{{info4}} {{user_counterparty_r}}-->
+<div align="left">
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+
+  <!--<div class="mb-2">
+      <label for="input_organization" class="form-label">Организация  </label>
+	<select  v-model="organization_id"  id=="input_organization" class="form-select" aria-label="Организация"  >
+	<option value="0"> -  Организация  - </option>
+        <option v-for="item2 in info2.list" :value="item2.organizationId">
+	    {{item2.name.substring(0, 70)}} 
+	</option>
+	</select>
+  </div>-->
+
+
+  <div class="mb-2">	
+  <label for="input_lastname" class="form-label">Фамилия</label>
+    <input v-model="lastname"   class="form-control text-capitalize" id="input_lastname"   type="text" @input="UserSearch()" >
+  </div>
+
+  <div class="mb-2">	
+    <label for="input_firstname" class="form-label">Имя</label>
+      <input v-model="firstname"  class="form-control text-capitalize" id="input_firstname"    type="text" @input="UserSearch()" >
+  </div>
+
+  <div class="mb-2">	
+    <label for="input_middlename" class="form-label">Отчество</label>
+     <input v-model="middlename"  class="form-control text-capitalize" id="input_middlename"    type="text"  @input="UserSearch()"  >
+  </div>
+
+  <!--<div v-if="user_single&&firstname!=''" class="mb-2">	
+    <label for="input_job_title" class="form-label">Должность</label>
+     <input v-model="job_title"  class="form-control text-capitalize" id="input_job_title"    type="text"  @input="UserSearch()"  >
+  </div>
+
+  <div v-if="user_single&&firstname!=''&&job_title!=''" class="mb-2">	
+    <label for="input_date_of_birth" class="form-label">Дата рождения</label>
+     <input v-model="date_of_birth"  class="form-control" id="input_date_of_birth"    type="text"  @input="UserSearch()"  >
+  </div>-->
+
+  <div  class="mb-2" >	
+    <label for="input_snils" class="form-label">СНИЛС</label>
+     <input v-model="snils"  class="form-control" id="input_snils"    type="text"  @input="UserSearch()"  >
+  </div>
+
+
+  <!--<br />
+  <div class="mb-2">	
+    <label for="input_subdivision" class="form-label">Подразделение</label>
+     <input v-model="subdivision"  class="form-control" id="input_subdivision"    type="text"    >
+  </div>-->
+
+
+
+ </div>
+ <div class="col">
+     <span v-if="view_link_button >0 ">
+	    <br />
+	    <p>Фамилия: <i>{{lastname2}}</i></p>
+	    <p>Имя: <i>{{firstname2}}</i></p>
+	    <p>Отчество: <i>{{middlename2}}</i></p>
+    	<p>Дата рождения: <i>{{date_of_birth2}}</i></p>
+    	<p>СНИЛС: <i>{{snils2}}</i></p>
+    	<p>Должность: <i>{{job_title2}}</i></p>
+        <span v-for="(item, index)  in info4.result.jobs">
+             <p> <input type="radio" :value="item.user_counterparty_id" v-model="user_counterparty_r"  :id="'job'+index"> <label :for="'job'+index">{{item.job_title}} </p>
+        </span>
+    	<!--<p>Подразделение: <i>{{subdivision2}}</i></p>-->
+    <router-link  :to="{ name: 'student_edit', params: { userid: this.user2_id, counterpartyid: this.counterparty_id, usercounterpartyid: 0,  orderid: this.order_id,  itemid: this.item_id }}"  ><button class="btn btn-secondary"  > Добавить должность </button></router-link>
+    <hr/>
+
+	<!--<span v-if="user_single"> -->
+	<span> 
+	 <div align="right">
+           <button class="btn btn-primary"   @click="UserLink()"> Использовать существующую учетную запись </button>
+	 </div>
+	</span>
+	<span v-else>
+	    <p><i class="fas fa-ellipsis-v"></i><p>
+	</span>
+     </span>
+
+    <br />
+    <div align="right">
+        <table border="0"><tr><td>
+        <router-link  :to="{ name: 'student_edit', params: { userid: 0, counterpartyid: this.counterparty_id, usercounterpartyid: 0,   orderid: this.order_id,  itemid: this.item_id, lastname: this.lastname, firstname: this.firstname, middlename: this.middlename, snils: this.snils, job_title: this.job_title  }}"  ><button class="btn btn-secondary"  > Создать новую учетную запись </button></router-link>
+        </td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>
+        <router-link class="nav-link" :to="{ name: 'order_items', params: {orderid: order_id  }}"><button  class="btn btn-outline-primary">Отмена</button></router-link>
+        </td></tr></table>
+    </div>
+
+ </div>
+ </div>
+
+</div>
+	</div>`
+
+};
+
+
+
+
+

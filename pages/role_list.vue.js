@@ -1,0 +1,164 @@
+var RoleList  = {
+  data: function () {
+    return {
+      info: [],
+      role_name: '',
+      message: '',
+      namesearch: '',
+        list2: [
+        {key:'Настройки аккаунта',value:'accountedit'},
+        {key:'Реквизиты организации',value:'self_list'},
+        {key:'Роли пользователей',value:'rolelist'},
+        {key:'Настройки доступа администраторов',value:'accountslist'},
+        {key:'Набор используемых шаблонов документов',value:'set_template_contract'},
+        {key:'Уведомление об окончании срока действия документов',value:'validity_period_counterparty_list'},
+        {key:'Категории',value:'course_category_list'},
+        {key:'Курсы',value:'courses_list'},
+        {key:'Состав комиссии',value:'teachers_commission_list'},
+        {key:'Преподаватели',value:'teacher_list'},
+        {key:'Шаблоны документов',value:'template_list'},
+        {key:'Контрагенты',value:'counterparty_list'},
+        {key:'Список слушателей',value:'students_list'},
+        {key:'Аналитика по заявкам',value:'orders_analytics'},
+        {key:'Сводная таблица по заявкам',value:'orders_table'},
+        {key:'Отчёт - Федеральное статистическое наблюдение',value:'stat_report'},
+        {key:'Учебные группы',value:'groups_list'},
+        {key:'Учебные потоки',value:'lstream_list'},
+        {key:'Расписание',value:'calendar'},
+        {key:'Импорт номеров удостоверений из ЕИСОТ',value:'eisot_import'},
+        {key:'Заявки',value:'orders_list'},
+        {key:'Бухгалтерские документы на странице "Заявки"',value:'orders_list_buh'},
+        {key:'Загрузка документов',value:'upload_flag'}
+      ],
+      role_privileges: {
+          accountedit: 0,
+          self_list: 0,
+          rolelist: 0,
+          accountslist: 0,
+          set_template_contract: 0,
+          validity_period_counterparty_list: 0,
+          course_category_list: 0,
+          courses_list: 0,
+          teachers_commission_list: 0,
+          teacher_list: 0,
+          template_list: 0,
+          counterparty_list: 0,
+          students_list: 0,
+          orders_analytics: 0,
+          orders_table: 0,
+          stat_report: 0,
+          groups_list: 0,
+          lstream_list: 0,
+          calendar: 0,
+          eisot_import: 0,
+          orders_list: 0,
+          orders_list_buh: 0,
+          upload_flag: 0
+        },
+     }
+   },
+
+
+
+   mounted() {
+//    updated() {
+    this.role = session_t.role
+//  v-if="role=='admin'" 
+    this.role_privileges =  session_role_privileges
+    axios
+      .post(JsonApiURL+'api/role_json.php', {list: {where: "`role_id`!='0' && `role_id`!='1'", sessionId: session_t.sessionId }}, {withCredentials: true})
+      .then(response => { 
+            this.info = response.data
+            this.role_name = this.info.role_name
+                        
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+  },
+
+  methods: {
+
+    argDelete(argId, name ){
+    var fl = confirm('Удалить  запись: ' + name + '?');
+    if(fl) {
+    axios
+          .post(JsonApiURL+'api/role_json.php', {delete: {objectId: argId}})
+          .then(response => { 
+            //this.info9 = response.data
+	    axios
+    	    .post(JsonApiURL+'api/role_json.php', {list: { sessionId: session_t.sessionId }}, {withCredentials: true})
+    	    .then(response2 => { 
+        	this.info = response2.data
+    	    })
+    	    .catch(error2 => {
+              console.log(error2.response)
+            })
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+     }
+
+   }
+
+},
+
+
+    template: `
+    
+  <container v-if="role_privileges.rolelist != 0">
+
+  <div><navigation></navigation><h3>Роли пользователей</h3> </div>
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+  <div >
+    <table class="table table-striped" width="100%" border="1">
+
+      <thead class="position-sticky top-0" style="position: sticky; top:0;" >
+        <tr style="position: sticky; top:0">
+        <th width="300px;" style="position: sticky; top:0">
+          <b>Раздел/Роль</b><div v-if="role_privileges.rolelist == 2" style="float: left"><router-link  :to="{ name: 'roleedit', params: { roleid:0 }}"   title="Добавить Роль" ><b style=" font-size: larger;"><i class="far fa-plus-square"></i></b></router-link ></div>
+        </th>
+        <th  v-for="item in info.list" style="text-align: center; " >
+        
+        <div style="text-align:center; display: flex; justify-content: center; align-items: center; ">
+          <table border="0"  >
+          <tr >
+            <td style="color:#158cba; text-align:center;">{{item.role_name}}</td>
+            <td v-if="item.role_id!=1 && role_privileges.rolelist == 2" style="padding-left: 5px; padding-right: 5px;">
+            <router-link   :to="{ name: 'roleedit', params: { roleid: item.role_id }}"   title="Редактировать" ><i class="fas fa-edit"></i></router-link >
+            </td>
+            <td v-if="item.role_id!=1 && role_privileges.rolelist == 2" style="padding-left: 5px; padding-right: 0px;">
+            <a  @click="argDelete(item.role_id, item.role_name)"   title="Удалить" style="color: red;" ><i class="far fa-trash-alt"></i></a>
+            </td>
+          </tr>
+          </table>
+        </div>
+
+        </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="pair in list2"  key="pair.key" style="text-align:center;">
+        <td style="text-align:left; padding-left:40px;">{{pair.key}}</td>
+        <td v-for="item in info.list" >
+        <p v-if="item[pair.value]==2">Чтение/<br />Запись</p>
+        <p v-if="item[pair.value]==1">Чтение</p>
+        <p v-if="item[pair.value]==0">Скрыто</p>  
+        </td>
+        </tr>
+
+
+
+      </tbody>
+    </table>
+    
+   </div>
+  </container>`
+
+};
+
+

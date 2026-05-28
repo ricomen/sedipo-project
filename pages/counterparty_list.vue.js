@@ -1,0 +1,556 @@
+var CounterpartyList = {
+  data: function () {
+    return {
+      role: '',
+      info: [],
+      info2: [],
+      info4: [],
+      info5: [],
+      info6: [],
+      info7: [],
+      info9: [],
+      message: '',
+      counterparty_id: 0,
+      search: '',
+      c_type: -1,
+      c_type_arr: ['Заказчик', 'Учебный центр', '', '', 'Обучающиеся'],
+      contract_modal_counterparty_id: 0,
+      legacy_contract: [],
+      date_contract: [],
+      a_contract_id: [],
+      contract_file: [],
+      importfile1: [],
+      importfile1_filename: [],
+      importfile1_file_type: [],
+      date_exist: true,
+      print_v: 'true',
+      numPages: 0,
+      page: 1,
+      divs: [],
+      validity_period: [],
+      role_privileges: {
+          accountedit: 0,
+          self_list: 0,
+          rolelist: 0,
+          accountslist: 0,
+          set_template_contract: 0,
+          validity_period_counterparty_list: 0,
+          course_category_list: 0,
+          courses_list: 0,
+          teachers_commission_list: 0,
+          teacher_list: 0,
+          template_list: 0,
+          counterparty_list: 0,
+          students_list: 0,
+          orders_analytics: 0,
+          orders_table: 0,
+          stat_report: 0,
+          groups_list: 0,
+          lstream_list: 0,
+          calendar: 0,
+          eisot_import: 0,
+          orders_list: 0,
+          orders_list_buh: 0
+        },
+     }
+   },
+
+
+   mounted() {
+
+    this.role_privileges =  session_role_privileges
+    this.search = session_var.counterparty_namesearch
+    this.c_type = session_var.counterparty_type
+    this.page =   session_var.counterparty_page
+
+    if(this.c_type>=0){
+        conditions =  {"type": this.c_type}
+    }
+    else {
+        conditions = {}
+    }
+
+    axios
+      .post(JsonApiURL+'api/counterparty_json.php', {list: {conditions, search: this.search,   page: this.page, sessionId: session_t.sessionId }}, {withCredentials: true})
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+            this.numPages = this.info.numPages
+            this.page = this.info.page
+
+            var list_c = this.info.list
+            for (var i = 0; i < list_c.length; i++) {
+                this.validity_period[i] = 0 
+                if(list_c[i].counterparty_id > 0) {
+    	        axios
+                   .post(JsonApiURL+'api/reports_json.php', {counterparty_validity_period: { index: i,  counterparty_id: list_c[i].counterparty_id, month: 1, month_stop: 1,  sessionId: session_t.sessionId }}, {withCredentials: true})
+    		   .then(response3 => { 
+        	       this.info9 = response3.data
+//                       this.validity_period.push( [ this.info9.result.counterparty_id, this.info9.result.count ] )
+                       if(this.info.list[this.info9.result.index].counterparty_id == this.info9.result.counterparty_id)
+                                this.validity_period[this.info9.result.index]  =   this.info9.result.count 
+
+    		   })
+    		   .catch(error => {
+            	      console.log(error.response)
+        	   })
+               }
+            }
+
+
+       })
+      .catch(error => {
+              console.log(error.response)
+       }),
+
+    axios
+      .post(JsonApiURL+'api/moodle_json.php', {report_sync: { sessionId: session_t.sessionId }}, {withCredentials: true})
+      .then(response => { 
+            this.info9 = response.data
+       })
+      .catch(error => {
+              console.log(error.response)
+      })
+      
+    /*axios
+      .post(JsonApiURL+'api/contract_json.php', {list: {where: "type=0", sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info7 = response.data
+            for (var i = 0; i < this.info7.list.length; i++) {
+                a_contract_id[i] = this.info7.list[i].contract_id
+            }
+       })
+      .catch(error => {
+              console.log(error.response)
+       })*/
+
+      
+  },
+
+
+  methods: {
+
+    search_go(page) {
+    var conditions = ''    
+
+    this.page = page
+    if(this.c_type>=0){
+        conditions =  {"type": this.c_type}
+    }
+    else {
+        conditions = {}
+    }
+
+    session_var.counterparty_namesearch = this.search
+    session_var.counterparty_type = this.c_type
+    session_var.counterparty_page = this.page
+
+    axios
+      .post(JsonApiURL+'api/counterparty_json.php', {list: {conditions, search: this.search,  page: this.page, sessionId: session_t.sessionId }}, {withCredentials: true})
+      .then(response => { 
+            this.info = response.data
+	        this.numPages = this.info.numPages
+	        this.page = this.info.page
+            //this.isSysAdmin = this.info.isSysAdmin
+            //this.userId = this.info.userId
+
+            var list_c = this.info.list
+            for (var i = 0; i < list_c.length; i++) {
+                this.validity_period[i] = 0 
+                if(list_c[i].counterparty_id > 0) {
+    	        axios
+                   .post(JsonApiURL+'api/reports_json.php', {counterparty_validity_period: { index: i,  counterparty_id: list_c[i].counterparty_id, month: 1, month_stop: 1,  sessionId: session_t.sessionId }}, {withCredentials: true})
+    		   .then(response3 => { 
+        	       this.info9 = response3.data
+//                       this.validity_period.push( [ this.info9.result.counterparty_id, this.info9.result.count ] )
+                       if(this.info.list[this.info9.result.index].counterparty_id == this.info9.result.counterparty_id)
+                                this.validity_period[this.info9.result.index]  =   this.info9.result.count 
+
+    		   })
+    		   .catch(error => {
+            	      console.log(error.response)
+        	   })
+               }
+            }
+
+
+            console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+
+    },
+
+
+
+
+    counterpartyDelete(account_id, name ){
+	var fl = confirm('Удалить учетную запись: ' + name + '?');
+	if(fl) {
+	    axios
+          .post(JsonApiURL+'api/counterparty_json.php', {delete: {objectId: account_id}}, {withCredentials: true})
+          .then(response => { 
+            //this.info9 = response.data
+
+	         axios
+            .post(JsonApiURL+'api/account_json.php', {delete: {objectId: account_id}}, {withCredentials: true})
+            .then(response2 => { 
+        	//this.info9 = response2.data
+		        axios
+                    .post(JsonApiURL+'api/counterparty_json.php', {list: { page: this.page, sessionId: session_t.sessionId }}, {withCredentials: true})
+    		        .then(response3 => { 
+        		        this.info = response3.data
+			            this.numPages = this.info.numPages
+			            this.page = this.info.page
+        		//this.isSysAdmin = this.info.isSysAdmin
+        		//this.userId = this.info.userId
+
+            var list_c = this.info.list
+            for (var i = 0; i < list_c.length; i++) {
+                this.validity_period[i] = 0 
+                if(list_c[i].counterparty_id > 0) {
+    	        axios
+                   .post(JsonApiURL+'api/reports_json.php', {counterparty_validity_period: { index: i,  counterparty_id: list_c[i].counterparty_id, month: 1, month_stop: 1,  sessionId: session_t.sessionId }}, {withCredentials: true})
+    		   .then(response3 => { 
+        	       this.info9 = response3.data
+//                       this.validity_period.push( [ this.info9.result.counterparty_id, this.info9.result.count ] )
+                       if(this.info.list[this.info9.result.index].counterparty_id == this.info9.result.counterparty_id)
+                                this.validity_period[this.info9.result.index]  =   this.info9.result.count 
+
+    		   })
+    		   .catch(error => {
+            	      console.log(error.response)
+        	   })
+               }
+            }
+
+
+
+    		        })
+    		        .catch(error3 => {
+            		    console.log(error3.response)
+        	        })
+
+    	        })
+                .catch(error2 => {
+        	    console.log(error2.response)
+                })
+
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+      }
+    },
+    
+     contractsLoad(counterparty_id) {
+        if(counterparty_id > 0 ){
+            this.contract_modal_counterparty_id = counterparty_id 
+
+            for (var i = 0; i < this.divs.length; i++) {
+                    if(this.divs[i]  != null )
+                              this.divs[i].value = null
+            }
+            for (var i = 0; i < this.importfile1.length; i++) {
+                              this.importfile1[i] = null
+            }
+
+            axios
+              .post(JsonApiURL+'api/counterparty_contract_json.php', {list: {counterparty_id: counterparty_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+              .then(response => { 
+                    this.info7 = response.data
+                    for (var i = 0; i < this.info7.list.length; i++) {
+                        this.a_contract_id[i] = this.info7.list[i].contract_id
+                        this.date_contract[i] = this.info7.list[i].date_contract
+                        this.legacy_contract[i] = this.info7.list[i].legacy
+                    }
+            })
+              .catch(error => {
+                 console.log(error.response)
+            })
+
+        }
+        else 
+           this.info7 = []
+     },
+     
+     contractSave() {
+        if(this.contract_modal_counterparty_id > 0 ){
+            
+            axios
+              .post(JsonApiURL+'api/counterparty_contract_json.php', {update: {counterparty_id: this.contract_modal_counterparty_id,  legacy_contract: this.legacy_contract,  date_contract: this.date_contract, a_contract_id: this.a_contract_id,  sessionId: session_t.sessionId } }, {withCredentials: true})
+              .then(response => { 
+                 this.contractUpload()
+                 console.log(response)
+            })
+              .catch(error => {
+                 console.log(error.response)
+            })
+
+        }
+     },
+
+     contractUpload() {
+        for (var i = 0; i < this.importfile1.length; i++) {  
+            this.wait = 1;
+            if(this.importfile1_file_type[i] == 'application/pdf'){
+                const formData = new FormData();
+                formData.append('upload1', this.importfile1[i])
+                //formData.append('name1', this.importfile1_filename)
+                formData.append('counterparty_id', this.contract_modal_counterparty_id); 
+                formData.append('contract_id', this.info7.list[i].contract_id); 
+                formData.append('date_contract', this.date_contract[i]);
+                formData.append('legacy', this.legacy_contract[i]);
+                formData.append('sessionId', session_t.sessionId);
+
+	            axios
+	               .post(JsonApiURL+'api/counterparty_contract_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}}, {withCredentials: true})
+                   .then(response => {
+                    this.info9 = response.data
+                    this.wait = 0;
+                    console.log(response)
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+            }
+        }        
+     },
+    
+
+     handleUpload(index) {
+            this.importfile1[index] = document.getElementById('input_contract_file_'+index).files[0];
+            this.importfile1_filename[index] = this.importfile1[index].name;
+            this.importfile1_file_type[index] = this.importfile1[index].type;
+            this.checkDate(index)
+     },
+
+     checkDate(index) {
+            this.date_exist = true
+            if( (this.importfile1[index]!=null  || this.legacy_contract[index]!='') && (this.date_contract[index]=='' || this.date_contract[index]==null || this.date_contract[index]=='0000-00-00') )
+                   this.date_exist = false
+     }
+
+      
+  },
+
+
+
+
+	template: `
+  <container v-if="role_privileges.counterparty_list != 0">
+  <div><navigation></navigation><h3>Список контрагентов</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+  <br />
+  <span  v-if="role!='counterparty'" > 
+    <table >
+        <tr  align="left">
+            <td><small>  
+              <select  v-model="c_type"   id="input_type" @change="this.search = ''; search_go(1)">
+                <option value="-1"> </option>
+                <option value="0">Заказчик</option>
+                <option value="1">Учебный центр</option>
+              </select>
+            </small></td>
+	        <td width="2%"> </td>
+            <td><small><input type="text" v-model="search" placeholder="Название организации / ИНН" size="50"   @keyup.enter="search_go(1)" ></small></td>
+	        <td width="5%"> </td>
+            <td align="left"><small> <button  @click="search_go(1)"><nobr>&nbsp;<i class="fa-solid fa-magnifying-glass"></i>&nbsp;Поиск&nbsp;</nobr></button></small></td>
+            <td >&nbsp;&nbsp;<small><button @click="this.search = ''; this.c_type=  -1;  search_go(1)" title="Сбросить все фильтры"   >&nbsp;<i class="fa-solid fa-xmark"></i>&nbsp;Сбросить фильтры&nbsp;</button> </small></td>
+        </tr>
+    </table>
+
+<div class="row">
+<div v-if="role_privileges.counterparty_list == 2" class="col-4">
+    <div style="text-align: left; padding-top: 15px;"><button  class="btn btn-light" > <router-link  :to="{ name: 'counterparty_base_edit', params: { counterpartyid: 0 }}"   title="Добавить учетную запись" ><div><nobr><i class="fa-solid fa-file-circle-plus"></i> Новый контрагент </nobr></div></router-link >  </button></div>
+</div>
+<div class="col">
+</div>
+</div>
+
+    <table class="table">
+      <thead>
+        <tr  align="left">
+          <th scope="col"> Организация </th>
+          <th scope="col"> Роль </th>
+          <th scope="col" align="center"> <center>Договор</center> </th>
+          <th scope="col" align="center" width="10%"> <center>Документы</center> </th>
+          <th scope="col"> <div style="text-align: right"><!--<router-link  :to="{ name: 'counterparty_base_edit', params: { counterpartyid: 0 }}"   title="Добавить учетную запись" ><b style=" font-size: larger;"><i class="far fa-plus-square"></i></b></router-link >--></div> </th>
+        </tr>
+      </thead>
+     
+     <tbody>   
+        <tr v-for="(item, index) in info.list"  align="left" style="float: none;" >  
+            <td v-if="role_privileges.counterparty_list == 2">{{item.shortname}} <router-link    :to="{ name: 'counterparty_base_edit', params: { counterpartyid: item.counterparty_id }}"   title="Редактировать учетную запись" ><i class="fa-solid fa-pencil"></i></router-link ></td>
+            <td v-if="role_privileges.counterparty_list == 1">{{item.shortname}} </td>
+            <td> {{c_type_arr[item.type]}} </td>
+            <td align="center" style="padding: 15px; 15px; 15px; 15px;">
+    		    <button @click="contractsLoad(item.counterparty_id)"  data-bs-toggle="modal" data-bs-target="#contractModal"   class="btn btn-light text-primary" ><i class="fa-solid fa-file-signature"></i></button>
+            </td>
+            
+            <td align="center">
+	            <div v-if="item.type==0" class="dropdown">
+                     <button class="btn btn-link dropdown-toggle dropdown-toggle-split" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;"><i class="fa-regular fa-folder-open"></i>&nbsp;</button>
+	            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink"  style="padding: 5px;  --bs-dropdown-min-width: 32rem;">
+                    <li><a :href="'d-api/documents-contract.php?contract_id=105&counterparty_id='+item.counterparty_id+'&print_v=true&paper=l'" target="_blank" title="Карта партнера"  class="nav-link">&nbsp;<i class="fa-regular fa-file-lines"></i>&nbsp;Карта партнера</a></li>
+
+	            </ul>
+	            </div>
+            </td>
+            <td align="right"> 
+		        <table border="0" ><tr style="padding: 15px; 15px; 15px; 15px;">
+                 <td style="padding-left: 0px; padding-right: 10px;">
+                   <router-link v-if="validity_period[index]>0"  :to="{ name: 'validity_period', params: { counterpartyid: item.counterparty_id }}"     :title="'Уведомлния об окончании сроков документов сотрудников ('+validity_period[index]+' чел.)'" style="color: #575757;" ><span class="icon"><b><i class="fa-solid fa-bell"></i></b></span></router-link>
+	        </td>
+                 <td style="padding-left: 7px; padding-right: 7px;">
+                   <router-link  :to="{ name: 'students_list', params: { counterpartyid: item.counterparty_id }}"     title="Редактировать список сотрудников" ><span class="icon"><b><i class="fa-solid fa-list-check"></i></b></span></router-link>
+	        </td>
+                 <td style="padding-left: 7px; padding-right: 7px;">
+                   <router-link  :to="{ name: 'courses_list', params: { counterpartyid: item.counterparty_id }}"     title="Курсы / Стоимость обучения" ><b><i class="fa-brands fa-leanpub"></i></b></router-link>
+	        </td>
+                 <td style="padding-left: 7px; padding-right: 7px;">
+                   <router-link  :to="{ name: 'orders_list', params: { counterpartyid: item.counterparty_id }}"     title="Заявки" ><i class="fa-solid fa-file-import"></i></router-link>
+	        </td>
+                <td style="padding-left: 25px; padding-right: 0px; ">
+		            <a   @click="counterpartyDelete(item.counterparty_id, item.name )"   title="Удалить учетную запись" style="color: red;" ><i class="fa-solid fa-trash-can"></i></a>
+	        </td>
+		        </tr></table>
+	    </td>
+          </tr>
+  </tbody>
+  </table>
+  </span> 
+
+
+<!-- Modal -->
+<div class="modal fade modal-xl" id="contractModal" tabindex="-1" aria-labelledby="contractModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="ModalLabel">Подписанные долгосрочные договора</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" align="left">
+
+        <div class="row">
+            <div class="col-md-1" style="text-align: right; padding-top: 5px; color: green;">
+                <i></i>
+            </div>
+            <div class="col-md-5" style="text-align: center;">
+                <b>Скан договора</b>
+            </div>
+            <div class="col-md-4" style="text-align: center;">
+                <b>Дата</b>
+            </div>
+            <div class="col-md-2" style="text-align: center;">
+                <b>Номер договора</b>
+            </div>
+        </div>
+        <hr />
+        <span v-for="(item2, index) in info7.list" >
+            <div class="row">
+                <div class="col-md-9" style="padding-top: 5px; padding-bottom: 5px;">
+                    <nobr><a :href="'d-api/documents-contract.php?contract_id='+item2.contract_id+'&counterparty_id='+this.contract_modal_counterparty_id+'&date='+date_contract[index]+'&print_v='+this.print_v+'&paper=l'" target="_blank" title="Версия для печати"  class="nav-link">&nbsp;<i class="fa-solid fa-file-contract"></i>&nbsp;{{item2.name}}&nbsp;<b v-if="legacy_contract[index]=='' ">{{item2.prefix}}{{this.contract_modal_counterparty_id}}</b><span v-if="item2.upload_file != '' " >&nbsp<span style="color: green;">&nbsp<i class="fa-solid fa-check"></i></span></a></nobr>
+                </div>
+                <div class="col-md-2" style="padding-top: 5px; padding-bottom: 10px;">
+                    <span v-if="item2.upload_file != '' "> <a :href="item2.upload_dir+item2.upload_file" target="_blank" title="Сохраненный скан"  style="padding-top: 0px; padding-bottom: 15px;"><button type="button" class="btn btn-secondary"><i class="fa-solid fa-file-pdf"></i></button></a></span>
+                    <span v-if="item2.contract_html_length >0 ">&nbsp;&nbsp;<a  target="_blank" title="Сохраненная версия"  style="padding-top: 0px; padding-bottom: 15px;"><button type="button" class="btn btn-secondary"><i class="fa-solid fa-file-lines"></i></button></a></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-1">
+                </div>
+                <div class="col-md-5">
+                    <input type="file" v-model="contract_file[index]" placeholder="Скан договора"   class="form-control"  :id="'input_contract_file_'+index"  @change="handleUpload(index)"    :ref="el => { if (el) divs[index] = el }" >
+                </div>
+                <div class="col-md-1">
+                    .pdf
+                </div>
+                <div class="col-md-2">
+                    <input type="date" v-model="date_contract[index]" placeholder="Дата"   class="form-control"  @change="checkDate(index)"  >
+                </div>
+                <div class="col-md-1" style="padding-top: 5px; color: red;">
+                         <span v-if="importfile1[index]!=null || legacy_contract[index]!='' "><b>*</b></span>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" v-model="legacy_contract[index]" placeholder="Номер"  title="Номер существующего договора (при наличии)"   class="form-control"   @change="checkDate(index)" >
+                </div>
+            </div>
+            <br />
+
+        </span>
+            <hr />
+        
+            <div class="row" v-if="role!='counterparty'"  style="text-align: right">
+              <div class="col-md-11" style="text-align: right; padding-top: 5px;"><small>
+                <input v-model="print_v" type="radio" value="false" class="form-check-input" id="print_Check0" > <label class="form-check-label" for="print_Check0"> скан-версия </label>&nbsp;&nbsp;&nbsp;&nbsp; 
+                <input v-model="print_v" type="radio" value="true"  class="form-check-input" id="print_Check1" > <label class="form-check-label" for="print_Check1"> версия для печати </label>&nbsp;&nbsp;&nbsp;&nbsp;
+                <input v-model="print_v" type="radio" value="edit"  class="form-check-input" id="print_Check3"> <label class="form-check-label" for="print_Check3"> редактор</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                <!--<input v-model="print_v" type="radio" value="layout" class="form-check-input" id="print_Check4"> <label class="form-check-label" for="print_Check4" v-on:click="printChanged()" > интервалы</label>-->
+              </small></div>
+          </div>
+        </div>
+
+        <div>Краткосрочные договора и приложения находятся в <router-link  :to="{ name: 'orders_list', params: { counterpartyid: this.contract_modal_counterparty_id }}" target="_blank" title="Заявки" >списке  заявок ( <i class="fa-solid fa-file-import"></i> )</router-link></div>
+
+        
+      <div class="modal-footer">
+        <span v-if="this.date_exist"> 
+            <button  class="btn btn-primary"    @click="contractSave()"  data-bs-dismiss="modal"> Сохранить </button>
+        </span>
+        <span v-else> 
+            <button  class="btn btn-primary"    data-bs-dismiss="modal" disabled > Сохранить </button>
+        </span>
+        &nbsp<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"> Закрыть </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<div class="row">
+<div class="col"> </div>
+<div  v-if="numPages>1" aria-label="Page navigation" class="btn-toolbar col"   aria-label="pages"   style="text-align: center;">
+  <ul class="pagination">
+    <li v-if="page>1" class="page-item">
+      <button  @click="search_go(this.page-1)"  class="page-link" aria-label="Previous"> <span aria-hidden="true"><i class="fa-solid fa-caret-left"></i></span> </button>
+    </li>
+    <li v-if="page>1"class="page-item"><button @click="search_go(1)"  class="page-link" >1</button></li>
+    <li v-if="page>2" class="page-item"><button   class="page-link" >...</button></li>
+    <li v-if="page-2>2"class="page-item"><button @click="search_go(this.page-2)"  class="page-link" >{{page-2}}</button></li>
+    <li v-if="page-1>2"class="page-item"><button @click="search_go(this.page-1)"  class="page-link" >{{page-1}}</button></li>
+    <li class="page-item active" aria-current="page"><button   class="page-link">{{page}}</button></li>
+    <li v-if="page+1<numPages"class="page-item"><button @click="search_go(this.page+1)"  class="page-link" >{{page+1}}</button></li>
+    <li v-if="page+2<numPages"  class="page-item"><button @click="search_go(this.page+2)"  class="page-link" >{{page+2}}</button></li>
+    <li v-if="page+3<numPages" class="page-item"><button   class="page-link" >...</button></li>
+    <li v-if="page<numPages" class="page-item"><button @click="search_go(this.numPages)"  class="page-link" >{{numPages}}</button></li>
+    <li v-if="page<numPages" class="page-item">
+      <button  @click="search_go(this.page+1)"  class="page-link"  aria-label="Next">  <span aria-hidden="true"><i class="fa-solid fa-caret-right"></i></span>  </button>
+    </li>
+  </ul>
+</div>
+<div class="col-2"> </div>
+</div>
+
+
+<span v-if="a_group_id>0">
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+      <router-link :to="{ name: 'customer_list'}" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+    </div>
+  </div>
+ </div>
+</span>
+
+	</div>
+  </container>`
+};
+
+

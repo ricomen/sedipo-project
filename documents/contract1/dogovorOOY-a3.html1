@@ -1,0 +1,217 @@
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p {  line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; line-height:1;  margin-top: 4px; margin-bottom: 4px; }
+        p.western li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; line-height:1; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cm; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+	<title>Согласие на обработку персональных данных</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000">
+{$per=0}
+{$users1=[]}
+{foreach from=$courses item=row name=course}    
+
+{foreach from=$row['users'] item=row2 name=user}
+
+{if !in_array($row2,$users1) }
+{$users1[] = $row2}
+{/if}
+
+
+{/foreach}
+{/foreach}
+
+{foreach from=$users1 item=row2 name=user}
+<!--<p class="western">TUT{$contract_data['contr_id']}</p>-->
+<table width="100%" cellpadding="7" cellspacing="0"  {if $per!=0} style="page-break-before: always; " {/if}>
+    {$per=1}
+    <tr>
+        <td width="40%">
+            
+        </td>
+        <td>
+            <p class="western" style="text-align: left; text-indent:0px ;">
+                На имя {$self_data['position_head2']} {$self_data['shortname']}<br />
+                {$self_data['enterprise_manager2']}<br />
+                
+                {if $row2['lastname'] != ''}
+                Фамилия, имя, отчество: <u>{$row2['lastname']} {$row2['firstname']} {$row2['middlename']}</u><br />
+                {else}
+                Фамилия, имя, отчество:_____________________________
+                __________________________________________________<br />
+                {/if}
+                {if $row2['date_of_birth']!=''}
+                Дата рождения: <u>{$row2['date_of_birth']|date_format:"%02e.%m.%Y"}</u><br />
+                {else}
+                Дата рождения: _____________________________________<br />
+                {/if}
+                {if $row2['address']!=''}
+                Адрес проживания: <u>{$row2['address']}</u><br />
+                {else}
+                Адрес проживания: _________________________________
+                ______________________________________________________<br />
+                {/if}
+                Документ удостоверяющий личность: <u>паспорт</u><br />
+                {if $row2['pasport_series']!=''}
+                серия <u>{$row2['pasport_series']}</u> № <u>{$row2['pasport_number']}</u><br />
+                {else}
+                серия _________ № ________________<br />
+                {/if}
+                {if $row2['pasport_unit']!=''}
+                кем и когда выдан: <u>{$row2['pasport_unit']}</u><br />
+                {else}
+                кем и когда выдан: __________________________________________
+                ______________________________________________________<br />
+                {/if}
+                {if $row2['pasport_unit_number']!=''}
+                код подразделения: <u>{$row2['pasport_unit_number']}</u><br />
+                {else}
+                код подразделения: ________________________________________<br />
+                {/if}
+                {if $row2['snils']!=''}
+                СНИЛС: <u>{$row2['snils']}</u><br />
+                {else}
+                СНИЛС: _____________________________________________<br />
+                {/if}
+                {if $row2['phone']!=''}
+                Контактный телефон: <u>{$row2['phone']}</u><br />
+                {else}
+                Контактный телефон: ______________________________<br />
+                {/if}
+                {if $row2['email']!=''}
+                E-mail: <u>{$row2['email']}</u>                  
+                {else}
+                E-mail: ______________________________________________
+                {/if}
+            </p>
+            
+        </td>
+    </tr>
+</table>
+
+<h1 class="western" style="text-align:center;  margin-bottom: 0;"><b>ЗАЯВЛЕНИЕ
+    </b></h1>
+
+<p class="western"  >
+    <span style="margin-left: 20px;">&nbsp;</span>Согласно договору № {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%02e.%m.%Y"} на оказание платных образовательных услуг, прошу Вас зачислить меня в учебные группы по образовательным программам профессионального обучения и (или) дополнительного образования.
+    Ознакомлен с Уставом, лицензией на осуществление образовательной деятельности, «Правилами приема обучающихся», с программами обучения, с учебной документацией, другими документами, регламентирующими процесс и осуществление образовательной деятельности организации {$self_data['name']} (ИНН {$self_data['inn']}, ОГРН {$self_data['ogrn']}, юридический адрес: {$self_data['addres1']}) (далее - {$self_data['shortname']}).
+    Ознакомлен с Правилами оказания платных образовательных услуг (Утв. Постановлением Правительства РФ от 15.09.2020 № 1441). 
+</p>
+<table width="100%" >
+    <tr>
+        <td width="30%" style="border-bottom: 1px solid #000000; text-align: center;"></td>
+        <td style="border-bottom: 1px solid #000000; text-align: center;">{$row2['firstname']} {$row2['middlename']} {$row2['lastname']}</td>
+    </tr>
+    <tr>
+        <td style="font-size: 5pt; text-align: center;">(подпись)</td>
+        <td style="font-size: 5pt; text-align: center;">(ИО Фамилия)</td>
+    </tr>
+</table>
+
+
+<h1 class="western" style="page-break-before: always;">
+    Согласие на обработку персональных данных обучающегося
+</h1>
+
+<!--////////////////////////////////////////////////////////////////////////-->
+<p class="western" style="text-align: left;" >
+<span style="margin-left: 40px;">&nbsp;</span>
+{if $row2['lastname'] != ''}
+Я (далее – Субъект), <u>{$row2['lastname']} {$row2['firstname']} {$row2['middlename']}</u>
+{else}
+Я (далее – Субъект), ____________________________________________________________ 
+{/if}
+документ, удостоверяющий личность паспорт серия {if $row2['pasport_series']!=''}
+<u>{$row2['pasport_series']}</u> № <u>{$row2['pasport_number']}</u>
+{else}
+_________ № ________________
+{/if}
+{if $row2['pasport_unit']!=''}
+выдан <u>{$row2['pasport_unit']}</u>
+{else}      
+выдан _______________________________________________________________________________ 
+{/if}
+{if $row2['address']!=''}
+зарегистрированный (ая) по адресу: <u>{$row2['address']}</u>
+{else}
+зарегистрированный (ая) по адресу: ______________________________________________________,
+{/if} 
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>в соответствии со статьей 9 Федерального закона от 27.07.2006 № 152-ФЗ «О персональных данных», представляю ООО «ИТЦ «БЕЗОПАСНОСТЬ» (ОГРН 1220200042006, ИНН 0276972620 450055, зарегистрированному по  адресу: Республика Башкортостан, г. Уфа, Пр. Октября, д. 152) (далее-Оператор), 
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span><b>согласие</b> на обработку, включая сбор, запись, систематизацию, накопление, хранение, уточнение (обновление, изменение), использование, извлечение, передачу (предоставление, доступ), обезличивание, блокирование, удаление, уничтожение моих персональных данных, относящихся исключительно к перечисленным ниже категориям персональных данных: 
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>фамилия, имя, отчество, дата рождения (число, месяц, год), пол, гражданство, данные документа удостоверяющего личность, данные СНИЛС, ИНН, сведения об образовании, квалификации, о занимаемой должности, информация о трудовой деятельности (место работы, должность, трудовой стаж), адрес проживания/регистрации, контактные данные (телефонный номер, адрес электронной почты), сведения документов,  выданных органами  ЗАГС (при смене  Ф.И.О.), а в случаях предусмотренных законодательством -  специальные персональные данные – сведений о состоянии здоровья.
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>в целях получения образовательной услуги, в том числе для оформления документов о прохождении обучения /аттестации, ведения учета и  хранения  информации о  полученной  услуге, результатах освоения образовательной  программы,  выдачи справок  и  дубликатов документов, подтверждающих обучение  при  их  утере, занесения данных в Федеральный реестр сведений о документах об образовании и (или) о квалификации, документах об обучении (ФИС ФРДО),  планирования  и  организации  деятельности Оператора.
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>Я информирован(-а), что персональные данные (ФИО, дата рождения, ИНН, СНИЛС, номер и дата выдачи документа об образовании и (или) о квалификации, документах об обучении/аттестации) будут использоваться в целях внесения данных в Федеральную информационную систему «Федеральный реестр сведений о документах об образовании и (или) о квалификации, обучении».
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>Я информирован(-а), что обработка персональных данных осуществляется как с использованием средств автоматизации, в том числе в информационно-телекоммуникационных сетях, так и без использования таких средств. 
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>Я информирован(-а), что по письменному запросу вправе получать информацию, касающейся обработки его персональных данных (в соответствии с п.4 ст 14 Федерального закона от 27.06.2006                   № 152-ФЗ) «О персональных данных».
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>Вводный инструктаж пройден в ООО «ИТЦ «БЕЗОПАСНОСТЬ» по утвержденным в Обществе программам вводного инструктажа по охране труда, инструктажа по пожарной безопасности. 
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>Настоящее Согласие может быть отозвано путем предоставления в ООО «ИТЦ «БЕЗОПАСНОСТЬ» соответствующего заявления в письменной форме.
+</p>
+<p class="western" >
+<span style="margin-left: 40px;">&nbsp;</span>Действие настоящего согласия: со дня подписания до дня отзыва в письменной форме.	
+</p>
+
+
+
+
+
+<!--////////////////////////////////////////////////////////////////////////-->
+
+
+
+<table width="100%" border="1" cellpadding="0" cellspacing="0">
+<tr>
+        <td>Дата</td>
+        <td>Подпись</td>
+        <td>Расшифровка</td>
+</tr>
+<tr>
+        <td></td>
+        <td></td>
+        <td>{$row2['firstname']} {$row2['middlename']} {$row2['lastname']}</td>
+</tr>
+
+</table>
+
+<!--_____________________________  ____________________________________________________________	
+        (подпись)		                             (ИО Фамилия)
+
+<p class="western" style="text-indent: 0px;">{$order_data['date_order']|date_format:"%02e.%m.%Y"}</p>
+-->
+
+{/foreach}
+
+</body>
+</html>

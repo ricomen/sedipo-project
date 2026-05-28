@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC&family=Manrope:wght@200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <style type="text/css">
+	@page { margin-left: 1.0cm; margin-right: 1.0cm; margin-top: 1.0cm; margin-bottom: 1.0cm; size: A4 landscape;  }
+	p { margin-bottom: 0.25cm; font-family: "DejaVu Serif";  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 9pt; line-height: 99%; text-align: justify; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.right { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: right; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.date { font-family: "DejaVu Serif", serif; font-weight: 700; font-size: 9pt; text-align: right; margin-top: 0.1cm; margin-bottom: 0.1cm; padding-right:60px;  }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: center; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.nameprog { font-family: "DejaVu Serif", serif; font-size: 18pt; text-align: center; font-weight: 700;}
+	h1.western { font-family: "DejaVu Serif", serif;  font-size: 19pt; text-align: center; margin-top: 2cm; margin-bottom: 0.5cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+    h3.westerntop { font-family: "DejaVu Serif", serif; font-style: italic; font-size: 10pt; text-align: center; line-height:80%; }
+    h4.western { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; line-height:100%; }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.2cm; margin-bottom: 0.2cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	td, th { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	.journal__top {}
+	.logo { display: inline-block; padding-left:20px; width:90px; height:90px; position: relative; margin-top:12px;margin-right:10px;}
+	.text { display: inline-block; width:300px; height:90px; vertical-align: top; font-family: "Roboto", sans-serif; font-weight: 700; font-size: 15pt; line-height:95%; text-align: left; margin-left:15px; margin-top:10px; position: relative;}
+
+    </style>
+	<title>Журнал обучения </title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+
+	<div class="journal__top">
+	<div class="logo"><img src="https://sed.ipo5.ru/images/logo.png" width="100" height="100"></div>
+	<div class="text">Институт<br>Профессионального<br>Образования</div>
+
+	</div>
+
+
+        <h1 class="western">Ведомость полученных удостоверений группы № {$lstream['name']}
+                            по дополнительной профессиональной программе повышения квалификации
+                            <br />
+                            «{$lstream['course_name']}»,
+                            <br />
+                            период обучения с {$lstream['date_begin']|date_format:"%02e.%m.%Y"} г. по {$lstream['date_protocol']|date_format:"%02e.%m.%Y"} г.,
+                            форма обучения – очная.
+                            <br />
+                            <br />
+                            <br />
+                            Преподаватель – {$lstream['main_teacher']}
+         </h1>
+        
+
+<table style="page-break-before: always;" width="100%" cellpadding="2" cellspacing="0">
+<tr><th   style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; font-size:8pt;" >№ <br /><nobr>п/п</nobr></th>
+{foreach from=$users_header item=cell name=users_header}
+		<th   style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell}</th>
+{/foreach}
+</tr>
+{foreach from=$users item=row name=users}
+    <tr><td   style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" ><nobr>{$smarty.foreach.users.iteration}.</nobr></td>
+    {foreach from=$row item=cell name=users_cell}
+	    <td   style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; " >{$cell}</td>
+    {/foreach}
+    <td style="border: 1px solid #00000a"></td>
+    </tr>
+{/foreach}
+</table>   
+
+
+
+
+
+
+</body>
+</html>

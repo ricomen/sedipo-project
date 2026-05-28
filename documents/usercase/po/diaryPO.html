@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p {  direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; line-height:1; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cmargin-top: 0.1cm; m; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+
+
+	<title>Дневник ПО</title>
+</head>
+{foreach from=$users item=cell name=users}
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+ <!--
+    <table width="100%" cellpadding="7" cellspacing="0">
+        <tr>
+            <td width="35">
+                
+            </td>
+            <td>
+                <p class="western" style="text-align: right;">
+                <b>УТВЕРЖДАЮ</b> <br />
+                Директор {$self_data['shortname']}
+				{$self_data['enterprise_manager3']}
+                {$order_data['date_order']|date_format:"%e.%m.%Y"} г.<br />
+                </p>
+            </td>
+        </tr>
+        </table>
+-->   
+
+        <h1 class="western">ДНЕВНИК <br \>производственного обучения
+		</h1>
+		<br \>
+		<br \>
+		<br \>
+<p class="western" style="text-align:center;  margin-bottom: 0;"><b><u>{$cell['lastname']} {$cell['firstname']} {$cell['middlename']}</u>
+    </b></p>
+    <p class="western" style="text-align:center;  margin-bottom: 0; margin-top: 0; font-size: 7pt;">(Ф.И.О. обучающегося)
+    </p>
+
+
+    <br \>
+    <br \>
+    <br \>
+
+<p class="western" style="margin-left: 40px; margin-right: 40px;"><b>Изучаемая профессия (специальность): {$lstream['course_name']}</b></p>
+<p class="western" style="margin-left: 40px; margin-right: 40px;"><b>Начало производственной практики: {$schedulerprf|date_format:"%02e.%m.%Y"}</b></p>
+<p class="western" style="margin-left: 40px; margin-right: 40px;"><b>Окончание производственной практики: {$schedulerprl|date_format:"%02e.%m.%Y"}</b></p>
+<p class="western" style="margin-left: 40px; margin-right: 40px;"><b>Мастер п/о:  ________________________</b></p>
+<p class="western" style="margin-left: 40px; margin-right: 40px;"><b>Место прохождения производственного обучения: _______________________________</b></p>
+   
+<p class="western" style="text-align:center; font-style: italic; page-break-before: always;"><b>Правила ведения дневника производственного обучения</b></p>
+<p class="western" style="font-style: italic; text-align: justify;">
+    Дневник является основным документом, подтверждающим прохождение производственной практики.  Дневник производственного обучения заполняет обучающийся под руководством мастера производственного обучения. Обучающийся после окончания каждой темы программы записывает в разделе «Содержание производственного обучения» дневника производственные работу и ее количество.  По окончании производственного обучения, <u>заполненный дневник с подписью мастера производственного обучения сдается {$self_data['shortname']}</u>
+    </p>
+
+<h1 class="western" style="page-break-before: always;">СОДЕРЖАНИЕ ПРОИЗВОДСТВЕННОЙ ПРАКТИКИ</h1>
+
+<table width="100%" border="1" cellpadding="7" cellspacing="0" style="page-break-before: avoid;">
+    <tr>
+        <th>Дата</th>
+        <th>Наименование и содержание 
+        выполненных работ
+        </th>
+        <th>Кол-во выполненной работы ч.</th>
+        <th>Оценка выполненной работы</th>
+        <th>Подпись мастера ПО</th>
+    </tr>
+    {foreach from=$calendar2 item=row}
+        <tr>
+            <td>{$row['date']|date_format:"%02e.%m.%Y"}</td>
+            <td>{$row['name']}</td>
+            <td style="text-align: center;">{round(intval($row['hours']),0)}</td>
+            <td></td>
+            <td><!--{$teacher['lastname']} {$teacher['firstname']} {$teacher['middlename']}--></td>
+        </tr>
+    {/foreach}
+    </table>
+
+<h1 class="western" style="page-break-before: always;">ЗАКЛЮЧЕНИЕ <br \>
+    на квалификационную работу
+    </h1>
+<p class="western"></p>
+<!--
+<p class="western" style=" margin-bottom: 0;">Выполнил {$cell['lastname']} {$cell['firstname']} {$cell['middlename']}</p>
+<p class="western" style=" margin-bottom: 0; margin-top: 0; font-size: 7pt;">(фамилия, имя, отчество)</p>
+-->
+<p class="western">Составлено: {$lstream['date_protocol']|date_format:"%02e.%m.%Y"} о том, что обучающийся {$cell['lastname']} {$cell['firstname']} {$cell['middlename']}
+выполнил квалификационную работу по профессии (специальности) {$lstream['course_name']}:<br />{$lstream['qualification_work']}</p>
+
+<p class="western" style=" margin-bottom: 0; margin-top: -15px; font-size: 7pt;">(наименование работы и краткая ее характеристика)</p>
+
+<p class="western">Оценка «4 (хорошо)» – работа выполнена на 90 баллов в соответствии с техническими требованиями и условиями к выполнению задания практического экзамена в установленное время с хорошим качеством. Обучающийся отлично владеет инструментом, инвентарем, оборудованием, приспособлениями, вспомогательными материалами. Применяет теорию на практике, соблюдает правила охраны труда, пожарной безопасности.</p>
+
+<p class="western">Выполненная работа соответствует уровню квалификации {$lstream['course_name']}, квалификационный разряд – {$lstream['qualification']}.</p>
+
+<table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid; text-align: justify; line-height: 90%;">
+
+<tr>
+
+    <td>
+        <p class="western">Мастер производственного обучения</p>
+    </td>
+    <td>
+<p class="western">____________</p>
+    </td>
+    <td>
+<p class="western">____________</p>
+    </td>
+</tr>
+<tr>
+
+    <td>
+<p class="western">Директор</p>
+    </td>
+    <td>
+<p class="western">____________</p>
+    </td>
+    <td>
+<p class="western">____________</p>
+    </td>
+</tr>
+</table>
+
+</body>
+<!--sh ={count($scheduler)} i= {$date_i} tc={$teorcount} tcs={$teorcountsum}-->
+{/foreach}
+</html>

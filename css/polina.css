@@ -1,0 +1,72 @@
+@keyframes rotateClose {
+    0% { transform: rotate(0deg) scale(1)}
+    50% { transform: rotate(180deg) scale(1.1)}
+    100% { transform: rotate(360deg) scale(1)}
+}
+@keyframes slideInWidget {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+@keyframes typing {
+    from {
+        width: 0;
+        // height: 50%;
+    }
+    to {
+        width: 100%;
+        // height: 50%;
+    }
+}
+@keyframes typing-2 {
+    0% {width: 0; }
+    50% {width: 0; }
+    100% {width: 100%; }
+}
+@keyframes blink {
+    from, to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: red;
+    }
+}
+@keyframes resize {
+    from {width: 0; height: 0;}
+    to {width: 100%; height: 100%;}
+}
+@keyframes mascot1 {
+    from { height: 200px; transition: scale(1.5); transform: translate(-70px, -150px); }
+    to { height: 50px; }
+}
+@keyframes mascotOpacity {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
+// ПЛАНШЕТ
+@media only screen and (min-width: 575px) and (max-width: 766px){
+   #helperMascot {
+     height: 200px;
+   }
+   .helperMascot-message-text {
+     font-size: 18px;
+   }
+}
+// СМАРТФОН
+@media (width < 576px){
+   #helperMascot {
+     height: 100px;
+   }
+   .helperMascot-message-text {
+     font-size: 16px;
+   }
+}
+
+

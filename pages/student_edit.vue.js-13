@@ -1,0 +1,1268 @@
+var UserEdit = {
+  data: function () {
+    return {
+      snils: '',
+      snilsError: '',
+      role: '', 
+      info: [],
+      info2: [],
+      info3: [],
+      info4: [],
+      info5: [],
+      info6: [],
+      info7: [],
+      info8: [],
+      info9: [],
+      message: '',
+      message2: '',
+      status: 0,
+      jobs: [],
+      jobs_count: 0,
+      user_id: 0,
+      a_counterparty_id: 0,
+      a_user_counterparty_id: 0,
+      a_counterparty_c: '',
+      a_user_status_idorder_id: 0,
+      a_item_id: 0,
+      a_group_id: 0,
+      user_counterparty_status: 0,
+      lastname: '',
+      firstname: '',
+      middlename: '',
+      email: '',
+      login: '',
+      password: '',
+      phone: '',
+      counterparty_id: 0,
+      job_title_id: 0,
+      job_title_name: '',
+      job_title_category: 0,
+      job_title_category_a:
+        ['Категория',
+        '',
+        'Работники предприятий и организаций',
+        'Руководители',
+        'Работники образовательных  организаций',
+        'Руководители',
+        'Руководители дошкольных образовательных организаций',
+        'Руководители общеобразовательных организаций',
+        'Руководители профессиональных образовательных организаций',
+        'Руководители образовательных организаций высшего образований',
+        'Руководители организаций дополнительного профессионального образований',
+        'Руководители организаций дополнительного образований',
+        'Педагогические работники',
+        'Педагогические работники дошкольных образовательных организаций',
+        'Педагогические работники общеобразовательных организаций',
+        'Педагогические работники профессиональных образовательных организаций',
+        'Педагогические работники образовательных организаций высшего образований',
+        'Педагогические работники организаций дополнительного профессионального образований',
+        'Педагогические работники организаций дополнительного образований',
+        'Лица замещающие государственные должностии должности государственной гражданской службы',
+        'Руководители',
+        'Лица замещающие муниципальные должности и должности муниципальной службы',
+        'Лица, уволенные с военной службы',
+        'Незанятые лица по направлению службы занятости',
+        'безработные',
+        'Студенты, обучающиеся по образовательным программам: среднего профессионального образования',
+        'высшего образования',
+        'другие'],
+      
+      subdivision: '',
+      user_counterparty_id: 0,
+      date_of_birth: '',
+      view_password: 0,
+      v_password_txt: ' показать пароль ',
+      form_of_study: [ {form_id: 1, name: 'Очная'}, {form_id: 2, name: 'Заочная'}, {form_id: 3, name: 'Очно-заочная'} ],
+      view_link_button: 0,
+      user2_id: 0,
+      user2_lastname: '',
+      user2_firstname: '',
+      user2_middlename: '',
+      user2_job_title_id: '',
+      user2_job_title_name: '',
+      user2_date_of_birth: '',
+      user2_snils: '',
+      //snils: '',
+      inn: '',
+      address: '',
+      sex: '',
+      level_of_education: 0,
+      level_of_education_a: ['', 'Среднее профессиональное образование', 'Высшее образование', 'Учащийся (СПО)', 'Студент (ВО)'],
+      dplom_series: '',
+      diplom_number: '',
+      diplom_lastname: '',
+      diplom_label: '(файл .png, .pdf)',
+      diplom: '',
+      photo_label: '(файл .jpg, .png, .pdf)',
+      photo: '',
+      user_status_id: 0,
+      
+      diplomtfile: '',
+      diplom_filename: '',
+      diplom_file_type: '',
+      photofile: '',
+      photo_filename: '',
+      photo_file_type: '',
+      citizenship: '',
+      citizenship_a: [{code: '', name: ''}, {code: 'RUS', name: 'Россия'}],
+      pasport_series: '',
+      pasport__number: '',
+      pasport_unit_number: '',
+      pasport_unit: '',
+      pasport_filename: '',
+      pasport_file_type: '',
+      global_id: false,
+      user_counterparty_r: 0,
+      to_user_counterparty_id: 0,
+      comment: '',
+      orders_count: 0,
+      wait: 0,
+     }
+   },
+
+
+   mounted() {
+//  { path: '/student_edit/:userid/:counterpartyid?/:usercounterpartyid?/:orderid?/:itemid?/:groupid?/:lastname?/:firstname?/:middlename?/:job_title?', name: 'student_edit', component: UserEdit, props: true },
+    this.user_id = Number(this.$route.params.userid)
+    this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+    this.a_user_counterparty_id = Number(this.$route.params.usercounterpartyid)
+    this.a_order_id = Number(this.$route.params.orderid)
+    this.a_item_id = Number(this.$route.params.itemid)
+    //this.a_group_id = Number(this.$route.params.groupid)
+    this.lastname = this.$route.params.lastname
+    this.firstname = this.$route.params.firstname
+    this.middlename = this.$route.params.middlename
+    this.snils = this.$route.params.snils
+    this.job_title_name = this.$route.params.job_title
+
+    if( this.a_counterparty_id >0 )
+          this.counterparty_id = this.a_counterparty_id
+    this.user_counterparty_r = this.a_user_counterparty_id
+             
+
+    if(this.user_id >0 ) {
+        axios
+            .post(JsonApiURL+'api/students_json.php', {object: {objectId: this.user_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+            .then(response => { 
+                this.info = response.data
+                this.role = this.info.role
+                this.lastname = this.info.result.lastname
+                this.firstname = this.info.result.firstname
+                this.middlename = this.info.result.middlename
+                this.email = this.info.result.email
+                this.phone = this.info.result.phone
+                this.login = this.info.result.login
+                this.password = this.info.result.password
+                //this.counterparty_id = this.info.result.counterparty_id
+                //this.job_title_id = this.info.result.job_title_id
+                //this.job_title_name = this.info.result.job_title
+                //this.job_title_category = this.info.result.job_title_category
+                //this.subdivision = this.info.result.subdivision
+                this.date_of_birth = this.info.result.date_of_birth
+                this.snils = this.info.result.snils
+                this.inn = this.info.result.inn
+                this.address = this.info.result.address
+                this.sex = this.info.result.sex
+                this.level_of_education = this.info.result.level_of_education
+                this.dplom_series = this.info.result.dplom_series
+                this.diplom_number = this.info.result.diplom_number
+                this.diplom_lastname = this.info.result.diplom_lastname
+                this.citizenship = this.info.result.citizenship
+                this.level_of_education = this.info.result.level_of_education
+                this.pasport_series = this.info.result.pasport_series
+                this.pasport_number = this.info.result.pasport_number
+                this.pasport_unit_number = this.info.result.pasport_unit_number
+                this.pasport_unit = this.info.result.pasport_unit
+                this.user_status_id = this.info.result.status
+                this.comment = this.info.result.comment
+                this.orders_count = this.info.result.orders_count
+
+                //this.diplomfile = this.info.result.diplomfile
+                this.diplom_filename = this.info.result.diplom_filename
+                //this.photofile = this.info.result.photofile
+                this.photo_filename = this.info.result.photo_filename
+                if(this.info.result.diplom_filename != '')
+                      this.diplom_label = this.info.result.diplom_filename
+                if(this.info.result.photo_filename != '')
+                      this.photo_label = this.info.result.photo_filename
+                
+                if( this.counterparty_id == 0 )
+                        this.counterparty_id = this.info.counterparty_id
+
+
+                axios
+                    .post(JsonApiURL+'api/students_json.php', {user_jobs: {objectId: this.user_id,   counterparty_id: this.a_counterparty_id, status: 0,  sessionId: session_t.sessionId } }, {withCredentials: true})
+                    .then(response2 => { 
+                        this.info3 = response2.data
+                        this.jobs = this.info3.result
+                        this.jobs_count = this.jobs.length
+
+                    })
+                   .catch(error => {
+                        console.log(error.response)
+                    })
+
+
+
+            })
+            .catch(error => {
+                console.log(error.response)
+            })
+    }
+
+
+	    /*axios
+            .post(JsonApiURL+'api/counterparty_json.php', {list: { sessionId: session_t.sessionId }})
+    		.then(response2 => { 
+        	    this.info2 = response2.data
+        	    console.log(response2)
+    		})
+    		.catch(error => {
+            	    console.log(error.response)
+        	})*/
+
+
+  },
+
+
+  methods: {
+     validateSnils() 
+    {
+      this.snilsError = ''
+      
+      // Очистка от лишних символов
+      const cleanSnils = this.snils.replace(/\D/g, '')
+      
+      // Проверка длины
+      if (cleanSnils.length !== 11) {
+        this.snilsError = 'СНИЛС должен содержать 11 цифр'
+        //return
+      }
+
+      // Проверка контрольной суммы
+      if (!this.checkSnilsControlSum(cleanSnils)) {
+        this.snilsError = 'некорректный СНИЛС'
+      }
+    },
+
+    checkSnilsControlSum(snils) {
+      const digits = snils.split('').map(Number)
+      const controlSum = digits.slice(-2).join('')
+      const numbers = digits.slice(0, 9)
+
+      // Расчет контрольной суммы
+      let calculatedSum = 0
+      for (let i = 0; i < numbers.length; i++) {
+        calculatedSum += numbers[i] * (9 - i)
+      }
+
+      // Проверка особых случаев
+      if (calculatedSum > 101) {
+        calculatedSum %= 101
+      }
+      if (calculatedSum === 100 || calculatedSum === 101) {
+        calculatedSum = 0
+      }
+
+      // Форматирование в двузначную строку
+      const formattedCalculatedSum = calculatedSum.toString().padStart(2, '0')
+
+      return formattedCalculatedSum === controlSum
+    },
+
+
+    userUse(global_ch) {
+        var order_id = 0
+
+        if(global_ch ==1 && this.user_id>0 && this.user2_id>0){
+           var fl = confirm('Объединить учетные записи, отмена операции будет невозможна ?');
+	   if(fl) {
+             axios
+                .post(JsonApiURL+'api/students_json.php', {change: {objectId: this.user_id, to_user_id: this.user2_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+                .then(response => {
+                    console.log(response)
+    	            this.info9 = response.data
+
+                    if(response.data.status==0) {
+                        if( this.a_order_id >0 ) {
+                            this.$router.push({ name: 'order_items', params: {orderid: this.a_order_id }})
+                        }
+                        else {
+                            this.$router.push({ name: 'students_list', params: {counterpartyid: this.a_counterparty_id  }}) 
+                        }
+
+                    }
+                    else {
+                        this.message = response.data.error
+                    }
+                })
+                .catch(error => {
+                  console.log(error.response)
+                })
+           }
+        }
+        else if( (global_ch ==0 || global_ch ==2)   && this.user_id>0  &&  this.a_item_id>0 && this.a_counterparty_id>0 ){
+            if( global_ch ==0)
+                  var user_counterparty =  this.to_user_counterparty_id
+            else {
+                   user_counterparty =  this.user_counterparty_r 
+                   this.user2_id = this.user_id
+            }
+            axios
+                .post(JsonApiURL+'api/students_json.php', {change_order: { item_id: this.a_item_id,   to_user_id: this.user2_id,  to_user_counterparty_id: user_counterparty,     sessionId: session_t.sessionId } }, {withCredentials: true})
+                .then(response => {
+                    console.log(response)
+    	            this.info9 = response.data
+
+                    if(response.data.status==0) {
+                        if( this.a_order_id >0 ) {
+                            this.$router.push({ name: 'order_items', params: {orderid: this.a_order_id }})
+                        }
+                        else {
+                            this.$router.push({ name: 'students_list', params: {counterpartyid: this.a_counterparty_id  }}) 
+                        }
+
+                    }
+                    else {
+                        this.message = response.data.error
+                    }
+                })
+                .catch(error => {
+                  console.log(error.response)
+                })
+            }
+
+        },
+
+
+        userSave () {
+            if( this.counterparty_id == 0 )
+                    this.counterparty_id = this.a_counterparty_id
+
+            var   required_fl = false
+            if(this.lastname==''){
+               alert('Вы не заполнили поле "Фамилия"') ;
+               return
+            }
+            if(this.firstname==''){
+               alert('Вы не заполнили поле "Имя"') ;
+               return
+            }
+            if(this.date_of_birth==''){
+               //alert('вы не заполнили поле "Дата рождения"') ;
+               this.date_of_birth = '1000-01-01'
+               //required_fl = true
+            }
+
+            if(this.snils=='' || this.snils=='-- '){
+               alert('Не заполнено поле "СНИЛС"') ;
+               //return
+               required_fl = true
+            }
+            if(this.snilsError!='' && !(this.snils=='' || this.snils=='-- ') ){
+               alert('Некорректный СНИЛС') 
+               required_fl = true
+            }
+            if(this.jobs_count == 0){
+                var fl = confirm("Не заполнено поле 'Должность'.\n Сохранить без указания должности?");
+                if(!fl) 
+                    return
+            }
+            if(required_fl){
+                fl = confirm("Не все обязательные поля заполнены.\nСохранить?");
+                if(!fl) 
+                    return
+             }
+
+             if( this.user_counterparty_id == 0){
+                   this.user_counterparty_id = this.a_user_counterparty_id
+             }
+
+              //.post(JsonApiURL+'api/students_json.php', {save: {objectId: this.user_id, lastname: this.lastname, firstname: this.firstname, middlename: this.middlename,  email_lms: this.email_lms, login: this.login, password: this.password, counterparty_id: this.counterparty_id, job_title_id: this.job_title_id, job_title_name: this.job_title_name,  subdivision: this.subdivision, date_of_birth: this.date_of_birth,  snils: this.snils, inn: this.inn,  phone: this.phone, address: this.address,  diplom_filename: this.diplom_filename, photo_filename: this.photo_filename, sex: this.sex, dplom_series: this.dplom_series, diplom_number: this.diplom_number, diplom_lastname: this.diplom_lastname, citizenship: this.citizenship, level_of_education: this.level_of_education, pasport_series: this.pasport_series, pasport_number: this.pasport_number, pasport_unit_number: this.pasport_unit_number, pasport_unit: this.pasport_unit,  order_id: this.a_order_id, sessionId: session_t.sessionId } })
+             axios
+              .post(JsonApiURL+'api/students_json.php', {save: {objectId: this.user_id, lastname: this.lastname, firstname: this.firstname, middlename: this.middlename,  email: this.email,  counterparty_id: this.counterparty_id, job_title_id: this.job_title_id, job_title_name: this.job_title_name, job_title_category: this.job_title_category,  subdivision: this.subdivision, date_of_birth: this.date_of_birth,  snils: this.snils, inn: this.inn,  phone: this.phone, address: this.address,  diplom_filename: this.diplom_filename, photo_filename: this.photo_filename, sex: this.sex, dplom_series: this.dplom_series, diplom_number: this.diplom_number, diplom_lastname: this.diplom_lastname, citizenship: this.citizenship, level_of_education: this.level_of_education, pasport_series: this.pasport_series, pasport_number: this.pasport_number, pasport_unit_number: this.pasport_unit_number, pasport_unit: this.pasport_unit, comment: this.comment, status: this.user_status_id,  order_id: this.a_order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+              .then(response => {
+                   console.log(response)
+                   this.info9 = response.data
+                    this.status = this.info9.status
+                    this.message = this.info9.error
+                   if(this.user_id==0)
+                        this.user_id = this.info9.result.user_id
+
+
+                   if(this.user_id>1 && this.status==0 ) {
+                      if(this.photo_file_type!='' &&  this.diplom_file_type!=''){
+                        this.wait = 1;
+                        const formData = new FormData();
+                        if(this.photo_file_type!=''){
+                            formData.append('upload1', this.photofile)
+                            formData.append('name1', 'photo'+this.user_id)
+                        }
+                        if(this.diplom_file_type!=''){
+                            formData.append('upload2', this.diplomtfile)
+                            formData.append('name2', 'diplom'+this.user_id)
+                        }
+                        formData.append('sessionId', session_t.sessionId); 
+	                    axios
+                              .post(JsonApiURL+'api/upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}}, {withCredentials: true})
+                              .then(response2 => {
+                                this.info6 = response2.data
+                                this.wait = 0;
+                                console.log(response2)
+                            })
+                            .catch(error => {
+                                console.log(error.response)
+                            })
+                        }
+
+                        axios
+                          .post(JsonApiURL+'api/students_json.php', {save_user_counterparty: { objectId: this.user_id, counterparty_id: this.counterparty_id, job_title_id: 1, job_title_name: '', job_title_category: 0,  subdivision: '',  order_id: this.a_order_id, user_counterparty_id: this.user_counterparty_id,  sessionId: session_t.sessionId  } }, {withCredentials: true})
+                          .then(response2 => {
+                             console.log(response2)
+                             this.info8 = response2.data
+
+                             if(this.user_counterparty_id==0)
+                                  this.user_counterparty_id = this.info8.result.user_counterparty_id
+
+                               if( this.a_order_id >0 ) {
+                                  //if((this.a_item_id == 0 || this.a_item_id =='') && this.user_counterparty_id>0 )
+                                  if( this.user_counterparty_id>0 ){
+                                       axios
+                                           .post(JsonApiURL+'api/students_json.php', {link: {order_id: this.a_order_id, user_counterparty_id: this.user_counterparty_id,  objectId: this.user_id, item_id: this.a_item_id, sessionId: session_t.sessionId} }, {withCredentials: true})
+                                           .then(response3 => {
+                                                     console.log(response3)
+                                                     if(response3.data.status==0) {
+                                                                this.$router.push({ name: 'order_items', params: {orderid: this.a_order_id }})
+                                                      }
+                                                     else {
+                                                            this.message2 = response3.data.error
+                                                      }
+                                            })
+                                           .catch(error => {
+                                                      console.log(error.response)
+                                            })
+                                    }
+                                    else {
+                                         this.$router.push({ name: 'order_items', params: {orderid: this.a_order_id }})
+                                   }
+                                }
+                                else {
+                                 this.$router.push({ name: 'students_list', params: {counterpartyid: this.a_counterparty_id  }}) 
+                              }
+
+                          })
+                             .catch(error => {
+                             console.log(error.response)
+                          })
+
+
+                }
+                else {
+                    this.message = response.data.error
+                }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+
+        },
+
+
+        userCounterpartySave () {
+            var counterparty_id = this.counterparty_id
+
+          if(this.job_title_name!=''){ 
+           if( counterparty_id == 0 )
+                    counterparty_id = this.a_counterparty_id
+
+           if(this.user_id==0 ){
+             if(this.lastname==''){
+               alert('Вы не заполнили поле "Фамилия"') ;
+               return
+             }
+             if(this.firstname==''){
+               alert('Вы не заполнили поле "Имя"') ;
+               return
+             }
+             if(this.date_of_birth==''){
+               //alert('Вы не заполнили поле "Дата рождения"') ;
+               this.date_of_birth = '1000-01-01'
+               //required_fl = true
+             }
+ 
+             if(this.snils==''){
+               alert('Вы не заполнили поле "СНИЛС"') ;
+               required_fl = true
+               //return
+             }
+
+             axios
+              .post(JsonApiURL+'api/students_json.php', {save: {objectId: this.user_id, lastname: this.lastname, firstname: this.firstname, middlename: this.middlename,  email: this.email,  counterparty_id: this.counterparty_id, job_title_id: this.job_title_id, job_title_name: this.job_title_name, job_title_category: this.job_title_category,  subdivision: this.subdivision, date_of_birth: this.date_of_birth,  snils: this.snils, inn: this.inn,  phone: this.phone, address: this.address,  diplom_filename: this.diplom_filename, photo_filename: this.photo_filename, sex: this.sex, dplom_series: this.dplom_series, diplom_number: this.diplom_number, diplom_lastname: this.diplom_lastname, citizenship: this.citizenship, level_of_education: this.level_of_education, pasport_series: this.pasport_series, pasport_number: this.pasport_number, pasport_unit_number: this.pasport_unit_number, pasport_unit: this.pasport_unit, comment: this.comment,  order_id: this.a_order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+              .then(response => {
+                   console.log(response)
+    	           this.info9 = response.data
+    	           if(this.user_id==0)
+                        this.user_id = this.info9.result.user_id
+
+                   if(response.data.status==0) {
+                        axios
+                          .post(JsonApiURL+'api/students_json.php', {save_user_counterparty: { objectId: this.user_id, counterparty_id: this.counterparty_id, job_title_id: this.job_title_id, job_title_name: this.job_title_name, job_title_category: this.job_title_category,  subdivision: this.subdivision,  order_id: this.a_order_id, user_counterparty_id: 0, sessionId: session_t.sessionId  } }, {withCredentials: true})
+                          .then(response2 => {
+                             console.log(response2)
+                             this.info8 = response2.data
+
+                             if(this.user_counterparty_id==0)
+                                  this.user_counterparty_id = this.info8.result.user_counterparty_id
+
+
+                   axios
+                    .post(JsonApiURL+'api/students_json.php', {user_jobs: {objectId: this.user_id,  counterparty_id: counterparty_id, status: this.user_counterparty_status,  sessionId: session_t.sessionId } }, {withCredentials: true})
+                    .then(response2 => { 
+                        this.info3 = response2.data
+                        this.jobs = this.info3.result
+                        this.jobs_count = this.jobs.length
+
+                        this.job_title_id = 0
+                        this.job_title_name = ''
+                        this.job_title_category = 0
+                        this.subdivision = ''
+                        /*if(this.jobs_count>0){
+                             this.user_counterparty_id = this.jobs[0].user_counterparty_id
+                        }
+                        else {
+                             this.user_counterparty_id = 0
+                        }*/
+
+                    })
+                   .catch(error => {
+                        console.log(error.response)
+                    })
+
+
+
+                           })
+                         .catch(error => {
+                             console.log(error.response)
+                          })
+                 }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+
+           }
+           else {
+             axios
+              .post(JsonApiURL+'api/students_json.php', {save_user_counterparty: {objectId: this.user_id,  counterparty_id: counterparty_id, job_title_id: this.job_title_id, job_title_name: this.job_title_name, job_title_category: this.job_title_category,  subdivision: this.subdivision,  order_id: this.a_order_id, user_counterparty_id: 0, sessionId: session_t.sessionId } }, {withCredentials: true})
+              .then(response => {
+                   console.log(response)
+                   this.info8 = response.data
+
+                   //if(this.user_counterparty_id==0)
+                   this.user_counterparty_id = this.info8.result.user_counterparty_id
+
+
+                   axios
+                    .post(JsonApiURL+'api/students_json.php', {user_jobs: {objectId: this.user_id,  counterparty_id: counterparty_id, status: this.user_counterparty_status, sessionId: session_t.sessionId } }, {withCredentials: true})
+                    .then(response2 => { 
+                        this.info3 = response2.data
+                        this.jobs = this.info3.result
+                        this.jobs_count = this.jobs.length
+
+                        this.job_title_id = 0
+                        this.job_title_name = ''
+                        this.job_title_category = 0
+                        this.subdivision = ''
+                        /*if(this.jobs_count>0){
+                             this.user_counterparty_id = this.jobs[0].user_counterparty_id
+                        }
+                        else{
+                             this.user_counterparty_id = 0
+                        }*/
+
+                    })
+                   .catch(error => {
+                        console.log(error.response)
+                    })
+
+
+                            })
+                        .catch(error => {
+                        console.log(error.response)
+               })
+                .catch(error => {
+                 console.log(error.response)
+               })
+           }
+          }
+        },
+
+
+        userCounterpartyArchive(userCounterpartyId, name ){ 
+	var fl = confirm('Переместить должность в архив: ' + name + '?');
+	if(fl) {
+	    axios
+          .post(JsonApiURL+'api/students_json.php', {archive_user_counterparty: {userCounterpartyId: userCounterpartyId, status: 1, sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+               console.log(response)
+            //this.info9 = response.data
+
+
+                axios
+                    .post(JsonApiURL+'api/students_json.php', {user_jobs: {objectId: this.user_id, status: this.user_counterparty_status, sessionId: session_t.sessionId } }, {withCredentials: true})
+                    .then(response2 => { 
+                        this.info3 = response2.data
+                        this.jobs = this.info3.result
+                        this.jobs_count = this.jobs.length
+                        console.log(response2)
+                        /*if(this.jobs_count>0){
+                             this.user_counterparty_id = this.jobs[0].user_counterparty_id
+                        }
+                        else {
+                             this.user_counterparty_id = 0
+                        }*/
+
+                    })
+                   .catch(error => {
+                        console.log(error.response)
+                    })
+
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+
+      }
+    },
+
+        userCounterpartyActive(userCounterpartyId, name ){ 
+	var fl = confirm('Восстановить должность: ' + name + '?');
+	if(fl) {
+	    axios
+          .post(JsonApiURL+'api/students_json.php', {archive_user_counterparty: {userCounterpartyId: userCounterpartyId, status: 0, sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+               console.log(response)
+            //this.info9 = response.data
+
+                axios
+                    .post(JsonApiURL+'api/students_json.php', {user_jobs: {objectId: this.user_id, status: this.user_counterparty_status, sessionId: session_t.sessionId } }, {withCredentials: true})
+                    .then(response2 => { 
+                        this.info3 = response2.data
+                        this.jobs = this.info3.result
+                        this.jobs_count = this.jobs.length
+                        console.log(response2)
+                        /*if(this.jobs_count>0){
+                             this.user_counterparty_id = this.jobs[0].user_counterparty_id
+                        }
+                        else {
+                             this.user_counterparty_id = 0
+                        }*/
+
+                    })
+                   .catch(error => {
+                        console.log(error.response)
+                    })
+
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+
+      }
+    },
+
+
+        userCounterpartyDelete(userCounterpartyId, name ){ 
+	var fl = confirm('Удалить должность: ' + name + '?');
+	if(fl) {
+	    axios
+          .post(JsonApiURL+'api/students_json.php', {delete_user_counterparty: {userCounterpartyId: userCounterpartyId, sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+               console.log(response)
+            //this.info9 = response.data
+
+
+                axios
+                    .post(JsonApiURL+'api/students_json.php', {user_jobs: {objectId: this.user_id, status: this.user_counterparty_status, sessionId: session_t.sessionId } }, {withCredentials: true})
+                    .then(response2 => { 
+                        this.info3 = response2.data
+                        this.jobs = this.info3.result
+                        this.jobs_count = this.jobs.length
+                        console.log(response2)
+                        /*if(this.jobs_count>0){
+                             this.user_counterparty_id = this.jobs[0].user_counterparty_id
+                        }
+                        else {
+                             this.user_counterparty_id = 0
+                        }*/
+
+                    })
+                   .catch(error => {
+                        console.log(error.response)
+                    })
+
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+
+      }
+    },
+
+
+
+
+        onChangeUser(){
+           if(this.sex == ''){
+	    if(this.lastname != '' ) {
+                if(this.lastname[this.lastname.length-1] == 'а')
+                    this.sex = 'Жен'
+                else if(this.lastname[this.lastname.length-1] == 'в')
+                    this.sex = 'Муж'
+            }
+            if(this.middlename != '' ) {
+                if(this.middlename[this.middlename.length-1] == 'ч')
+                    this.sex = 'Муж'
+                else
+                    this.sex = 'Жен'
+            }
+          }
+        },
+
+        onInputUser(){
+	    axios
+    	     .post(JsonApiURL+'api/students_json.php', {search: {order_id: 0, counterparty_id: this.a_counterparty_id, lastname: this.lastname, firstname: this.firstname, middlename: this.middlename, snils: this.snils, exclude_user_id: this.user_id, sessionId: session_t.sessionId   } }, {withCredentials: true})
+    	     .then(response => { 
+              this.info7 = response.data;
+              if(this.info7.result.user_id > 0){
+                this.view_link_button = 1;
+                this.user2_id = this.info7.result.user_id;
+                this.user2_lastname = this.info7.result.lastname
+                this.user2_firstname = this.info7.result.firstname
+                this.user2_middlename = this.info7.result.middlename
+                this.user2_job_title_id = this.info7.result.job_title_id
+                this.user2_job_title_name = this.info7.result.job_title
+                this.user2_date_of_birth = this.info7.result.date_of_birth
+                this.user2_snils = this.info7.result.snils
+
+              }
+              else {
+                this.view_link_button = 0;
+                this.user2_id = 0;
+              } 
+              console.log(response)
+           })
+              .catch(error => {
+              console.log(error.response)
+    	   })
+         
+       },
+
+
+    search2(index){
+       this.counterparty_с = this.info2.list[index].shortname 
+       this.counterparty_id = this.info2.list[index].counterparty_id
+       this.info2.list = []
+    },
+
+    load_combo(){
+      if(this.counterparty_с!=''){
+       axios
+        .post(JsonApiURL+'api/counterparty_json.php', {list: {conditions: {"type": 0}, search: this.counterparty_с, sessionId: session_t.sessionId }}, {withCredentials: true})
+        .then(response => { 
+            this.info2 = response.data
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+      }
+      else {
+          this.info2.list = []
+      }
+    },
+
+
+    onChangeUserCounterpartyStatus(){
+        axios
+            .post(JsonApiURL+'api/students_json.php', {user_jobs: {objectId: this.user_id,   counterparty_id: this.a_counterparty_id, status: this.user_counterparty_status,  sessionId: session_t.sessionId } }, {withCredentials: true})
+            .then(response2 => { 
+                this.info3 = response2.data
+                this.jobs = this.info3.result
+                this.jobs_count = this.jobs.length
+
+                })
+           .catch(error => {
+                    console.log(error.response)
+            })
+
+    },
+
+
+
+
+/*        show_hide_password() {
+          if(this.view_password == 0) {
+	    this.view_password = 1;
+  	    this.v_password_txt = ' скрыть пароль ';
+          }
+          else {
+	    this.view_password = 0;
+	    this.v_password_txt = ' показать пароль ';
+          }
+        },*/
+
+        ucFirst(str) {
+            if (!str) return str;
+
+            return str[0].toUpperCase() + str.slice(1);
+        },
+
+
+        handleDiplomUpload() {
+            this.diplomtfile = document.getElementById('input_diplom').files[0];
+            this.diplom_filename = this.diplomtfile.name;
+            this.diplom_file_type = this.diplomtfile.type;
+        }, 
+
+        handlePhotoUpload() {
+            this.photofile = document.getElementById('input_photo').files[0];
+            this.photo_filename = this.photofile.name;
+            this.photo_file_type = this.photofile.type;
+        }, 
+
+        
+    phoneMask(){
+        var  x = this.phone.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+        this.phone = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+    }  
+
+
+  },
+
+
+
+	template: `<div><navigation></navigation><h3>Личные данные слушателя</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}} {{message2}}</h4>
+<!--{{a_order_id}} {{info7}}  {{a_user_counterparty_id}} {{user_counterparty_r}}-->
+
+<div class="container" align="left">
+<div class="row">
+ <div class="col">
+
+  <div class="mb-2 row">
+  <label for="input_lastname" class="form-label col-sm-2" >Фамилия</label>
+    <input v-model="lastname"  class="form-control col text-capitalize" id="input_lastname"   type="text" @input="onInputUser()"   @change="onChangeUser()"  >
+    <div class="col-2" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+  </div>
+
+  <div class="mb-2 row">
+    <label for="input_firstname" class="form-label col-sm-2">Имя</label>
+      <input v-model="firstname"  class="form-control col text-capitalize" id="input_firstname"    type="text" @input="onInputUser()" >
+    <div class="col-2" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+  </div>
+
+  <div class="mb-2 row">
+    <label for="input_middlename" class="form-label col-sm-2">Отчество</label>
+     <input v-model="middlename"  class="form-control col text-capitalize" id="input_middlename"  type="text"  @input="onInputUser()"   @change="onChangeUser()"  >
+    <div class="col-2" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+  </div>
+
+  <div class="mb-2 row">
+    <label for="input_email_c" class="form-label col-sm-2">Email</label>
+    <input v-model="email"  class="form-control col" id="input_email_c"    type="text"  >
+    <div class="col-2"> </div>
+  </div>
+
+
+  <div class="mb-2 row">
+    <label for="input_phone" class="form-label col-sm-2">Телефон</label>
+    <div class="input-group col-sm">
+      <span class="input-group-text" id="phone-addon"></span>
+      <input v-model="phone"  class="form-control" id="input_phone" type="text" @change="phoneMask()" >
+    </div>
+    <div class="col-6"> </div>
+  </div>
+
+
+
+  <div class="mb-2 row">
+      <label for="input_facultet" class="form-label col-sm-2">Пол  </label>
+	<select  v-model="sex"  id="input_organization" class="form-select col"    >
+	<option value=""></option>
+	<option value="Муж">Муж</option>
+	<option value="Жен">Жен</option>
+	</select>
+    <div class="col-8">  </div>
+  </div>
+
+  <!--<div class="mb-2 row">
+    <label for="input_snils" class="form-label col-sm-2" > СНИЛС </label>
+     <input v-model="snils"  class="form-control col" id="input_snils"    type="text"  >
+     <div class="col-6" style="color: red"> <a title="Поле может являться обязательным для заполнения"><b>*</b></a> </div>
+  </div>-->
+
+  <div class="mb-2 row">	
+  {{ validateSnils() }}
+    <label for="input_snils" class="form-label col-sm-2" > СНИЛС </label>
+     <input v-model="snils"  class="form-control col" id="input_snils" type="text"  @input="onInputUser()"  @change="validateSnils">
+     <div class="col-1"style="color: red" > <a title="Поле может являться обязательным для заполнения"><b>*</b></a> </div>
+     <div class="col-5" > 
+       <p v-if="snilsError" class="error"style="color: red" >{{ snilsError }}</p>
+       <p v-else class="success" style="color:green">СНИЛС корректен</p>
+     </div>
+  </div>
+  
+  <div class="mb-2 row">
+    <label for="input_date_of_birth" class="form-label col-sm-2" >Дата  рождения</label>
+     <input v-model="date_of_birth"  class="form-control col" id="input_date_of_birth" type="date">
+     <div class="col-6" style="color: green"> <a title="Поле может являться обязательным для заполнения"><b>*</b></a> </div>
+  </div>
+
+
+  <br />
+  <hr />
+  <span v-for="(item, index) in jobs">
+    <div v-if="a_counterparty_id==0"  class="row">
+      <div class="col-2"><span  v-if="index==0">  Место работы </span></div>
+      <div class="col-2">  Организация: </div>
+      <div class="col">  {{item.counterparty_name}} </div>
+    </div>
+    <div class="row">
+      <div v-if="a_counterparty_id==0"  class="col-2">  </div>
+      <div class="col-2">  <span  v-if="index==0 || a_counterparty_id==0" > Должность </span></div>
+      <div class="col">   {{item.job_title}} </div>
+      <div class="col-1" style="font-size: small;"> Категория: </div>
+      <div class="col-2" style="font-size: small;"> {{job_title_category_a[item.job_title_category]}}  </div>
+    </div>
+    <div class="row">
+      <div class="col-2">  </div>
+      <div class="col-2">  Подразделение </div>
+      <div class="col">   {{item.subdivision}} </div>
+      <div class="col-1" style="text-align: right;">
+         <nobr>
+             <a v-if="user_counterparty_status==0"  @click="userCounterpartyArchive(item.user_counterparty_id, item.job_title )"   title="Переместить в архив" style="color: red; cursor: pointer; padding-right: 5px;" ><i class="fas fa-user-slash"></i></a>
+             <a v-else  @click="userCounterpartyActive(item.user_counterparty_id, item.job_title )"  title="Восстановить из архива" style="color: green; cursor: pointer; padding-right: 5px;" ><i class="fa-solid fa-user-gear"></i></a>
+
+             <a v-if="item.orders_count<=0"  @click="userCounterpartyDelete(item.user_counterparty_id, item.job_title )"   title="Удалить должность" style="color: red; cursor: pointer;  padding-left: 5px;" ><i class="fa-solid fa-trash-can"></i></a>
+             <a v-else  title="Запись используется" style="color: gray; cursor: pointer;  padding-left: 5px;" ><i class="fa-solid fa-trash-can"></i></a>
+         </nobr>
+      </div>
+
+
+    </div>
+    <div class="row">
+      <div class="col"><br /></div>
+    </div>
+  </span>
+
+
+    <div v-if="user_counterparty_id==0 || a_order_id==0"  class="row">
+      <div class="col-1">  </div>
+
+      <div class="col">  
+    <div class="accordion accordion-flush" id="accordionFlushAdd" style="--bs-accordion-bg: #efefef;">
+      <div class="accordion-item">
+        <h4 class="accordion-header" id="flush-headingOne">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+             <i class="fa-solid fa-plus"></i>&nbsp;&nbsp;&nbsp;&nbsp;Добавить должность
+          </button>
+        </h4>
+        <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushAdd">
+          <div class="accordion-body">
+
+        <span v-if="a_counterparty_id==0 && role!='counterparty'" >
+         <div class="mb-2 row">
+           <label for="input_organization" class="form-label col-sm-2"> Организация  </label>
+
+        <div class ="container">
+          <input  v-model="counterparty_с"  class="form-control" id="input_counterparty_c"  type="text" @input="load_combo()">
+	  <ul class ="list-group" id ="listItem" style="text-align: left; background-color: #fff; ">
+		<li  v-for="(item2, index) in info2.list" class ="list-group" @click="search2(index)" > {{item2.shortname.substring(0, 72)}}</li>
+	  </ul>
+          <br /> 
+       </div>
+
+
+        </div>
+        </span>
+        <div class="mb-2 row">
+          <label for="input_job_title" class="form-label col-sm-2">Должность </label>
+          <input v-model="job_title_name"  class="form-control col " id="input_job_title"    type="text"  @input="onInputUser()"  >
+          <div class="col-1" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+          <div class="col" style="font-size: small;">
+          <select  v-model="job_title_category"  id="input_job_title" class="form-select" aria-label="Должность" style="font-size: small;" >
+	      <option value="0"> -  Категория  - </option>
+	      <option value="2"> Работники предприятий и организаций </option>
+	      <option value="3"> - Руководители </option>
+	      <option value="4"> Работники образовательных  организаций </option>
+	      <option value="5"> - Руководители </option>
+	      <option value="6"> - - дошкольных образовательных организаций</option>
+	      <option value="7"> - - общеобразовательных организаций</option>
+	      <option value="8"> - - профессиональных образовательных организаций</option>
+	      <option value="9"> - - образовательных организаций высшего образования</option>
+	      <option value="10"> - - организаций дополнительного профессионального образования</option>
+	      <option value="11"> - - организаций дополнительного образования</option>
+	      <option value="12"> - Педагогические работники </option>
+	      <option value="13"> - - дошкольных образовательных организаций</option>
+	      <option value="14"> - - общеобразовательных организаций</option>
+	      <option value="15"> - - профессиональных образовательных организаций</option>
+	      <option value="16"> - - образовательных организаций высшего образования</option>
+	      <option value="17"> - - организаций дополнительного профессионального образования</option>
+	      <option value="18"> - - организаций дополнительного образования</option>
+	      <option value="19"> Лица замещающие государственные должностии должности государственной гражданской службы </option>
+	      <option value="20"> - Руководители </option>
+	      <option value="21"> Лица замещающие муниципальные должности и должности муниципальной службы </option>
+	      <option value="22"> Лица, уволенные с военной службы </option>
+	      <option value="23"> Незанятые лица по направлению службы занятости </option>
+	      <option value="24"> -  безработные </option>
+	      <option value="25"> Студенты, обучающиеся по образовательным программам: среднего профессионального образования </option>
+	      <option value="26"> - высшего образования </option>
+	      <option value="27"> - другие </option>
+           </select>
+        </div>
+      </div>
+
+      <div class="mb-2 row">
+         <label for="input_subdivision" class="form-label col-sm-2">Подразделение</label>
+         <input v-model="subdivision"  class="form-control col" id="input_subdivision"    type="text"  @input="onInputUser()"  >
+         <div class="col-1">  </div>
+      </div>
+
+      <div v-if="job_title_name!=''" align="right">
+        <button class="btn btn-success"  type="primary"  @click="userCounterpartySave()"> Сохранить должность </button>
+      </div>
+
+
+        </div>
+      </div>
+     </div>
+
+
+    </div>
+  </div>
+  </div>
+  <br />
+  <div style="text-align: right" >
+    <small><select  v-model="user_counterparty_status"  id="input_user_counterparty_status" @change="onChangeUserCounterpartyStatus()" >
+        <option value="0"> Активные должности </option>
+        <option value="1"> Архив </option>
+    </select></small>
+   </div>
+
+
+  <hr />
+  <div class="mb-2 row">
+    <label for="input_address" class="form-label col-sm-2" style="font-size: smaller;"> Адрес регистрации </label>
+     <textarea v-model="address"  class="form-control col" id="input_address"   ></textarea>
+     <div class="col-1" style="color: green"> <a title="Поле может являться обязательным для заполнения"><b>*</b></a> </div>
+  </div>
+
+
+  <div class="mb-2 row">
+      <label for="input_level_of_education" class="form-label col-sm-2" style="font-size: smaller; ">Уровень образования  </label>
+	<select  v-model="level_of_education"  id="input_level_of_education" class="form-select col"  >
+        <option v-for="(item_l, index) in level_of_education_a" :value="index">
+	    {{item_l}} 
+	</option>
+	</select>
+     <div class="col-5" style="color: green; align-content: end;"> <a title="Поле может являться обязательным для заполнения"><b>*</b></a> </div>
+  </div>
+
+  <div class="mb-2 row">
+    <label for="input_diplom_num" class="form-label col-sm-2" style="font-size: smaller; align-content: center;"> Документ об образовании </label>
+     <div class="col-2" style="font-size: smaller;" >Серия:<input v-model="dplom_series"  class="form-control" id="input_diplom_num"   type="text"  ></div>
+     <div class="col-3" style="font-size: smaller;" >Номер:<input v-model="diplom_number"  class="form-control" id="input_diplom_num2"  type="text"  ></div>
+     <div class="col" style="font-size: smaller;" >Фамилия в дипломе (заполняется только при необходимости):<input v-model="diplom_lastname"  class="form-control"   type="text"  ></div>
+     <div class="col-1" style="color: green; align-content: end;"> <a title="Поле может являться обязательным для заполнения"><b>*</b></a> </div>
+  </div>
+  <br />
+
+  <!--<div class="mb-2 row">
+    <label for="input_diplom" class="form-label col-sm-2" style="font-size: smaller; align-content: center;"> Скан документа об образовании </label>
+     <span class="col">
+     <p style="font-size: smaller;">{{diplom_label}}</p>
+     <div class="row"><input v-model="diplom"  class="form-control col" id="input_diplom"    type="file"     @change="handleDiplomUpload()" ></div>
+     </span>
+  </div>-->
+
+  <br />
+  <!--<div class="mb-2 row">
+    <label for="input_photo" class="form-label col-sm-2" style="font-size: smaller; align-content: center;">  Фото  </label>
+     <span class="col">
+     <p style="font-size: smaller;">{{photo_label}}</p>
+     <div class="row"><input v-model="photo"  class="form-control col" id="input_photo"    type="file"  @change="handlePhotoUpload()" >
+     <div class="col-1" style="color: green"> <a title="Поле может являться обязательным для заполнения"><b>*</b></a> </div> </div>
+     </span>
+  </div>-->
+
+  <br />
+  <div class="mb-2 row">
+    <label for="input_citizenship" class="form-label col-sm-2" style="font-size: smaller; align-content: center;"> Гражданство </label>
+     <div class="col-sm-2"> <input v-model="citizenship"  class="form-control" id="input_citizenship"   type="text"  ></div>
+     <select v-model="citizenship" class="form-control col">
+        <option value=""></option>
+        <option value="RUS">Россия</option>
+     </select>
+     <div class="col-5" >  </div>
+  </div>
+
+  <div class="mb-2 row">
+    <label for="input_pasport_num" class="form-label col-sm-2" style="font-size: smaller; align-content: center;"> Паспорт </label>
+     <div class="col-2" style="font-size: smaller;" >Серия:<input v-model="pasport_series"  class="form-control" id="input_pasport_num"   type="text"  ></div>
+     <div class="col-3" style="font-size: smaller;" >Номер:<input v-model="pasport_number"  class="form-control" id="input_pasport_num2"  type="text"  ></div>
+     <div class="col" style="font-size: smaller;" >Код подразделения:<input v-model="pasport_unit_number"  class="form-control"   type="text"  ></div>
+     <div class="col-1" style="color: green; align-content: end;"> <a title="Поле может являться обязательным для заполнения"><b>*</b></a> </div>
+  </div>
+  <div class="mb-2 row">
+    <label for="input_pasport_subdiv" class="form-label col-sm-2" style="font-size: smaller; align-content: center;"> </label>
+     <div class="col" style="font-size: smaller;" >Кем и когда выдан:<textarea v-model="pasport_unit"  class="form-control"> </textarea></div>
+  </div>
+  <br />
+
+  <!--<div class="mb-2 row">
+    <label for="input_diplom" class="form-label col-sm-2" style="font-size: smaller; align-content: center;"> Скан паспорта </label>
+     <span class="col">
+     <p style="font-size: smaller;">{{diplom_label}}</p>
+     <div class="row"><input v-model="diplom"  class="form-control col" id="input_diplom"    type="file"     @change="handlePasportUpload()" ></div>
+     </span>
+  </div>-->
+
+  <div class="mb-2 row">
+    <label for="input_inn" class="form-label col-sm-2"  style="font-size: smaller;" > ИНН </label>
+     <input v-model="inn"  class="form-control col" id="input_inn"    type="text"  >
+     <div class="col-6" >  </div>
+  </div>
+
+  <hr />
+  <div class="mb-2 row">
+  <label for="input_comment" class="form-label col-sm-2">Комментарий</label>
+    <textarea v-model="comment"   class="form-control col" id="input_comment" ></textarea>
+  </div>
+
+  <!--<div class="mb-2 row">
+  <label for="input_global_id" class="form-check-label col-sm-4">Включить в глобальный список слушателей</label>
+    <div class="col"><input type="checkbox" v-model="global_id"   class="form-check-input " id="input_global_id"></div>
+  </div>-->
+  
+  
+  <!--<p v-if="user_id>0 && a_order_id>0" >
+   <br />
+    <div class="accordion accordion-flush" id="accordionFlushLigin" style="--bs-accordion-bg: #efefef;">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="flush-headingOne">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+             Логин, Пароль личного кабинета 
+          </button>
+        </h2>
+        <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+          <div class="accordion-body">
+
+  <div class="mb-2 row">	
+    <label for="input_email_lms" class="form-label col-sm-2">email для  LMS</label>
+    <input v-model="email_lms"  class="form-control col" id="input_email_lms"    type="text"  >
+  </div>
+
+  <div class="mb-2 row">	
+      <label for="input_login" class="form-label col-sm-2">login</label>
+      <input v-model="login"   class="form-control col" id="input_login"   type="text"  >
+  </div>
+
+  <div class="mb-2 row">	
+      <label for="input_password" class="form-label col-sm-2">password</label>
+      <div class="form-control col"> 
+      <span v-if="view_password>0">
+           <input v-model="password" id="input_password"    type="text" class="col-sm-6"  >
+      </span>
+      <span v-else">
+	<br />
+      </span>
+
+        <button  class="btn btn-outline-secondary"  @click="show_hide_password();" >{{v_password_txt}}</button>
+    </span>
+    </div>
+  </div>
+  </div>
+  </div>
+  </p>
+   <p v-else>
+    <input v-model="email_lms"  id="input_email_lms"    type="hidden" >
+    <input v-model="login"   id="input_login"   type="hidden"  >
+    <input v-model="password"   id="input_password"    type="hidden"  >
+  </p>-->
+
+
+  <div class="mb-2 row">
+      <label for="input_user_status" class="form-label col-sm-2">Статус  </label>
+	    <select  v-model="user_status_id"  id="input_user_status" class="form-select col" aria-label="user_status">
+	    <option value="0"> Активная запись </option>
+	    <option v-if="orders_count==0" value="1"> Архив </option>
+	    </select>
+    <div class="col-6"> </div>
+  </div>
+
+
+  <div class="mb-2">	
+    <div align="right">
+    <button  class="btn btn-primary"    @click="userSave()"> Сохранить </button>
+    <span v-if="a_order_id>0">
+      &nbsp<router-link :to="{ name: 'order_items', params: {orderid: a_order_id  }}"><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </span>
+    <span v-else-if="a_group_id>0">
+      &nbsp<router-link :to="{ name: 'group_items', params: {groupid: a_group_id, orderid: 0 }}"><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </span>
+    <span v-else>
+      &nbsp<router-link :to="{ name: 'students_list', params: {counterpartyid: a_counterparty_id  }}" ><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </span>
+    </div>
+  </div>
+
+ </div>
+ <div v-if="view_link_button >0 || a_order_id>0" class="col-4">
+   <div class="card">
+     <div class="card-body">
+      <span v-if="view_link_button >0 ">
+        <h5 class="card-title">Существующая учетная запись</h5>
+        <p>{{user2_lastname}}<br />
+        {{user2_firstname}}<br />
+        {{user2_middlename}}<br />
+        Снилс: {{user2_snils}}</p>
+        <span v-for="(item, index)  in info7.result.jobs">
+             <p> <input type="radio" :value="item.user_counterparty_id" v-model="to_user_counterparty_id"  :id="'job'+index"> <label :for="'job'+index">{{item.job_title}} </p>
+        </span>
+      </span>
+      <div v-if="view_link_button >0 && a_order_id>0"  align="right">
+        <button class="btn btn-success btn-sm"  type="primary"  @click="userUse(0)">Использовать учетную запись</button>
+      </div>
+      <br />
+      <div v-if="view_link_button >0 "  align="right">
+        <button class="btn btn-primary btn-sm"  type="primary"  @click="userUse(1)"> &nbsp&nbspОбъединить учетные записи&nbsp&nbsp </button>
+      </div>
+      <span v-else-if="user_counterparty_status==0">
+        <h6 class="card-title">Должность слушателя в заявке</h6>
+        <span v-for="(item, index)  in info3.result">
+             <p> <input type="radio" :value="item.user_counterparty_id" v-model="user_counterparty_r"  :id="'job'+index"> <label :for="'job'+index">{{item.job_title}} </p>
+        </span>
+        <div  align="right">
+          <button class="btn btn-success btn-sm"  type="primary"  @click="userUse(2)">Изменить должность</button>
+        </div>
+      </span>
+
+
+   <!--<p v-if="user2_job_title_name!=''">Должность: <br />{{user2_job_title_name}}</p>-->
+
+    </div>
+   </div>
+ </div>
+
+</div>
+	</div>`
+
+};
+
+
+
+

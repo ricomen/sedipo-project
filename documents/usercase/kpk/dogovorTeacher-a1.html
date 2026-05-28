@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p {  direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; line-height:1; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cmargin-top: 0.1cm; m; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+	<title>Приложение № 1</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+    
+    <table width="100%" cellpadding="7" cellspacing="0">
+        <tr>
+            <td width="35">
+                
+            </td>
+            <td>
+                <p class="western" style="text-align: right;">
+                <b>Приложение № 1</b> <br />
+                к договору № {$order_data['contract_number']}
+                от {$order_data['date_order']|date_format:"%e.%m.%Y"} г.<br />
+                возмездного оказания услуг
+                </p>
+            </td>
+        </tr>
+        </table>
+
+
+        <h1 class="western">ФОРМА</h1>
+<p class="western" style="text-align:center;  margin-bottom: 0;"><b>Акт приема-передачи оказанных услуг
+    </b></p>
+    <p class="western" style="text-align:center;  margin-bottom: 0;">Спецификация №{$lstream['name']}
+    </p>
+    <table border="0" width="100%"><tr><td><p class="westernli" >г.Уфа</p></td><td></td> <td align="right" style="text-align: right">{$order_data['date_order']|date_format:"%e.%m.%Y"}</td></tr></table>
+
+<p class="western" > <span style="margin-right:35px;"> </span>Общество с ограниченной ответственностью «Институт профессионального образования» (ООО «ИПО»),
+ в лице директора <b>{$self_data['enterprise_manager2']}</b>,
+действующего на основании Устава, именуемый в дальнейшем <b>«Заказчик»</b>, с одной стороны и 
+Гражданин РФ {$lstream['main_teacher']} (место регистрации: 452309, Россия, Республика Башкортостан, с. Учпили, ул. Советская, д. 42, паспортные данные: серия 80 05 № 780513, выдан Дюртюлинским ГРОВД Респ. Башкортостан, дата выдачи 31.08.2004, код подразделения 022-042, дата рождения 14.09.1982), именуемый в дальнейшем Исполнитель, с другой стороны, оформили и подписали настоящий Акт о нижеследующем:
+</p>
+<br />
+<p class="western" >
+<span style="margin-right:5px;">1.</span>Исполнитель оказал Заказчику услуги по проведению теоретического и практического обучения слушателей Заказчика (далее - Услуга), в том числе:
+<br />
+</p>
+<table width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid;" >
+	<tr valign="top">
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			№
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			Наименование программы обучения
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			Группа
+		</th>
+		<th  style="background: transparent; border: 1px solid #000000; ">
+			Количество часов
+		</th>
+	</tr>
+
+    <tr>
+        <td  style="background: transparent; border: 1px solid #000000; text-align:center;">1 </td>
+        <td  style="background: transparent; border: 1px solid #000000; ">{$lstream['course_name']} </td>
+        <td  style="background: transparent; border: 1px solid #000000; text-align:center;">{$lstream['name']} </td>
+        <td  style="background: transparent; border: 1px solid #000000; text-align:center;">{$lstream['hours']} ч.</td>
+    </tr>
+
+    <tr style="page-break-before: avoid;">
+        <td  style="background: transparent; border: none; "></td>
+        <td  style="background: transparent; border: none; "></td>
+        <td  style="background: transparent; border: none; "></td>
+        <td  style="background: transparent; border: none; "></td>
+    </tr>
+    </table>
+<p class="western" >
+<span style="margin-right:5px;">2.</span>Условия и качество оказанных услуг проверены представителем Заказчика.
+<br />
+
+<span style="margin-right:5px;">3.</span>Услуги оказаны в полном объеме, в установленные сроки и с надлежащим качеством. Стороны претензий друг к другу не имеют.
+<br />
+
+
+<span style="margin-right:5px;">4.</span>За оказанные услуги в соответствии с Договором возмездного оказания услуг от 16.01.2024 № ________, заключенного между Заказчиком и Исполнителем, Заказчик выплачивает Исполнителю денежное вознаграждение в размере ____ рублей 00 копеек (_______ рублей 00 копеек).
+<br />
+</p>
+
+</p>
+
+
+
+<table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid;">
+
+	<tr>
+		<td>
+            <p class="table" > Заказчик</p>
+			<p class="table" > ___________________ /{$lstream['enterprise_manager']}/</p>
+			<p class="table" > М.П.</p>
+			{if $print_v=="false"} 
+			<div style="position: relative; top: 0px; left: 0px;">        
+			<div style="position: absolute; top: -110px; right: 200px; "><img src="https://sed.ipo5.ru/documents/{$self_data['enterprise_manager_signs']}" width="150px" align="top" ></div>
+			<div style="position: absolute; top: -60px; right: 110px; "><img src="https://sed.ipo5.ru/documents/pechat1.png" width="150px" align="top" ></div>
+			</div>
+			{/if}
+		</td>
+		<td>
+        <p class="table" > Исполнитель</p>
+		<p class="table" >_________________________/{$lstream['main_teacher_short']}/</p>
+		<p class="table">М.П.</p>
+		</td>
+	</tr>
+
+</table>
+</body>
+</html>

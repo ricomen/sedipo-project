@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.4cm; margin-right: 0.9cm; margin-top: 2cm; margin-bottom: 1.5cm;  size: A4 portrait; }
+	p { margin-bottom: 0.25cm; direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western {  font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0; margin-bottom: 0.1cm; text-indent:40px; line-height:1;}
+	p.westernli {  font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0.1cm; margin-bottom: 0.1cm; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; line-height: 90%; margin-top: 0cm; margin-bottom: 0.1cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center; margin-bottom: 0;}
+	li.western { font-family: "DejaVu Serif", serif; font-weight:bold; font-size: 10pt; text-align: center; margin-left:-40px;}
+	li.westernnormal { font-family: "DejaVu Serif", serif; font-weight:normal; font-size: 10pt; text-align: justify; margin-left:-40px;}
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0; margin-bottom: 0;  text-align: justify; line-height: 120%; }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm; text-indent:20px; }
+	td, th { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+    
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+	ol {
+    list-style: none;
+    counter-reset: li;
+    }
+    li:before {
+    counter-increment: li;
+    content: counters(li,".") ". ";
+    }
+	.header,
+	.footer {
+    	width: 100%;
+    	text-align: center;
+    	position: fixed;
+	}
+	.header {
+	    top: -75px;
+		text-align: left;
+	}
+	.footer {
+	    bottom: -20px;
+	}
+	.pagenum:before {
+	    content: counter(page);
+	}
+	.logo { display: inline-block; padding-left:20px; width:50px; height:50px; position: absolute; margin-top:12px;margin-right:10px;}
+	.text { display: inline-block; vertical-align: top; width: 100%; font-family: "Roboto", sans-serif; font-weight: 300; font-size: 8pt; line-height:95%; text-align: center; margin-left:0px; margin-top:30px; position: relative;}
+
+
+    </style>
+	<title>ДОГОВОР</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+
+	<div class="header">
+	
+		<div class="text">{$self_data['name']}</div>
+		<hr style="border-width:1px; margin-top: 20px;">
+	</div>
+	<div class="logo" style="margin-top:-65px; ;"><img src="https://{$smarty.server.SERVER_NAME}/images/logo.png" width="50" height="50"></div>
+	<div class="footer">
+		<span class="pagenum"></span>
+	</div>
+
+
+<h1 class="western">ДОГОВОР № {$contract_data['contract_number']}<br/> ОКАЗАНИЯ КОНСУЛЬТАЦИОННЫХ УСЛУГ</h1>
+
+
+<table border="0" width="100%"><tr><td><p class="westernli" >г.Уфа</p></td><td></td> <td align="right" style="text-align: right"><p class="westernli" style="text-align: right" >{if $contract_data['date_contract']!=''}{$contract_data['date_contract']|date_format:"%e.%m.%Y"}{else}<span style="color: red;">"___"___"20___г.</span>{/if}</p></td></tr></table>
+
+<p class="western" > <b>{$self_data['name']} ({$self_data['shortname']}),</b>
+именуемое в дальнейшем «Исполнитель», в лице директора {$self_data['enterprise_manager2']},
+действующего на основании Устава, с одной стороны и</p>
+
+<p class="western" > 
+<b>{$order_data['name']} ({$order_data['shortname']})</b>, 
+в лице {$order_data['position_head2']}  
+{$order_data['enterprise_manager2']},
+действующего на основании Устава, именуемое в дальнейшем «Заказчик», с другой стороны,
+именуемые в дальнейшем «Стороны», заключили настоящий договор (далее – Договор) о нижеследующем:
+</p>
+
+<h3 style="page-break-before: auto;"  class="western">1. Предмет договора</h3>
+
+
+<p class="western">
+<span style="margin-right:5px;">1.1.</span>Заказчик поручает, а Исполнитель принимает на себя обязательство по оказанию консультационных услуг (далее – Услуги), а Заказчик обязуется принять Услуги и оплатить их.
+</p>
+<p class="western">
+<span style="margin-right:5px;">1.2.</span>Перечень, форма Услуг, условия оплаты определяются Сторонами в Приложении №1, являющимся неотъемлемой частью настоящего Договора. 
+</p>
+<p class="western">
+<span style="margin-right:5px;">1.3.</span>Консультационные услуги оказываются в форме устной и письменной консультации.
+</p>
+<p class="western">
+<span style="margin-right:5px;">1.4.</span>Консультирование в устной форме осуществляется сотрудниками Исполнителя любым из следующих способов:
+</p>
+<p class="western">
+<span style="margin-right:5px;">-</span>по телефону;
+</p>
+<p class="western">
+<span style="margin-right:5px;">-</span>посредством личной встречи.
+</p>
+<p class="western">
+<span style="margin-right:5px;">1.5.</span>Результат письменной консультации передается Заказчику путем направления документов почтовой или курьерской службой, а также по электронной почте, указанной в разделе 11 настоящего Договора.
+</p>
+<h3 style="page-break-before: avoid;"  class="western">2. Права и обязанности Сторон</h3>
+
+<p class="western">
+<b><span style="margin-right:5px;">2.1.</span>Исполнитель обязан:</b>
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.1.1.</span>Проанализировать информацию, документы и иные материалы, предоставленные Заказчиком.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.1.2.</span>Оказать Услуги с надлежащим качеством.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.1.3.</span>В случае письменных консультаций представить Заказчику отчет по оказанным Услугам, в котором должна быть отражена информация по вопросам, интересующим Заказчика, заключение и необходимые рекомендации.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.1.4.</span>По окончании оказания Услуг представить Заказчику акт оказанных услуг.
+</p>
+<p class="western">
+<b><span style="margin-right:5px;">2.2.</span>Заказчик обязан:</b>
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.2.1.</span>Предоставить Исполнителю документацию и информацию, необходимые последнему для исполнения взятых на себя обязательств, в течение 3 (трех) рабочих дней с даты подписания настоящего Договора и Приложения №1.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.2.2.</span>Оказывать всевозможное содействие Исполнителю в выполнении последним своих обязательств по настоящему Договору.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.2.3.</span>Принять отчет Исполнителя по оказанным услугам и акт оказанных услуг, рассмотреть и подписать их в течение 5 (пяти) рабочих дней либо заявить мотивированный отказ от подписания в тот же срок.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.2.4.</span>Своевременно произвести оплату оказанных Исполнителем Услуг в соответствии с условиями настоящего Договора.
+</p>
+<p class="western">
+<b><span style="margin-right:5px;">2.3.</span>Исполнитель имеет право:</b>
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.3.1.</span>Получать от Заказчика документы, разъяснения и дополнительные сведения, касающиеся вопроса консультирования и необходимые для качественного оказания Услуг.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.3.2.</span>Требовать от Заказчика необходимые сведения и документы, снимать копии с предоставленных Заказчиком документов в целях исполнения обязательств по настоящему Договору.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.3.3.</span>На своевременную и полную оплату предоставляемых Заказчику Услуг в соответствии с условиями настоящего Договора.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.3.4.</span>Приостанавливать оказание Услуг по настоящему Договору в случае нарушения Заказчиком сроков оплаты услуг до момента поступления денежных средств на расчетный счет Исполнителя, а также в случае неисполнения Заказчиком обязанности по обеспечению условий для оказания Услуг.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.3.5.</span>Самостоятельно определять состав своих сотрудников (представителей), непосредственно оказывающих Услуги по настоящему Договору.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.3.6.</span>Отказаться от исполнения обязательств по настоящему Договору при условии полного возмещения Заказчику убытков, причиненных таким отказом.
+</p>
+<p class="western">
+<b><span style="margin-right:5px;">2.4.</span>Заказчик имеет право:</b>
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.4.1.</span>Осуществлять контроль за ходом оказания услуг, не вмешиваясь при этом в деятельность Исполнителя.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.4.2.</span>Самостоятельно принимать решение о целесообразности использования в своей работе предложений и рекомендаций Исполнителя.
+</p>
+<p class="western">
+<span style="margin-right:5px;">2.4.3.</span>Отказаться от исполнения настоящего Договора при условии оплаты Исполнителю фактически понесенных расходов.
+</p>
+<h3 style="page-break-before: avoid;"  class="western">3. Цена услуг и порядок оплаты </h3>
+
+<p class="western">
+<span style="margin-right:5px;">3.1.</span>Цена настоящего Договора складывается из общей стоимости всех Услуг, оказанных Исполнителем в рамках настоящего Договора. Стоимость Услуг рассчитывается исходя из цены, согласованной Сторонами в Приложении №1 к настоящему Договору, являющемся неотъемлемой частью настоящего Договора. Стоимость услуг согласовывается Сторонами по форме Приложения №1 к договору, являющегося его неотъемлемой частью. В стоимость услуг включается НДС 5% (основание п.8 ст.164 НК РФ, федеральный закон 176-ФЗ от 12.07.2024, федеральный закон 425-ФЗ от 28.11.2025).
+</p>
+<p class="western">
+<span style="margin-right:5px;">3.2.</span>Заказчик производит предоплату в размере 100% стоимости Услуг, указанной в Приложении №1 к настоящему Договору, на расчетный счет Исполнителя в течение 5 (пяти) рабочих дней с момента подписания настоящего Договора. 
+</p>
+<p class="western">
+<span style="margin-right:5px;">3.3.</span>В случае невозможности оказания Услуги, возникшей по вине Заказчика, Услуги подлежат Заказчиком оплате в полном объеме.
+</p>
+<p class="western">
+<span style="margin-right:5px;">3.4.</span>В случае, когда невозможность исполнения возникла по обстоятельствам, за которые ни одна из Сторон не отвечает, Заказчик возмещает Исполнителю фактически понесенные им расходы.
+</p>
+<h3 style="page-break-before: avoid;"  class="western">4. Порядок оказания услуг</h3>
+
+<p class="western">
+<span style="margin-right:5px;">4.1.</span>Исполнитель приступает к оказанию Услуг в течение 3 (трех) дней с даты поступления на расчетный счет Исполнителя предоплаты в размере 100% стоимости Услуг, указанной в Приложении №1 к настоящему Договору, при условии получения всех необходимых документов и информации, которые должен предоставить Заказчик для надлежащего выполнения Исполнителем своих обязательств по Договору.
+</p>
+<p class="western">
+<span style="margin-right:5px;">4.2.</span>Если в ходе оказания Услуг у Исполнителя возникает необходимость в получении дополнительных: информации, сведений, документов, материалов, Заказчик предоставляет соответствующие: информацию, сведения, документы и материалы в срок не позднее 5 (пяти) дней с момента получения от Исполнителя запроса, направленного по электронной почте. Исполнитель обеспечивает сохранность документов и материалов Заказчика. 
+</p>
+<p class="western">
+<span style="margin-right:5px;">4.3.</span>Факт оказания услуг и принятия их Заказчиком подтверждается актом оказанных услуг (далее – Акт), который составляется по форме, согласованной Сторонами (Приложение №2 к настоящему Договору). Услуги считаются оказанными с момента подписания Акта Сторонами. 
+</p>
+<p class="western">
+<span style="margin-right:5px;">4.4.</span>Заказчик в срок не позднее 5 (пяти) рабочих дней с момента получения Акта рассматривает и подписывает оба экземпляра акта и направляет по электронной почте Исполнителю, либо направляет мотивированный отказ от подписания Акта.
+</p>
+<p class="western">
+<span style="margin-right:5px;">4.5.</span>В случае уклонения или немотивированного отказа Заказчика от подписания Акта, Исполнитель в течение 5 (пяти) рабочих дней с момента окончания срока, установленного для рассмотрения и подписания Акта, вправе составить односторонний акт оказанных услуг. Услуги в таком случае будут считаться оказанными Исполнителем и принятыми Заказчиком без претензий и подлежат оплате на основании такого акта. 
+</p>
+<p class="western">
+<span style="margin-right:5px;">4.6.</span>Исполнитель обязуется соблюдать конфиденциальность сведений, полученных от Заказчика для оказания Услуг.
+</p>
+<h3 style="page-break-before: avoid;"  class="western">5. Основания изменения и расторжения договора</h3>
+
+<p class="western">
+<span style="margin-right:5px;">5.1.</span>Условия, на которых заключен настоящий Договор, могут быть изменены либо по соглашению сторон, либо в соответствии с действующим законодательством Российской Федерации.
+</p>
+<p class="western">
+<span style="margin-right:5px;">5.2.</span>Настоящий договор может быть расторгнут по соглашению сторон, а также в случаях, предусмотренных действующим законодательством. 
+</p>
+<p class="western">
+<span style="margin-right:5px;">5.3.</span>Стороны вправе расторгнуть настоящий Договор в одностороннем внесудебном порядке.
+</p>
+<p class="western">
+<span style="margin-right:5px;">5.4.</span>Сторона, решившая расторгнуть настоящий Договор, должна направить письменное уведомление о намерении расторгнуть настоящий Договор другой Стороне не позднее чем за 15 (пятнадцать) дней до предполагаемого дня расторжения настоящего Договора.
+</p>
+<p class="western">
+<span style="margin-right:5px;">5.5.</span>При расторжении Заказчиком Договора в одностороннем порядке Заказчик обязан возместить Исполнителю фактически понесенные им расходы, а также убытки. 
+</p>
+<h3 style="page-break-before: avoid;"  class="western">6. Ответственность Сторон</h3>
+
+<p class="western">
+<span style="margin-right:5px;">6.1.</span>В случае неисполнения или ненадлежащего исполнения сторонами обязательств по настоящему договору они несут ответственность, предусмотренную Гражданским кодексом Российской Федерации, федеральными законами, действующим законодательством Российской Федерации. 
+</p>
+<p class="western">
+<span style="margin-right:5px;">6.2.</span>В случае нарушения Заказчиком срока оплаты Услуг по договору при соответствующем письменном обращении обязан выплатить Исполнителю неустойку в размере 0,1% от суммы просроченного платежа за каждый день просрочки. 
+</p>
+<h3 style="page-break-before: avoid;"  class="western">7. Форс-мажор</h3>
+
+<p class="western">
+<span style="margin-right:5px;">7.1.</span>Ни одна из Сторон не несет ответственности перед другой Стороной за неисполнение обязательств по настоящему Договору, обусловленное действием обстоятельств непреодолимой силы, т.е. чрезвычайных и непредотвратимых при данных условиях обстоятельств, возникших помимо воли и желания Сторон и которые нельзя предвидеть или избежать, в том числе объявленная или фактическая война, гражданские волнения, эпидемии, блокада, эмбарго, пожары, землетрясения, наводнения и другие природные стихийные бедствия, а также издание актов государственных органов.
+</p>
+<p class="western">
+<span style="margin-right:5px;">7.2.</span>Сторона, которая не исполняет своего обязательства вследствие действия непреодолимой силы, должна незамедлительно известить другую Сторону о таких обстоятельствах и их влиянии на исполнение обязательств по Договору.
+</p>
+<p class="western">
+<span style="margin-right:5px;">7.3.</span>Если обстоятельства непреодолимой силы действуют на протяжении 2 (двух) последовательных месяцев, настоящий Договор может быть расторгнут любой из Сторон путем направления письменного уведомления другой Стороне.
+</p>
+<h3 style="page-break-before: avoid;"  class="western">8. Срок действия договора</h3>
+
+<p class="western">
+<span style="margin-right:5px;">8.1.</span>Настоящий Договор вступает в силу со дня его заключения сторонами и действует до момента полного исполнения Сторонами своих обязательств по нему.
+</p>
+<h3 style="page-break-before: avoid;"  class="western">9. Порядок разрешения споров</h3>
+
+<p class="western">
+<span style="margin-right:5px;">9.1.</span>Споры и разногласия, которые могут возникнуть в процессе исполнения настоящего Договора решаются путем переговоров между сторонами. Если стороны не придут к соглашению путем переговоров, все споры рассматриваются в претензионном порядке. Сторона, которой была направлена претензия, обязана в течение 14 (четырнадцати) дней с момента ее получения направить ответ. 
+</p>
+<p class="western">
+<span style="margin-right:5px;">9.2.</span>В случае невозможности разрешения споров путем переговоров или в претензионном порядке, спор подлежит рассмотрению в Арбитражном суде Республики Башкортостан.
+</p>
+<h3 style="page-break-before: avoid;"  class="western">10. Заключительные положения</h3>
+
+<p class="western">
+<span style="margin-right:5px;">10.1.</span>Любые изменения и дополнения к настоящему договору действительны лишь при условии, что они совершены в письменной форме и подписаны уполномоченными на то представителями сторон. Приложения к настоящему договору (при наличии таковых) составляют его неотъемлемую часть.
+</p>
+<p class="western">
+<span style="margin-right:5px;">10.2.</span>Передаваемые документы должны быть подписаны Сторонами (их уполномоченными представителями) и скреплены печатью, а используемый способ связи должен позволять достоверно установить, что документ исходит от стороны по Договору.
+</p>
+<p class="western">
+<span style="margin-right:5px;">10.3.</span>Договор (скан-копия с подписью и печатью), а также документы по Договору (скан-копии с подписями и печатями), направленные Сторонами по электронной почте, указанной в разделе 11 Договора, имеют юридическую силу до обмена Сторонами оригиналами указанных документов.
+</p>
+<p class="western">
+<span style="margin-right:5px;">10.4.</span>Стороны обязаны немедленно извещать друг друга обо всех изменениях их почтовых и банковских реквизитов.
+</p>
+<p class="western">
+<span style="margin-right:5px;">10.5.</span>При необходимости передачи Сторонами друг другу персональных данных в целях заключения и исполнения настоящего Договора, Стороны обязуются соблюдать принципы и правила обработки персональных данных, предусмотренных Федеральным законом № 152-ФЗ и иными соответствующими нормативными актами, а также обязуются соблюдать конфиденциальность и обеспечивать безопасность персональных данных.
+</p>
+<p class="western">
+<span style="margin-right:5px;">10.6.</span>Во всем остальном, что не предусмотрено Договором, Стороны руководствуются законодательством РФ.
+</p>
+<p class="western">
+<span style="margin-right:5px;">10.7.</span>Договор составлен в двух подлинных экземплярах, имеющих равную юридическую силу, по одному для каждой из Сторон.
+</p>
+<p class="western">
+<span style="margin-right:5px;">10.8.</span>Приложения к договору, являющиеся его неотъемлемой частью:
+</p>
+<p class="western">
+<span style="margin-right:5px;">&#8212</span>Приложение №1 «Перечень и стоимость консультационных услуг»;
+</p>
+<p class="western">
+<span style="margin-right:5px;">&#8212</span>Приложение №2 «Акт оказания консультационных услуг».
+</p>
+
+
+
+<h3 style="page-break-before: avoid;"  class="western">11. Реквизиты сторон</h3>
+
+
+
+
+<table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid;">
+	<tr valign="top">
+
+
+		<td  width="49%" style="border: none; padding: 0mm 1.91mm"><p class="table" >
+            <p class="table" >  Заказчик:</p>
+			<p class="table" > {$order_data['shortname']}  </p>
+			<p class="table" >тел. {$order_data['phone']} </p>			
+			<p class="table" >ИНН: {$order_data['inn']}</p>
+			<p class="table" >КПП: {$order_data['kpp']}</p>
+			<p class="table" >ОГРН: {$order_data['ogrn']}</p>
+			<p class="table" >Юридический адрес: {$order_data['addres1']} </p>			
+			<p class="table" >Расчетный счет: {$order_data['checking_account']}</p>
+			<p class="table" >{$order_data['bank']} </p>
+			<p class="table" >БИК: {$order_data['bik']}</p>
+			<p class="table" ><br/></p>
+			<p class="table" ><br/></p>
+			<p class="table" ><br/></p>
+			<p class="table" ><br/></p>
+		</td>
+		<td width="49%" style="border: none; padding: 0mm 1.91mm"><p class="table" >
+			<p class="table" > Исполнитель:</p>
+			<p class="table" > {$self_data['shortname']} </p>
+			<p class="table" > тел. {$self_data['phone']}</p>
+			<p class="table" > ИНН / КПП {$self_data['inn']} / {$self_data['kpp']}</p>
+			<p class="table" > ОГРН {$self_data['ogrn']}</p>
+			<p class="table" > Юридический адрес: {$self_data['addres1']}</p>
+			<p class="table" > Почтовый адрес: {$self_data['addres2']}</p>
+			<p class="table" > Расчетный счет: {$self_data['checking_account']}</p>
+			<p class="table" > БИК: {$self_data['bik']} {$self_data['bank']}</p>
+		</td>
+	</tr>
+	<tr>
+
+		<td>
+		<p class="table" > {$order_data['position_head']}</p>
+		<p class="table" >_________________________/{$order_data['enterprise_manager3']}/</p>
+		<p class="table">М.П.</p>
+		</td>
+				<td>
+			<p class="table" > Директор			</p>
+			<p class="table" > ___________________ /{$self_data['enterprise_manager3']}/</p>
+			<p class="table" > М.П.</p>
+			{if $print_v=="false"} 
+			<div style="position: relative; top: 0px; left: 0px;">        
+			<div style="position: absolute; top: -110px; right: 200px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/{$self_data['enterprise_manager_signs']}" width="150px" align="top" ></div>
+			<div style="position: absolute; top: -60px; right: 110px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+			</div>
+			{/if}
+		</td>
+	</tr>
+</table>
+
+
+</body>
+</html>

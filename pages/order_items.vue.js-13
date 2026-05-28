@@ -1,0 +1,1147 @@
+var OrderItems = {
+  data: function () {
+    return {
+      role: '',
+      order_id: 0,
+      info: [],
+      info2: [],
+      info4: [],
+      info3: [],
+      info5: [],
+      info6: [],
+      info7: [],
+      info8: [],
+      info9: [],
+      users_count: 0,
+      course_count: 0,
+      date_order: '',
+      number_order: '',
+      status_id: '',
+      date_begin: '',
+      date_end: '',
+      counterparty_id: 0,
+      a_counterparty_id: 0,
+      category: 0,
+      course: 0,
+      rank_of_profession: 0,
+      //is_rank_of_profession : 'false',
+      is_modules: 0,
+      rank_of_profession_name: ['','','2 (второй) разряд','3 (третий) разряд','4 (четвертый) разряд','5 (пятый) разряд','6 (шестой) разряд','7 (седьмой) разряд','8 (восьмой) разряд'],
+      user_check: [],
+      namesearch: '',
+      seachcount: 0,
+      check_id: [],
+      check_item_id: [],
+      check_all: '',
+      print_v: 'true',
+      balance: 0,
+      balance_pay: '',
+      consulting: 0,
+      consulting_a: false,
+      consulting_quantum: 1,
+      student_a: false,
+      number_of_people: 1,
+      variation: 1,
+      variation1_title: '',
+      group_number: '',
+      is_blank: '',
+      is_cert_saved:  true,
+      blank_number: [],
+      custom_cert_number: [],
+      is_modify: [],
+      is_protocol_modify: [],
+      custom_protocol_number: [],
+      custom_protocol_index: [],
+      custom_protocol_c_id: [],
+      custom_number_separator: [],
+      msg_result: '',
+      message: '',
+      is_LMS: IS_LMS,
+      view_password: 0,
+      modal_user_id: 0,
+      modal_login: '',
+      modal_password: '',
+      modal_email_lms: '',
+     }
+   },
+
+
+   mounted() {
+    this.order_id = Number(this.$route.params.orderid)
+    this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+    if(isNaN(this.a_counterparty_id))
+        this.a_counterparty_id = 0
+
+    if(this.order_id>0) { 
+        axios
+    	    .post(JsonApiURL+'api/orders_json.php', {object: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+            .then(response => { 
+                this.info = response.data
+                this.role = this.info.role
+                this.date_order = this.info.result.date_order
+                this.number_order = this.info.result.number
+                this.counterparty_id  = this.info.result.counterparty_id
+                this.status_id = this.info.result.status_id
+                this.date_begin = this.info.result.date_begin
+                this.date_end = this.info.result.date_end
+
+                if( this.role=='counterparty' )
+                        this.print_v = 'false'
+
+                if(this.counterparty_id > 0) {
+    	            axios
+    		     .post(JsonApiURL+'api/counterparty_json.php', {object: {objectId: this.counterparty_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		     .then(response3 => { 
+        	         console.log(response3)
+        	         this.info3 = response3.data
+    		     })
+    		     .catch(error => {
+            	         console.log(error.response)
+        	     })
+                }
+
+                axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         this.users_count = this.info5.list.length
+                         for (var i = 0; i < this.users_count; i++) {
+                                if(this.info5.list[i].course_list.length > this.course_count)
+                                    this.course_count = this.info5.list[i].course_list.length 
+                         }
+                         //for (item in this.info5.list) {
+                            //   this.check_id.push(this.info5.list[item].user_id)
+                            //   this.check_item_id.push(this.info5.list[item].item_id)
+                         //}
+                         for (var i = 0; i < this.users_count; i++) {
+                               this.check_id.push(this.info5.list[i].user_id)
+                               this.check_item_id.push(this.info5.list[i].item_id)
+	                       //if( this.info5.list[item].course_list.findIndex(item0 => item0.is_blank == 'true') >=0 && this.status_id >10)
+	                        //    this.is_blank = true
+
+                               for (var j = 0;  j <  this.info5.list[i].course_list.length; j++ ) {
+                                     var is_blank = this.info5.list[i].course_list[j].is_blank
+                                     //if(is_blank == "true"){
+                                         //this.is_blank[i*(this.users_count+1) + j] = true
+                                         //this.blank_number[i*(this.users_count+1) + j] = this.info5.list[i].course_list[item2].blank_number
+                                     //}
+                                     if(this.info5.list[i].course_list[j].is_blank)
+                                         this.blank_number[i*(this.course_count+1) + j] = this.info5.list[i].course_list[j].blank_number
+                                     else
+                                         this.blank_number[i*(this.course_count+1) + j] = ''
+
+                                     this.custom_cert_number[i*(this.course_count+1) + j] = this.info5.list[i].course_list[j].custom_cert_number
+
+
+                                     var course_id = this.info5.list[i].course_list[j].course_id
+                                     var index0 = -1
+                                     for (var k = 0;  k <  this.custom_protocol_c_id.length; k++ ) {
+                                           if(this.custom_protocol_c_id[k] == course_id){
+                                                 index0 = k;
+                                                 break;
+                                           }
+                                     }
+                                     if(index0 < 0 &&  course_id>0 ){
+                                         this.custom_protocol_c_id[this.custom_protocol_c_id.length] = course_id
+                                         index0 = this.custom_protocol_c_id.length -1
+                                     }
+                                     this.custom_protocol_index[i*(this.course_count+1) + j] = index0 
+                               }
+                         }
+                         for (var i = 0; i < this.info5.group_list.length; i++) {
+                             for (var k = 0;  k <  this.custom_protocol_c_id.length; k++ ) {
+                                   if(this.custom_protocol_c_id[k] == this.info5.group_list[i].course_id){
+                                         this.custom_protocol_number[k] = this.info5.group_list[i].custom_protocol_num;
+                                         break;
+                                   }
+                             }
+
+                         }
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+
+           })
+          .catch(error => {
+              console.log(error.response)
+            }),
+  
+
+            axios
+            .post(JsonApiURL+'api/course_category_json.php', {list: {conditions: {"consulting": 0}, sessionId: session_t.sessionId }}, {withCredentials: true})
+            .then(response => { 
+                this.info4 = response.data
+            })
+                .catch(error => {
+              console.log(error.response)
+            }),
+            
+            axios
+            .post(JsonApiURL+'api/course_category_json.php', {list: {conditions: {"consulting": 1},  sessionId: session_t.sessionId }}, {withCredentials: true})
+            .then(response => { 
+                //this.info6 = response.data
+                var category1 = response.data.list[0].category_id
+                axios
+                .post(JsonApiURL+'api/courses_json.php', {list: {conditions: {"category_id": category1},  sessionId: session_t.sessionId }}, {withCredentials: true})
+                .then(response => { 
+                      this.info6 = response.data
+                })
+                .catch(error => {
+                      console.log(error.response)
+                })
+                
+                
+            })
+            .catch(error => {
+                console.log(error.response)
+            })
+
+/*           axios
+              .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0,  page: this.page,  sessionId: session_t.sessionId }})
+              .then(response => { 
+                  this.info8 = response.data
+ 
+                  var i = 0
+                  for (item in this.info8.list) {
+                         this.custom_protocol_number[i] = this.info8.list[item].custom_protocol_number
+                          i++
+                  }
+                 console.log(response)
+             })
+                .catch(error => {
+                console.log(error.response)
+            })
+*/
+
+            //axios
+            //.post(JsonApiURL+'api/courses_json.php', {list: {where: "`main_module`=0",  sessionId: session_t.sessionId }})
+            //.then(response => { 
+              //  this.info2 = response.data
+            //})
+            //.catch(error => {
+              //  console.log(error.response)
+            //})
+
+      }
+
+  },
+
+
+  methods: {
+    consulting_add(){
+        axios
+          .post(JsonApiURL+'api/orders_json.php', {consulting_add: {objectId:  this.order_id,  course_id: this.course, quantum: this.consulting_quantum,  sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+	         console.log(response)
+                //this.info9 = response.data
+
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                     this.course = 0
+                     this.consulting_a = false
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+                        this.users_count = this.info5.list.length
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+    },
+
+    consulting_del(course_id){
+        axios
+          .post(JsonApiURL+'api/orders_json.php', {consulting_del: {objectId:  this.order_id,  course_id: course_id,  sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+	         console.log(response)
+                this.info9 = response.data
+                if(this.info9.result > 0) {
+                    this.msg_result = 'Записано '+this.info9.result+' слушателей'
+                }
+
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+                        this.users_count = this.info5.list.length
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+    },
+
+
+
+    userCourse(){
+        if( Number(this.group_number) == 0 )
+               this.group_number = ''
+//console.log(this.group_number);
+        axios
+          //.post(JsonApiURL+'api/orders_json.php', {user_course: {objectId:  this.order_id, user_check: this.user_check.toString(), check_id: this.check_id.toString(), check_item_id: this.check_item_id.toString(),  course_id: this.course,  rank_of_profession: this.rank_of_profession, variation: this.variation, group_number: this.group_number,  sessionId: session_t.sessionId }})
+          .post(JsonApiURL+'api/orders_json.php', {user_course: {objectId:  this.order_id, user_check: this.user_check.toString(), check_id: this.check_id.toString(), check_item_id: this.check_item_id.toString(),  course_id: this.course,   variation: this.variation, group_number: this.group_number,  sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+	         console.log(response)
+                this.info9 = response.data
+                if(this.info9.result > 0) {
+                    this.msg_result = 'Записано '+this.info9.result+' слушателей'
+                }
+
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+                        this.users_count = this.info5.list.length
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+    },
+
+    userCourseDel(itemId, courseId){
+        axios
+          .post(JsonApiURL+'api/orders_json.php', {user_course_del: {objectId:  this.order_id, item_id: itemId, course_id: courseId,  sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+	         console.log(response)
+            //this.info = response.data
+
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+                        this.users_count = this.info5.list.length
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+    },
+
+
+    search_go(fl) {
+    var conditions = {}
+
+    if(fl == 0)
+         this.namesearch = "";
+
+    if(this.category>0){
+        conditions =  {"category_id": this.category, "main_module": 0 }
+    }
+    else {
+        conditions = {}
+    }
+
+    this.seachcount = 0 
+    this.msg_result = ''
+
+    if( this.namesearch != '' ){
+      axios
+         .post(JsonApiURL+'api/courses_json.php', {list: {conditions, search: this.namesearch,   sessionId: session_t.sessionId }}, {withCredentials: true})
+         .then(response => { 
+            this.info2 = response.data
+            this.seachcount = this.info2.list.length
+              console.log(response.data)
+          })
+         .catch(error => {
+              console.log(error.response)
+         })
+      }
+    },
+
+
+    categories_go() {
+    this.msg_result = ''
+    var filter = ''
+    this.is_modules = 0
+    this.course = 0 
+  
+    if(this.category>0) {
+            filter =  "`category_id`="+this.category+" AND `main_module`=0";
+            //this.is_rank_of_profession = this.info4.list[this.info4.list.findIndex(item => item.category_id == this.category)].is_rank_of_profession
+            this.is_modules = this.info4.list[this.info4.list.findIndex(item => item.category_id == this.category)].modules
+    }     
+    /*else {
+        filter = "`main_module`=0";
+        if(this.course>0){
+            var current_category = this.info2.list[this.info2.list.findIndex(item => item.course_id == this.course)].category_id
+            this.is_rank_of_profession = this.info4.list[this.info4.list.findIndex(item => item.category_id == current_category)].is_rank_of_profession
+            this.is_modules = this.info4.list[this.info4.list.findIndex(item => item.category_id == current_category)].modules
+        }
+    }*/      
+ 
+    if(this.category>0) {
+        axios
+          .post(JsonApiURL+'api/courses_json.php', {list: {where: filter,  sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+                this.info2 = response.data
+                //this.parent_txt =  this.info.categories_txt
+                //this.parent = this.info.parent_id
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+      }
+    
+    },
+    
+    course_go() {
+        this.msg_result = ''
+        this.rank_of_profession = 0
+        //this.is_rank_of_profession = 0
+
+
+        if(this.course>0){
+            this.rank_of_profession = this.info2.list[this.info2.list.findIndex(item => item.course_id == this.course)].rank_of_profession
+            this.variation1_title = this.info2.list[this.info2.list.findIndex(item => item.course_id == this.course)].hours.replace(/[^0-9]/g, "")
+            this.variation2_title = this.info2.list[this.info2.list.findIndex(item => item.course_id == this.course)].hours_add.replace(/[^0-9]/g, "")
+            this.variation3_title = this.info2.list[this.info2.list.findIndex(item => item.course_id == this.course)].hours_add2.replace(/[^0-9]/g, "")
+        }
+
+        axios
+          .post(JsonApiURL+'api/orders_json.php', {user_course_check: { user_course_check: this.user_check.toString(), check_id: this.check_id.toString(), check_item_id: this.check_item_id.toString(),  course_id: this.course,   variation: this.variation,  sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+                console.log(response)
+                this.info7 = response.data
+
+                var index = 0
+                for (var item in this.info5.list) {
+                   if( this.info7.result[index]>0 ){
+                      var fl = confirm( 'Пользователь: ' + this.info5.list[item].lastname + ' ' + this.info5.list[item].firstname + ' ' + this.info5.list[item].middlename + ' - ' +  this.info5.list[item].job_title + ' уже записан или проходил обучение по этому курсу.  Записать повторно?' ) 
+                      if( !fl ) {
+                          this.user_check[index] = false
+                      }
+                   }
+                   index++
+                }
+
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+        //if(this.category>0 && this.rank_of_profession==0 ){
+        //    this.is_rank_of_profession = this.info4.list[this.info4.list.findIndex(item => item.category_id == this.category)].is_rank_of_profession
+        //}
+        /*else {
+            var current_category = this.info2.list[this.info2.list.findIndex(item => item.course_id == this.course)].category_id
+            this.is_rank_of_profession = this.info4.list[this.info4.list.findIndex(item => item.category_id == current_category)].is_rank_of_profession
+            this.is_modules = this.info4.list[this.info4.list.findIndex(item => item.category_id == current_category)].modules
+        }*/
+    },
+
+    userUnlink( name , itemId){
+	var fl = confirm('Исключить: ' + name + '?');
+	    if(fl && itemId>0) {
+	    axios
+             .post(JsonApiURL+'api/orders_json.php', {item_del: {objectId:  this.order_id,  item_id: itemId,  sessionId: session_t.sessionId }}, {withCredentials: true})
+             .then(response => { 
+	         console.log(response)
+            //this.info = response.data
+
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+                        this.users_count = this.info5.list.length
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+	    }
+    },
+
+    userLock(userId, name, user_lock ){
+	var fl = 1
+	if(user_lock==1)
+	        confirm('Заблокировать: ' + name + '?');
+	        
+	    if(fl) {
+	    axios
+          .post(JsonApiURL+'api/orders_json.php', {item_lock: {objectId:  this.order_id, user_id: userId, user_lock: user_lock, sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+	         console.log(response)
+            //this.info = response.data
+
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+                        this.users_count = this.info5.list.length
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+	    }
+    },
+
+
+	item_up(item_id){
+        axios
+          .post(JsonApiURL+'api/orders_json.php', {user_order: {objectId:  this.order_id, item_id: item_id, cmd: 'up',  sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+	         console.log(response)
+            //this.info9 = response.data
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+                        this.users_count = this.info5.list.length
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+	},   
+	
+	item_down(item_id){
+        axios
+          .post(JsonApiURL+'api/orders_json.php', {user_order: {objectId:  this.order_id, item_id: item_id, cmd: 'down',  sessionId: session_t.sessionId }}, {withCredentials: true})
+          .then(response => { 
+	         console.log(response)
+            //this.info9 = response.data
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.consulting = this.info5.consulting_list.length
+                         this.balance = this.info5.balance
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+                        this.users_count = this.info5.list.length
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+	},   
+	
+    
+    checkall(){
+       this.msg_result = ''
+
+        if( this.check_all ) {
+            this.user_check = []
+        }
+        else {
+             for (item in this.check_id) {
+                         this.user_check[item] = true
+            }
+        }
+    },
+
+   reserve_seats(){
+           this.student_a =  false
+
+	    axios
+             .post(JsonApiURL+'api/orders_json.php', {reserve_seats: {objectId:  this.order_id,  number_of_people:  this.number_of_people, sessionId: session_t.sessionId }}, {withCredentials: true})
+             .then(response => { 
+	         console.log(response)
+            //this.info9 = response.data
+
+    	        axios
+    		    .post(JsonApiURL+'api/orders_json.php', {items: {objectId: this.order_id, sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response5 => { 
+        	         console.log(response5)
+        	         this.info5 = response5.data
+                         this.balance = this.info5.balance
+                         this.consulting = this.info5.consulting_list.length
+                         this.check_id = []
+                         this.check_item_id = []
+                         for (item in this.info5.list) {
+                               this.check_id.push(this.info5.list[item].user_id)
+                               this.check_item_id.push(this.info5.list[item].item_id)
+                        }
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+
+            })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+    },
+
+    is_change_separator( i2, j2 ) {
+         var index = i2*(this.course_count+1) + j2
+         var course_id = this.custom_protocol_c_id[this.custom_protocol_index[index]]
+
+         for (var i = 0; i < this.users_count; i++) {
+            for (var j = 0;  j <  this.info5.list[i].course_list.length; j++ ) {
+               if(this.info5.list[i].course_list[j].course_id == course_id){
+                   this.custom_cert_number[i*(this.course_count+1) + j] = this.custom_protocol_number[this.custom_protocol_index[index]] + this.custom_number_separator[this.custom_protocol_index[index]] + String(this.info5.list[i].num)
+                   this.is_modify[i*(this.course_count+1) + j] = true
+               }
+            }
+         }
+         this.is_cert_saved = false
+    },
+    
+    cert_number_save() {
+        var i = 0 
+        for (item in this.info5.list) {
+            var user_id = this.info5.list[item].user_id
+            var item_id = this.info5.list[item].item_id
+            var j = 0
+            for (item2  in  this.info5.list[item].course_list ) {
+                //var is_blank = this.info5.list[item].course_list[item2].is_blank
+                var course_id =  this.info5.list[item].course_list[item2].course_id
+                if( this.blank_number[i*(this.course_count+1) + j]!= '' || this.custom_cert_number[i*(this.course_count+1) + j]!= '' || this.is_blank ){
+
+                   axios
+    		    .post(JsonApiURL+'api/orders_json.php', {cert_number_save: {item_id: item_id, course_id: course_id,  blank_number: this.blank_number[i*(this.course_count+1) + j], custom_cert_number: this.custom_cert_number[i*(this.course_count+1) + j],   sessionId: session_t.sessionId } }, {withCredentials: true})
+    		    .then(response => { 
+                          console.log(response)
+    		    })
+    		    .catch(error => {
+            	         console.log(error.response)
+                    })
+                }
+                j++
+            }
+            i++
+        }
+        this.protocol_number_save()
+        this.$router.push({ name: 'orders_list', params: {counterpartyid: this.a_counterparty_id }}) 
+    },
+
+    protocol_number_save() {
+        for (var i=0; i<this.custom_protocol_number.length; i++) {
+            if( this.custom_protocol_c_id[i] > 0 ){
+               axios
+	        .post(JsonApiURL+'api/orders_json.php', { protocol_number_save: {objectId: this.order_id,  course_id: this.custom_protocol_c_id[i],  custom_protocol_number: this.custom_protocol_number[i],   sessionId: session_t.sessionId } }, {withCredentials: true})
+	        .then(response => { 
+                      console.log(response)
+	        })
+	        .catch(error => {
+	             console.log(error.response)
+                })
+            }
+        }
+        this.$router.push({ name: 'orders_list', params: {counterpartyid: this.a_counterparty_id }}) 
+    },
+
+
+    cert_number_alert() {
+         if(this.is_cert_saved == false){
+            fl = confirm("Сохранить номера документов?")
+            if(fl)
+               this.cert_number_save()
+         }
+    },
+
+    is_check(){
+       this.msg_result = ''
+    },
+
+
+    userModalArg(user_id, login, password, email_lms, fio) {
+      this.modal_user_id = user_id
+      this.modal_login = login
+      this.modal_password = password
+      this.modal_email_lms = email_lms
+      this.modal_fio = fio
+    },
+
+
+    show_hide_password() {
+          if(this.view_password == 0) {
+	    this.view_password = 1;
+  	    this.v_password_txt = ' скрыть пароль ';
+          }
+          else {
+	    this.view_password = 0;
+	    this.v_password_txt = ' показать пароль ';
+          }
+    }
+
+},
+
+
+	template: `<div><navigation></navigation><h3>Список слушателей по заявке</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+{{course_count}} {{custom_protocol_number}} {{custom_protocol_index}} {{custom_protocol_c_id}}
+
+<div align="left">
+<div class="container">
+
+    <br />
+    <h4  v-if="role!='counterparty' && counterparty_id>0"   style="text-align: right;" > {{info3.result.name}} </h4>
+
+ <div  v-if="balance>0 && status_id>2" class="row" style="padding-top: 10px; padding-bottom: 20px;"><div class="col-2"> <b>Баланс: {{balance}} &#8381;.</b></div> </div>
+ 
+ <div class="row justify-content-between">
+    <div class="col">
+      <div align="left">
+       <h5>{{date_order}}/{{number_order}}</h5>
+      </div>
+    </div>
+    <div class="col-3">
+      <div align="right">
+       <sapn  v-if="status_id<2 &&  counterparty_id>1"  class="nav-link" ><router-link :to="{ name: 'students_import', params:{ orderid: order_id, counterpartyid: counterparty_id  }}" class="nav-link" title="Импорт списка сотрудников" > <button  class="btn btn-primary btn-sm"> Импорт списка  сотрудников</button></router-link></sapn>
+      </div>
+    </div>
+    <div class="col-3">
+      <div align="right">
+       <sapn   class="nav-link" ><a :href="'/analytics/students_order_xls.php?id='+order_id" class="nav-link" title="Экспорт  списка сотрудников" > <button  class="btn btn-outline-primary btn-sm"><i class="fa-regular fa-file-excel"></i> Экспорт   списка  сотрудников</button></a></sapn>
+      </div>
+    </div>
+  </div>
+    <br />
+
+    <div v-if="status_id<2">
+        <button  v-if="counterparty_id>1 || users_count<1"  class="btn btn-light"><router-link  :to="{ name: 'order_student', params: {orderid: this.order_id}}"   title="Добавить слушателя" ><i class="fa-solid fa-user-plus"></i> Добавить слушателя</router-link ></button>
+        &nbsp;&nbsp;<button v-if="counterparty_id>1"   class="btn btn-link"  @click="student_a = !student_a"><a    title="Зарезервировать места для слушателей" ><i class="fa-solid fa-user-gear"></i> Зарезервировать места для слушателей</a ></button>
+        &nbsp;&nbsp;<button v-if="counterparty_id>1"    class="btn btn-link" @click="consulting_a = !consulting_a"><a    title="Добавить  услугу" ><i class="fa-solid fa-cart-plus"></i> Добавить консультационную услугу</a ></button>
+    </div>
+    <br />
+
+  <span v-if="student_a && status_id==1">
+  <hr />
+  <div  class="row">
+    <div class="col-2">
+           <label for="number_of_people_input" class="form-label">Количество (чел.): </label>
+    </div>
+    <div class="col-1">
+           <input v-model="number_of_people" class="form-control" id="number_of_people_input" type="text">
+    </div>
+    <div class="col" align="right">
+        <button  @click="reserve_seats()" class="btn btn-secondary"> Зарезервировать места для слушателей</button></router-link>
+    </div>
+    <div class="col-5">
+    </div>
+  </div>
+ <hr />
+  </span>
+
+  <span v-if="consulting_a && status_id==1">
+  <hr />
+  <div class="mb-2">	
+    <label for="input_course" class="form-label"> Консультационная услуга </label><br />
+    <select  v-model="course"  > 
+        <option v-for="(item2, index) in info6.list" :value="item2.course_id">
+	        {{item2.shortname}}
+	    </option>
+    </select>
+  </div>
+
+  <div v-if="course>0  && status_id==1" class="row">
+    <div class="col-2">
+           <label for="consulting_quantum_input" class="form-label">Количество (у.е.): </label>
+    </div>
+    <div class="col-1">
+           <input v-model="consulting_quantum" class="form-control" id="consulting_quantum_input" type="text">
+    </div>
+    <div class="col" align="right">
+        <button  @click="consulting_add()" class="btn btn-secondary"> Добавить консультационную услугу</button></router-link>
+    </div>
+  </div>
+ <hr />
+  </span>
+    
+   <span v-if="consulting>0">
+   <h4>Консультационные услуги</h4>
+    <table class="table">
+      <thead>
+        <tr  align="left">
+          <th scope="col"> Наименование </th>
+          <th scope="col">  </th>
+      </thead>
+     
+     <tbody>   
+        <tr v-for="(item, index) in info5.consulting_list"  align="left">  
+            <td>{{item.shortname}} ({{item.quantum}})</td>
+            <td align="right"> <div  style="color: red;"><a  v-if="status_id==1"  @click="consulting_del( item.course_id)" title="Отменить консультационную услугу"><i class="fa-solid fa-link-slash"></i></a> </div>
+        </tr>
+        
+  </tbody>
+  </table>
+  <br />
+  </span>
+
+
+    
+    <table class="table">
+      <thead>
+        <tr  align="left">
+          <th scope="col"><small><a title="Выделить все"><input v-model="check_all" type="checkbox" class="form-check-input"  @click="checkall()" > </a></small></th>
+          <th scope="col">  </th>
+          <th scope="col">  </th>
+          <th scope="col"> Фамилия </th>
+          <th scope="col"> Имя </th>
+          <th scope="col"> Отчество </th>
+          <th scope="col"></th>
+          <th scope="col"> Должность </th>
+          <!--<th scope="col"  style="font-size: smaller;"  > Группа <br />номер  </th>-->
+          <th scope="col" style="text-align: center;">  Записан на курс(ы)&nbsp;&nbsp;&nbsp;&nbsp; </th>
+          <th scope="col" width="10%"><!--<div v-if="status_id<2" style="float: right"><router-link  :to="{ name: 'order_student', params: {orderid: this.order_id}}"   title="Добавить существующую учетную запись" ><b style=" font-size: larger;"><i class="fa-solid fa-user-check"></i></router-link ></div>--></th>
+        </tr>
+      </thead>
+     
+     <tbody>   
+        <tr v-for="(item, index) in info5.list"  align="left"> 
+            <td><small><input v-model="user_check[index]" type="checkbox" class="form-check-input"  @click="is_check()" ></small></td>
+            <td align="center"><span v-if="item.num>0">{{item.num}}</span></td>
+            <td><small v-if="item.num>0"><div v-if="index>0" class="row"><button @click="item_up(item.item_id)" type="button" class="btn btn-light" style="--bs-btn-padding-y: .1rem; --bs-btn-padding-x: .3rem; --bs-btn-font-size: .75rem;"><i class="fa-solid fa-caret-up"></i></button></div><div class="row"><button  @click="item_down(item.item_id)" type="button" class="btn btn-light" style="--bs-btn-padding-y: .1rem; --bs-btn-padding-x: .3rem; --bs-btn-font-size: .75rem;"><i class="fa-solid fa-caret-down"></i></button></div></small></td>
+            <td><span v-if="item.user_lock==0"><span v-if="item.user_id==1">&lt;</span>{{item.lastname}}<span v-if="item.user_id==1">&gt;</span></span><span v-if="item.user_lock>0" class="text-secondary"><nobr><i class="fa-regular fa-eye-slash"></i> <i>{{item.lastname}}</i></nobr></span></td>
+            <td><span v-if="item.user_lock==0"><span v-if="item.user_id==1">&lt;</span>{{item.firstname}}<span v-if="item.user_id==1">&gt;</span></span><span v-if="item.user_lock>0" class="text-secondary"><i>{{item.firstname}}</i></span></td>
+            <td><span v-if="item.user_lock==0"><span v-if="item.user_id==1">&lt;</span>{{item.middlename}}<span v-if="item.user_id==1">&gt;</span></span><span v-if="item.user_lock>0" class="text-secondary"><i>{{item.middlename}}</i></span></td>
+            <td>
+                <div v-if="item.user_id==1 && item.number_of_people>0"   class="dropdown">
+                  <button class="btn btn-link dropdown-toggle dropdown-toggle-split" href="" role="button" id="dropdownUserLink" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;"><i class="fa-solid fa-user-check"></i>&nbsp;</button>
+                    <ul  class="dropdown-menu" aria-labelledby="dropdownMenuLink" style="--bs-dropdown-min-width: 30rem;">
+                        <li  ><router-link  :to="{ name: 'order_student', params: {orderid: this.order_id, item: item.item_id }}" class="nav-link" > &nbsp;<i class="fa-solid fa-user"></i>&nbsp;  Занести реальные данные слушателя </router-link></li>
+                        <li  ><router-link  :to="{ name: 'students_import', params:{ orderid: order_id, counterpartyid: counterparty_id, item: item.item_id  }}" class="nav-link" title="Импорт списка сотрудников" > &nbsp;<i class="fa-solid fa-file-excel"></i>&nbsp;  Импорт списка </router-link></li>
+                    </ul>
+                </div>
+                <div v-else-if="item.user_id==1">
+                         <a >&nbsp;<i class="fa-solid fa-user-check"></i>&nbsp;</a>
+                </div>
+
+            </td>
+            <td><span v-if="item.user_id>1">{{item.job_title}}</span><span v-else><i>{{item.number_of_people}} чел.</i></span></td>
+            <!--<td>{{item.group_number}}</td>-->
+            <td>
+                <span v-for="(item2, index2) in item.course_list"> <div class="row">
+                    <div class="col">
+                        <span v-if="item2.main_module=0 && item2.modules>0" style="font-size: xx-small; padding-left: 8px; padding-right: 8px;"><i class="fa-solid fa-check"></i></span>
+                        <span v-if="item2.main_module=0 && item2.modules>0" style="font-size: xx-small; padding-left: 8px; padding-right: 8px;"><i class="fa-solid fa-bars"></i></span>
+                        {{item2.shortname}} <nobr>({{item2.hours}} ч.)</nobr>  <span v-if="item2.rank_of_profession!=''"> <br /><i>{{rank_of_profession_name[item2.rank_of_profession]}}</i></span>
+                        <span v-if="item2.group_number>0"><i> Группа {{item2.group_number}} </i></span>
+                    </div>
+                    <div v-if="status_id==1" class="col-1" style="color: red;"><a  v-if="status_id==1"  @click="userCourseDel(item.item_id, item2.course_id)" title="Отменить запись на курс"><i class="fa-solid fa-link-slash"></i></a> </div>
+
+                    <div  class="col-1" style="padding-top: 5px;" title="Номер протокола, номер удостоверения, отличающийся от автоматически присвоенного; Номер  бланка диплома">
+                       <div class="dropdown"><button type="button" class="btn btn-link btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside"> <i class="fa-solid fa-n"></i> </button>
+                         <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 32rem;">
+                            <li class="mb-3" ><div class="row"><div class="col"><input v-model="custom_protocol_number[custom_protocol_index[index*(course_count+1) + index2]]" type="text"  class="form-control" id="input_custom_propocol_num" placeholder="Свой номер протокола" title="Заполняется при необходимости ввести номер протокола, отличающийся от автоматически присвоенного" @change="this.is_protocol_modify[custom_protocol_index[index*(course_count+1) + index2]]=true; this.is_cert_saved=false"  ></div><div class="col-3"> <div class="input-group"><input v-model="custom_number_separator[custom_protocol_index[index*(course_count+1) + index2]]"  @change="is_change_separator(index, index2)"   id="input_custom_number_separator"  type="text"  class="form-control" title="разделитель" >  <span class="input-group-text" title="Заполняется при необходимости ввести номер протокола, отличающийся от автоматически присвоенного. Для каждого курса номер протокола должен быть уникальным."><span class="text-primary"><i class="fa-regular fa-circle-question"></i></span> </span></div></div> </li>
+                            <li class="input-group mb-3"><input v-model="custom_cert_number[index*(course_count+1) + index2]" type="text"  class="form-control " id="input_custom_cert_num" placeholder="Свой номер документа об образовании" title="Заполняется при необходимости ввести номер удостоверения, отличающийся от автоматически присвоенного" @change="this.is_modify[index*(course_count+1) + index2]=true; this.is_cert_saved=false"  > <span class="input-group-text" title="Заполняется при необходимости ввести номер удостоверения, отличающийся от автоматически присвоенного"><span class="text-primary"><i class="fa-regular fa-circle-question"></i></span> </span></li>
+                            <li v-if="item2.is_blank=='true'"  class="input-group mb-3"  ><input v-model="blank_number[index*(course_count+1) + index2]"   type="text" class="form-control" placeholder="Номер бланка диплома"   title="Номер бланка диплома" @change="this.is_modify[index*(course_count+1) + index2]=true; this.is_cert_saved=false" > <span class="input-group-text" title="Заполняется при необходимости ввести номер типографского бланка документа об образовании"><span class="text-primary"><i class="fa-regular fa-circle-question"></i></span> </span> </li>
+                         </ul>
+                       </div>
+                    </div>
+
+                    <p></p>
+
+                </div></span>
+            </td>
+
+
+            <td> <div style="float: right">
+		        <table border="0"  width="100%" ><tr>
+		        <td style="padding-left: px; padding-right: 5px;">
+		        <a  v-if="status_id==1"  @click="userUnlink( item.lastname + ' ' + item.firstname + '...',  item.item_id)"   title="Исключить учетную запись из списка заявки" style="color: red;" ><i class="fa-solid fa-user-minus"></i></a>
+		        </td>
+
+		        <td  v-if="is_LMS && status_id>1 && status_id<12 && item.user_lock==0" style="padding-left: 5px; padding-right: 2px; padding-top: 5px;">
+		        <button class="btn btn-link btn-sm text-primary"  title="Логин и пароль LMS"><i class="fa-solid fa-key" @click="userModalArg(item.user_id, item.login, item.password, item.email_lms,   item.lastname + ' ' + item.firstname + ' ' + item.middlename )"  data-bs-toggle="modal" data-bs-target="#LmsModal"   ></i></button> 
+		        </td>
+
+		        <td style="padding-left: 2px; padding-right: 5px;">
+		        <a  v-if="status_id>1 && status_id<12 && item.user_lock==0  && counterparty_id>1" @click="userLock(item.user_id, item.lastname + ' ' + item.firstname + '...', 1)"  class="link-danger"  title="Заблокировать учетную запись (не включать в итоговые документы)"><i class="fa-solid fa-user-lock"></i></a > 
+		        <a  v-if="status_id>1 && status_id<12 && item.user_lock==1" @click="userLock(item.user_id, '', 0)"  class="link-success"  title="Разблокировать учетную запись"><i class="fa-solid fa-lock-open"></i></a>
+		        </td>
+
+		        <td style="padding-left: 5px; padding-right: 0px;"><nobr>
+		          <router-link   v-if="item.user_lock==0 && item.user_id>1"  :to="{ name: 'student_edit', params: { userid: item.user_id, counterpartyid: this.counterparty_id, usercounterpartyid: item.user_counterparty_id, orderid: this.order_id, itemid: item.item_id}}"   title="Редактировать учетную запись" ><i class="fa-solid fa-user-pen"></i></router-link >
+                          <span v-if="!item.snils_check_sum" style="color: red;" title="Некорректный СНИЛС" ><i class="fa-solid fa-circle-exclamation"></i></span>
+		        </nobr></td>
+		        </tr></table>
+	      </div></td>
+        </tr>
+
+        <tr v-if="user_check.length>0 && status_id==1">
+          <td colspan="7">
+               <span  v-if="user_check.length>0 && status_id==1"  class="text-primary"><i class="fa-solid fa-check-to-slot"></i></span>&nbsp;&nbsp;<a  v-if="user_check.length>0 && status_id==1"  @click="userUnlink( 'Все отмеченные записи',  0)"   title="Исключить отмеченные  учетные записи из списка заявки" style="color: red;" ><i class="fa-solid fa-user-minus"></i></a>
+          </td>
+          <td colspan="3" align="right">
+            <!--<small>
+                <input v-model="print_v" type="radio" value="false" class="form-check-input" id="print_Check0" > <label class="form-check-label" for="print_Check0"> документ </label>&nbsp;&nbsp;&nbsp;&nbsp; 
+                <input v-model="print_v" type="radio" value="true"  class="form-check-input" id="print_Check1" > <label class="form-check-label" for="print_Check1"> версия для печати </label>&nbsp;&nbsp;&nbsp;&nbsp;
+                <input v-model="print_v" type="radio" value="edit"  class="form-check-input" id="print_Check3"> <label class="form-check-label" for="print_Check3"> редактор</label>
+            </small>-->
+          </td>
+        </tr>
+        
+        
+  </tbody>
+  </table>
+
+  <br />
+  <h5  v-if="user_check.length>0 && status_id==1" >Записать на курс отмеченных слушателей</h5> 
+  <span v-if="user_check.length>0 && status_id==1">
+  <hr />
+  <p align="center"><i>{{msg_result}}</i></p>
+    <table width="100%">
+        <tr  align="left">
+            <td width="10%"> </td>
+            <td ><input type="text" v-model="namesearch" placeholder="Поиск курса"   size="83"></td>
+            <td align="center" width="10%"> <button  @click="search_go(1)">&nbsp;<i class="fa-solid fa-magnifying-glass"></i>&nbsp;Поиск&nbsp;</button></td>
+            <td align="right"  width="20%">  <button  @click="search_go(0)" title="Сбросить все фильтры"   ><i class="fa-solid fa-xmark"></i>Сбросить фильтры</button></td>
+        </tr>
+    </table>
+<br />
+  <div class="mb-2">	
+    <label for="input_category" class="form-label"> Категория </label><br />
+        <select v-model="category" @change="categories_go()" >
+              <option value="0"> - Категория - </option> 
+              <option v-for="item_o in info4.list" :value="item_o.category_id">{{item_o.name}}</option>
+        </select>
+  </div>
+
+
+  <div class="mb-2">	
+    <label for="input_course" class="form-label"> <span v-if="seachcount>0">Найдено {{seachcount}} курсов</span><span v-else>Курс</span> </label><br />
+    <select v-if="category>0 || namesearch!='' "  v-model="course"  @change="course_go()"  > 
+        <option v-if="list_length>0 && category>0" value="0"> - Все курсы категории - </option> 
+        <option v-for="(item2, index) in info2.list" :value="item2.course_id">
+	        {{item2.shortname}}
+	    </option>
+    </select>
+    <select v-else  v-model="course"   > 
+        <option  value="0">  </option> 
+    </select>
+  </div>
+
+  <!--<div v-if="is_rank_of_profession=='true'" class="mb-2">	
+    <label for="input_rank" class="form-label"> Разряд / Уровень </label><br />
+    <select  v-model="rank_of_profession"  > 
+        <option v-if="list_length>0 && category>0" value="0"> - Разряд - </option> 
+        <option v-for="index in [2,3,4,5,6,7,8]" :value="index">
+	    {{index}} разряд  
+	</option>
+    </select>
+  </div>-->
+
+
+  <div v-if="course>0" align="left" class="row" style="padding-top: 10px;">
+    <div class="col-2">
+        <label  class="form-label"> Учебный план </label>
+    </div>
+    <div class="col form-check-inline" >
+        <div class="form-check form-check-inline" style="padding-right: 30px;">
+        <input  v-model="variation" class="form-check-input" type="radio"  id="variationRadio1" value="1">
+        <label class="form-check-label" for="variationRadio1">{{variation1_title}} ч.</label>
+        </div>
+        <div v-if="variation2_title!='' " class="form-check form-check-inline" style="padding-right: 30px;">
+        <input v-model="variation" class="form-check-input" type="radio"  id="variationRadio2" value="2">
+        <label class="form-check-label" for="variationRadio2">{{variation2_title}} ч.</label>
+        </div>
+        <div v-if="variation3_title!='' " class="form-check form-check-inline" >
+        <input v-model="variation" class="form-check-input" type="radio"  id="variationRadio3" value="3">
+        <label class="form-check-label" for="variationRadio3">{{variation3_title}} ч. </label>
+        </div>
+    </div>
+  </div>
+
+  <div v-if="course>0" align="left" class="row" style="padding-top: 10px;">
+    <div class="col-2">
+        <label  class="form-label"> Группа номер </label>
+    </div>
+    <div class="col-1">
+        <!--<input v-model="group_number" type="text" size="1">-->
+        <select v-model="group_number" >
+           <option  value="0"></option>
+           <option  value="1">1</option>
+           <option v-for="index in [2,3,4,5,6,7,8,9]" :value="index">
+                {{index}}
+           </option>
+        </select>
+    </div>
+    <div class="col-5">
+        <p style="font-size: smaller;" > Оставьте поле пустым для автоматического формирования учебных групп </p>
+    </div>
+  </div>
+
+  <div align="right">
+    <button v-if="course>0  && status_id==1 && msg_result==''" @click="userCourse()" class="btn btn-secondary"> Записать на курс </button></router-link>
+  </div>
+  <hr />
+  </span>
+
+
+ <div  class="row" >
+  <div class="col" align="right">
+  </div>
+  <div class="col-4" align="right">
+    <button  v-if="is_cert_saved==false"   class="btn btn-primary"  @click="cert_number_save()" > Сохранить </button>
+    &nbsp&nbsp<router-link  :to="{ name: 'orders_list', params: {counterpartyid: this.a_counterparty_id}}" ><button  class="btn btn-outline-primary" @click="cert_number_alert()" > Закрыть </button></router-link>
+  </div>
+ </div>
+
+   </div>
+  </div>
+
+
+<!-- Modal -->
+<div class="modal fade modal-lg" id="LmsModal" tabindex="-1" aria-labelledby="LmsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="LmsModalLabel">Логин, Пароль личного кабинета</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" align="left">
+
+
+  <p align="center">{{modal_fio}}</p>
+
+  <div class="mb-2 row">
+      <label for="input_login" class="form-label col-sm-3">login</label>
+      <div class="input-group col">
+        <input v-model="modal_login"   class="form-control" id="input_login"   type="text"  >
+      </div>
+  </div>
+
+  <div class="mb-2 row">
+      <label for="input_password" class="form-label col-sm-3">password</label>
+      <div class="input-group col">
+          <input v-show="view_password>0" v-model="modal_password"   class="form-control" id="input_password"   type="text"  >
+          <span  v-if="view_password==0"  class="input-group-text text-secondary"  @click="show_hide_password();" :title="v_password_txt" ><i class="fa fa-eye " ></i></span>
+          <span  v-if="view_password>0"  class="input-group-text  text-secondary"  @click="show_hide_password();" :title="v_password_txt" ><i class="fa fa-eye-slash"></i></span>
+      </div>
+  </div>
+
+  <div class="mb-2 row">
+      <label for="input_email_lms" class="form-label col-sm-3">email для  LMS</label>
+      <div class="input-group col">
+        <input v-model="modal_email_lms"  class="form-control" id="input_email_lms"    type="text"  >
+      </div>
+  </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"> Закрыть </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+</div>`
+};
+
+
+
+

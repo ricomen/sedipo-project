@@ -1,0 +1,461 @@
+var OrdersAnalytics = {
+  data: function () {
+    return {
+      role: '',    
+      moodle_path: '',
+      info: [],
+      info2: [],
+      info3: [],
+      form_id: '',
+      a_counterparty_id: 0,
+      a_order_id: 0,
+      form_of_study: [ {form_id: 1, name: 'Очная'}, {form_id: 2, name: 'Заочная'}, {form_id: 3, name: 'Очно-заочная'}, {form_id: 4, name:  'Заочная с применением дистанционных технологий'} ],
+      status_array:  [], 
+      message: '',
+      namesearch: '',
+      datesearch: '',
+      datesearch2: '',
+      counterparty_с: '',
+      counterparty_с_id: 0,
+      status: 0,
+      check1: '',
+      check2: '',
+      check3: '',
+      current_order_id: 0,
+      print_v: 'true',
+      numPages: 0,
+      page: 1,
+      mon_arr: [{name: 'Январь', t_class: 'nav-link'}, {name: 'Февраль', t_class: 'nav-link'}, {name: 'Март', t_class: 'nav-link'}, {name: 'Апрель', t_class: 'nav-link'}, {name: 'Май', t_class: 'nav-link'}, {name: 'Июнь', t_class: 'nav-link'}, {name: 'Июль', t_class: 'nav-link'}, {name: 'Август', t_class: 'nav-link'}, {name: 'Сентябрь', t_class: 'nav-link'}, {name: 'Октябрь', t_class: 'nav-link'}, {name: 'Ноябрь', t_class: 'nav-link'}, {name: 'Декабрь', t_class: 'nav-link'} ],
+      year_arr: [],
+      year_tab: new Date().getFullYear(),
+      mon__tab: 0,
+      contract_file0: '',
+      contract_file: [],
+      contract_modal_counterparty_id: 0,
+      contract_modal_contract_id: 0,
+      contract_modal_order_id: 0,
+      contract_modal_date_order: '',
+      contract_modal_number: 0,
+      contract_modal_contract_list: [],
+      importfile1: [],
+      importfile1_filename: [],
+      importfile1_file_type: [],
+      a_contract_id: [],
+      date_contract: [],
+      total: 0,
+     }
+   },
+
+
+   mounted() {
+      this.page = session_var.order_page
+      this.namesearch = session_var.order_namesearch 
+      this.counterparty_с_id = session_var.order_counterparty_с_id
+      this.counterparty_с  =  session_var.order_counterparty_с
+      this.datesearch = session_var.order_datesearch
+      this.datesearch2 = session_var.order_datesearch2
+      this.status = session_var.order_status
+       
+      this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+      if( this.$route.params.counterpartyid == ''){
+            this.page  = 1
+      }       
+      this.a_order_id = Number(this.$route.params.orderid)
+
+      for (var i=-1; i<4; i++){
+        this.year_arr.push({name: this.year_tab-i})
+      }    
+
+
+    var counterparty_id = this.counterparty_с_id
+    if(this.a_counterparty_id>0)
+          counterparty_id = this.a_counterparty_id
+
+
+    axios
+      .post(JsonApiURL+'api/payment_1c.php', {payment_1c: {sessionId: session_t.sessionId }})
+      .then(response => { 
+          console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+//      .post(JsonApiURL+'api/orders_json.php', {list: {date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, status: this.status,  counterparty_id: this.a_counterparty_id, orderid: this.a_order_id, page: this.page,  sessionId: session_t.sessionId }})
+
+    axios
+      .post(JsonApiURL+'analytics/order_xls.php', {orders: {date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, status: this.status,  counterparty_id: counterparty_id,  orderid: this.a_order_id, page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+            this.total = this.info.total
+            this.numPages = this.info.numPages
+	        this.page = this.info.page
+ 
+            if( this.role=='counterparty' )
+                    this.print_v = 'false'
+                
+          console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+
+      if(this.a_counterparty_id == 0) {
+	    /*axios
+                .post(JsonApiURL+'api/counterparty_json.php', {list: { sessionId: session_t.sessionId }})
+    		.then(response2 => { 
+        	    this.info2 = response2.data
+    		})
+    		.catch(error => {
+            	    console.log(error.response)
+        	})*/
+       }
+       if(this.a_counterparty_id > 0) {
+    	    axios
+    		.post(JsonApiURL+'api/counterparty_json.php', {object: {objectId: this.a_counterparty_id, sessionId: session_t.sessionId } })
+    		.then(response3 => { 
+        	    this.info3 = response3.data
+    		})
+    		.catch(error => {
+            	    console.log(error.response)
+        	})
+       }
+
+
+    axios
+      .post(JsonApiURL+'api/status_json.php', {list: {  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.status_array = response.data.list
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+  },
+
+
+  methods: {
+      
+    search_go(clean) {
+    if(clean>0){
+        this.namesearch = ''
+        this.datesearch = ''
+        this.datesearch2 = ''
+        this.counterparty_с_id = 0
+        this.counterparty_с = ''
+        this.status = 0
+    }
+    var counterparty_id = this.counterparty_с_id
+    if(this.a_counterparty_id>0)
+          counterparty_id = this.a_counterparty_id
+
+    session_var.order_namesearch = this.namesearch
+    session_var.order_counterparty_с_id = this.counterparty_с_id
+    session_var.order_counterparty_с = this.counterparty_с
+    session_var.order_datesearch = this.datesearch
+    session_var.order_datesearch2 = this.datesearch2
+    session_var.order_status = this.status
+
+
+    axios
+      .post(JsonApiURL+'analytics/order_xls.php', {orders: {date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, status: this.status,  counterparty_id: counterparty_id, orderid: this.a_order_id, page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+            this.page = this.info.page
+            this.total = this.info.total
+             console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+    },
+
+
+    page_go(page) {
+    this.page = page
+    session_var.order_page = page
+
+    axios
+      .post(JsonApiURL+'analytics/order_xls.php', {orders: {date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, status: this.status, counterparty_id: this.a_counterparty_id, orderid: this.a_order_id, page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+            this.numPages = this.info.numPages
+            this.page = this.info.page
+            this.total = this.info.total
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+    },
+
+     
+
+    tab_go(month) {
+     if(this.year_tab>0) {    
+        var date_t1 = new Date(this.year_tab, month, 1, 0, 0, 0, 0).toLocaleDateString('en-CA')
+        var date_t2 = new Date(this.year_tab, month+1, 0, 0, 0, 0, 0).toLocaleDateString('en-CA')
+        this.datesearch = date_t1
+        this.datesearch2 = date_t2
+        for (var i=0; i<12; i++){
+            this.mon_arr[i].t_class =  'nav-link'
+        }    
+        this.mon_arr[month].t_class =  'nav-link active'
+
+
+        axios
+        .post(JsonApiURL+'analytics/order_xls.php', {orders: {date1: date_t1, date2: date_t2,  counterparty_id: this.a_counterparty_id, page: this.page,  sessionId: session_t.sessionId }})
+        .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+            this.page = this.info.page
+            this.total = this.info.total
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+     }    
+    },
+
+
+ 
+
+
+
+    search2(index){
+       this.counterparty_с = this.info2.list[index].shortname 
+       this.counterparty_с_id = this.info2.list[index].counterparty_id
+       this.info2.list = []
+    },
+
+
+    load_combo(){
+      if(this.counterparty_с!=''){
+       axios
+        .post(JsonApiURL+'api/counterparty_json.php', {list: {conditions: {"type": 0}, search: this.counterparty_с, sessionId: session_t.sessionId }})
+	    //.post(JsonApiURL+'api/teacher_json.php', {list: {search: this.main_teacher, limit: 15,   sessionId: session_t.sessionId } })
+        .then(response => { 
+            this.info2 = response.data
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+      }
+      else {
+          this.info2.list = []
+      }
+    },
+
+ 
+    report_xls(){
+        var counterparty_id = this.counterparty_с_id
+        if(this.a_counterparty_id>0)
+              counterparty_id = this.a_counterparty_id
+        
+         var argj = [ this.datesearch, this.datesearch2, this.namesearch,  this.status,  counterparty_id, this.a_order_id,  session_t.sessionId];
+         window.open(JsonApiURL+'analytics/order_xls.php?search='+argj.join(), '_blank');
+    },
+    
+    /*contractsLoad(counterparty_id) {
+        if(counterparty_id > 0 ){
+            this.contract_modal_counterparty_id = counterparty_id 
+
+            axios
+              .post(JsonApiURL+'api/orders_json.php', {contract_list: {counterparty_id: counterparty_id, sessionId: session_t.sessionId } })
+              .then(response => { 
+                    this.info7 = response.data
+                    for (var i = 0; i < this.info7.list.length; i++) {
+                        this.a_contract_id[i] = this.info7.list[i].contract_id
+                        this.date_contract[i] = this.info7.list[i].date_contract
+                        this.legacy_contract[i] = this.info7.list[i].legacy
+                        this.enterprise_manager[i] = this.info7.list[i].enterprise_manager
+                        this.enterprise_manager2[i] = this.info7.list[i].enterprise_manager2
+                        this.enterprise_manager_signs[i] = this.info7.list[i].enterprise_manager_signs
+                    }
+            })
+              .catch(error => {
+                 console.log(error.response)
+            })
+
+        }
+        else 
+           this.info7 = []
+     },*/
+
+
+   
+    
+},
+
+
+	template: `<div><navigation></navigation><h3>Аналитика по заявкам на обучение</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+    <br />
+    <h4 v-if="role!='counterparty' && a_counterparty_id>0"  style="text-align: right;" > {{info3.result.name}} </h4>
+
+
+    <table >
+        <tr  align="left">
+            <td  style="padding-left: 0px;  padding-right: 10px;" >c </td>
+            <td  style="padding-left: 0px;  padding-right: 15px;" ><input type="date" v-model="datesearch" placeholder="Дата"  ></td>
+            <td style="padding-left: 5px;  padding-right: 5px;"> по </td>
+            <td  style="padding-left: 0px;  padding-right: 15px;" ><input type="date" v-model="datesearch2" placeholder="Дата"  ></td>
+            <td style="padding-left: 10px;  padding-right: 5px;" >
+	    <select  v-model="status"  id="input_status"  aria-label="Статус">
+    		    <option value="0"> - статус - </option>
+    		    <option v-for="item_status in status_array" :value="item_status.status_id">{{item_status.name}} </option>
+		</select>
+	    </td>
+        <td style="padding-left: 5px;  padding-right: 15px;"  v-if="a_counterparty_id==0 && role!='counterparty'" ><small>
+	        <!--<select v-model="counterpartysearch">
+	        <option value="0"> -  Организация  - </option>
+            <option v-for="item2 in info2.list" :value="item2.counterparty_id">
+	            {{item2.shortname.substring(0, 45)}} 
+	        </option>
+	        </select>-->
+	    </small></td>
+
+        <td  style="padding-left: 15px;  padding-right: 0px; text-align: right;" > <button  @click="search_go(0)">&nbsp;<i class="fa-solid fa-magnifying-glass"></i>&nbsp;Поиск&nbsp;</button>&nbsp;&nbsp;&nbsp;&nbsp;<button  title="Сбросить все фильтры"   @click="search_go(1)"  >&nbsp;<i class="fa-solid fa-xmark"></i>&nbsp;Сбросить фильтры&nbsp;</button> </td>
+        
+        </tr>
+        
+        <tr  align="left">
+          <td colspan="5" style="padding-top: 20px; padding-right: 15px;">        
+   <div class="mb-2">	
+      <div class ="container">
+        <input  v-model="counterparty_с"   id="input_counterparty_c"  type="text" @input="load_combo()" placeholder="Организация"   size="70">
+		<ul class ="list-group" id ="listItem" style="text-align: left;">
+			<li  v-for="(item2, index) in info2.list" class ="list-group" @click="search2(index)" > {{item2.shortname.substring(0, 72)}}</li>
+		</ul>
+      </div>
+   </div>
+	      </td>
+        </tr>
+        
+        <tr  align="left">
+          <td colspan="5" style="padding-top: 20px; padding-right: 15px;">
+      <div class ="container">
+            <input type="text" v-model="namesearch" placeholder="Курс"   size="70">
+      </div>
+         </td>
+        </tr>
+    </table>
+    <hr />
+    <div class="row">
+        <div class="col">
+            <p align="left"><b> Всего найдено: {{total}} записей </b></p>
+        </div>
+        <div class="col">
+        </div>
+        <div class="col-4" >
+            <div v-if="total>0" align="right"><button @click="report_xls()" class="btn btn-primary"><i class="fa-solid fa-file-excel"></i> Скачать отчет  </button></div>
+            <div v-else align="right"><button @click="report_xls()" class="btn btn-outline-secondary"><i class="fa-solid fa-file-excel"></i> Скачать отчет  </button></div>
+        </div>
+        <!--<div class="col-2" >
+            <div align="right"><button  class="btn btn-outline-secondary"><i class="fa-solid fa-file-word"></i>  Скачать отчет  </button></div>
+        </div>-->
+    </div>
+    <hr />
+
+    <table class="table">
+      <thead>
+        <tr  align="left" >
+          <th valign="top" style="font-size: smaller;"> Номер </th>
+          <th valign="top"   align="center" style="font-size: smaller;"> Дата </th>
+          <th valign="top"  align="center" style="font-size: smaller;"> Номер счета </th>
+          <th valign="top"   align="center"  style="font-size: smaller;"> Количество <br />обучающихся </th>
+          <th valign="top" v-if="role!='counterparty' && a_counterparty_id==0"  scope="col" style="font-size: smaller;"> Организация </th>
+          <th valign="top"  align="center" style="font-size: smaller;"><center>Статус</center></th>
+          <th valign="top"   align="center" style="font-size: smaller;">Сумма оплаты</th>
+          <th valign="top"   align="center" style="font-size: smaller;">Дата счета</th>
+          <th valign="top"  align="center" style="font-size: smaller;">Оплачено</th>
+          <th valign="top"  align="center" style="font-size: smaller;">Дата оплаты</th>
+          <th valign="top"  align="center" style="font-size: smaller;">Акт выполненных работ</th>
+        </tr>
+      </thead>
+     <tbody>   
+        <tr v-for="item in info.list"  align="left" >  
+            <td><nobr>{{item.date_order}}/{{item.number}}</td>
+            <td  align="center" >{{new Date(item.date_order).toLocaleDateString("ru")}}</td>
+            <td  align="center" ><nobr><div style="text-align: right; font-size: smaller;">{{item.invoice}}&nbsp;</div></nobr></td>
+            <td  align="center" >{{item.count}} </td> 
+            <td v-if="role!='counterparty' && a_counterparty_id==0" >{{item.counterparty_name}}</td>
+            <td align="center"><p><i>{{item.status_name}}</i></p></td>
+            <td align="center">{{item.price_total}}</td>
+            <td align="center"> </td>
+            <td align="center">{{item.payment_receipt}}</td>
+            <td align="center"><span v-if="item.payment_receipt_date!=null && item.payment_receipt_date!='' && item.payment_receipt_date!='0000-00-00' ">{{new Date(item.payment_receipt_date).toLocaleDateString("ru")}}</span></td>
+          </tr>
+  </tbody>
+  </table>
+
+<span v-if="role!='counterparty' && a_counterparty_id>0">
+  <br />
+  <span v-if="a_order_id>0">
+    <div class="mb-2">	
+        <div align="right">
+            <router-link :to="{ name: 'lstream_list'}" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+        </div>
+    </div>
+  </span>
+  <span v-else>
+    <div class="mb-2">	
+        <div align="right">
+            <router-link :to="{ name: 'counterparty_list'}" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+        </div>
+    </div>
+  </span>
+</span>
+
+
+<div class="row">
+<div class="col"> </div>
+<div  v-if="numPages>1" aria-label="Page navigation" class="btn-toolbar col"  aria-label="pages"   style="text-align: center;">
+  <ul class="pagination">
+    <li v-if="page>1" class="page-item">
+      <button  @click="page_go(this.page-1)"  class="page-link" aria-label="Previous"> <span aria-hidden="true"><i class="fa-solid fa-caret-left"></i></span> </button>
+    </li>
+    <li v-if="page>1"class="page-item"><button @click="page_go(1)"  class="page-link" >1</button></li>
+    <li v-if="page>2" class="page-item"><button   class="page-link" >...</button></li>
+    <li v-if="page-2>2"class="page-item"><button @click="page_go(this.page-2)"  class="page-link" >{{page-2}}</button></li>
+    <li v-if="page-1>2"class="page-item"><button @click="page_go(this.page-1)"  class="page-link" >{{page-1}}</button></li>
+    <li class="page-item active" aria-current="page"><button   class="page-link">{{page}}</button></li>
+    <li v-if="page+1<numPages"class="page-item"><button @click="page_go(this.page+1)"  class="page-link" >{{page+1}}</button></li>
+    <li v-if="page+2<numPages"  class="page-item"><button @click="page_go(this.page+2)"  class="page-link" >{{page+2}}</button></li>
+    <li v-if="page+3<numPages" class="page-item"><button   class="page-link" >...</button></li>
+    <li v-if="page<numPages" class="page-item"><button @click="page_go(this.numPages)"  class="page-link" >{{numPages}}</button></li>
+    <li v-if="page<numPages" class="page-item">
+      <button  @click="page_go(this.page+1)"  class="page-link"  aria-label="Next">  <span aria-hidden="true"><i class="fa-solid fa-caret-right"></i></span>  </button>
+    </li>
+  </ul>
+</div>
+<div class="col-2"> </div>
+</div>
+
+
+<div class="row">
+<small class="col-1" >
+		    <select  v-model="year_tab"  id="input_status" class="form-select form-select-sm"  aria-label="Статус"  >
+    		    <option value="0"> - год - </option>
+    		    <option v-for="item in year_arr" :value="item.name">{{item.name}}&nbsp; </option>
+		</select>
+</small>    
+<small class="col"><ul class="nav nav-tabs" >
+    <li v-for="(item, index) in mon_arr"  class="nav-item">
+        <a :class="item.t_class" @click="tab_go(index)">{{item.name}}</a>
+    </li>
+    </ul></small>
+</div>
+
+    </div>`
+};
+
+
+
+

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 0.1cm; margin-right: 0.1cm; margin-top: 0.1cm; margin-bottom: 0.1cm; size: A5 portrait;  }
+	p { text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify;  margin-bottom: 3px;  margin-top: 3px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;   margin-bottom: 3px;  margin-top: 3px;  }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: left;   margin-bottom: 3px;  margin-top: 3px;  }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 16pt; text-align: center;  margin-bottom: 15px;  margin-top: 15px;  }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center;  margin-bottom: 7px;  margin-top: 7px;  }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;  margin-bottom: 5px;  margin-top: 5px;  }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center;  margin-bottom: 5px;  margin-top: 5px;  }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+    </style>
+	<title>Документ о квалификации</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#000000" vlink="#000000" alink="#000000">
+<div style="position: relative; top: 0px; right: 0px;">
+  <div style="position: absolute; top: 20px; left: 0px; "> 
+  {if $print_v=="false"}
+    <p class="western"  style="margin-bottom: 15px; ; margin-top: 0px;" ><img src="https://{$smarty.server.SERVER_NAME}/documents/udostoverenie1_1.png" width="250px"></p>
+  {/if}
+  </div>
+  <div style="position: absolute; top: 730px; left: 260px; ">             
+    {if $print_v=="false"}
+      <p class="western" style="text-align: left; font-size: 9pt; " ><i>Действительно до {$cert['date_finish']|date_format:"%02e.%m.%Y"}</i></p>
+    {else}
+      <p class="western" style="text-align: left; font-size: 9pt;  margin-left: 120px; " ><i>{$cert['date_finish']|date_format:"%02e.%m.%Y"}</i></p>
+    {/if}
+  </div>
+  <div style="position: absolute; top: 730px; left: 30px;">             
+     <p class="center">г. Уфа </p>
+  </div>
+</div>
+<table border="0" width="100%"  >
+<tr valign="top">
+<td  align="left"  width="42%" style="padding-left: 0.7cm;">
+
+<h2 class="western"  style="margin-bottom: 5px;  margin-top: 130px; " ><b>
+  {if $print_v=="false"}
+    УДОСТОВЕРЕНИЕ  №  {$user['certificate_num']}
+  {else}
+    <span style="margin-left: 320px;" >  <!--{$cert['protocol_num']}- -->{$user['certificate_num']}</span>
+  {/if}
+</b></h2>
+  {if $print_v=="false"}
+<p class="center"  style="margin-bottom: 15px;  margin-top: 50px;" >о повышении квалификации </p>
+  {else}
+<p class="center"  style="margin-bottom: 15px;  margin-top: 50px;" > </p>
+  {/if}
+<table width="100%" border="0">
+<tr width="100%" >
+    <td  valign="top" width="180px">
+        <p class="western"  style="margin-right: 15px;" >Свидетельствует, что:</p>
+    </td>
+    <td>
+        <p class="western" ><b>{$user['lastname']}<br />
+        {$user['firstname']}<br />
+        {$user['middlename']}</b></p>
+    </td>
+</tr>    
+<tr>
+    <td colspan="2">
+        <p class="western">Обучался (ась) в {$self['shortname']} по программе:</p>
+    </td>
+</tr>    
+<tr>
+    <td  colspan="2" valign="top" height="160px">
+        <p class="western" ><b>{$cert['name']}</b></p>
+    </td>
+</tr>    
+<tr>
+    <td  valign="top">
+        <p class="western" >Протокол:</p>
+    </td>
+    <td>
+        <p class="western" >№ {$cert['protocol_num']} от {$cert['date_protocol']|date_format:"%02e.%m.%Y"}</p>
+    </td>
+</tr>    
+<tr>
+    <td  valign="top">
+        <p class="western"  style="margin-right: 15px;" >Период обучения:</p>
+    </td>
+    <td>
+        <p class="western" >с {$cert['date_begin']|date_format:"%02e.%m.%Y"} по {$cert['date_end']|date_format:"%02e.%m.%Y"}</p>
+    </td>
+</tr>    
+<tr>
+    <td valign="top">
+        <p class="western" >Председатель <br/>комиссии:</p>
+    </td>
+    <td  valign="bottom">
+        <p class="western"  style="margin-bottom: 5px;  margin-top: 5px;" ><nobr>{$teachers_commission['chairman']}</nobr></p>
+    </td>
+</tr>    
+<tr>
+    <td colspan="2" valign="top">
+        <p class="western" >М.П.</p>
+{if $print_v=="false"} 
+<div style="position: relative; top: 0px; right: 0px;">        
+<!--<div style="position: absolute; top: -90px; right: 180px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/podpis.png" width="60px" align="top" ></div>-->
+<div style="position: absolute; top: -90px; right: 250px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+</div>
+{/if}
+    </td>
+</tr>    
+</table>
+</td>
+<td  align="right" valign="middle" width="8%" style="padding-right: 0;" >
+    {if $print_v=="false"}
+    <img src="https://{$smarty.server.SERVER_NAME}/documents/udostoverenie1_2.svg" width="77px">
+    {/if}
+</td>
+</tr>
+</table>
+<div style="page-break-before:always; "></div>
+<table border="0" width="100%" >
+<tr >
+<td width="42%" >
+{if $print_v=="false"}
+<p class="western"  style="margin-left: 20 px; margin-bottom: 25px;  margin-top: 15px;" ><img src="https://{$smarty.server.SERVER_NAME}/documents/udostoverenie1_1.png" width="250px"></p>
+<h1 class="western"  style="margin-bottom: 5px;  margin-top: 130px;" ><b>УДОСТОВЕРЕНИЕ</b></h1>
+{else}
+<p class="western"  style="margin-top: 290px;" ></p>
+{/if}
+<p class="western" style=" font-size: 8pt; margin-bottom: 0;  margin-top: 400px; margin-left: 20px;" ><i>
+    Лицензия на осуществление образовательной деятельности Управления по контролю и надзору в сфере образования Республики Башкортостан серия № Л035-01198-02/00962026 от 12.12.2023 г 
+</i></p>
+</td>
+<td align="right"  valign="middle" width="8%"  style="padding-right: 0;" >
+    {if $print_v=="false"}<img src="https://{$smarty.server.SERVER_NAME}/documents/udostoverenie1_2.svg" width="77px">{/if}
+</td>
+</tr>
+</table>
+</body>
+</html>

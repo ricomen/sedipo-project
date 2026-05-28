@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> СЭД ИПО </title>
+
+    <link href="/css/bootstrap-lumen.min.css" rel="stylesheet" >
+    <script src="/css/bootstrap.bundle.min.js" ></script>
+
+    <script src="/js/vue.global.min.js"></script>
+    <script src="/js/axios.min.js"></script>
+
+    <link href='https://fonts.googleapis.com/css?family=Manrope' rel='stylesheet'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed:300,300i,400,400i,700,700i&amp;subset=cyrillic,cyrillic-ext&amp;display=swap">
+
+    <link rel="stylesheet" href="/font-awesome/all.min.css"  />
+
+    <link rel="stylesheet" href="/css/style.css"  />
+
+    <link rel="stylesheet" href="/js/layout-mini.css"/>
+
+
+<body>
+<div id="app" data-content=''>
+    <div class="container">
+        <div v-for="(item, idx) in pages">
+            <div class="page"
+                 :ref="el => addPageRef(el, idx)"
+                 @mouseup="() => changePage(idx)"
+                 v-html="item">
+            </div>
+        </div>
+    </div>
+</div>
+
+<table width="100%" border="0">
+<tr>
+    <td></td>
+<td width="1100px">
+<form action="/d-api/documents-print.php" target="_blank" method="POST">
+    <input type="hidden" name="cohort_id" value="{Id}"> 
+    <input class="btn btn-primary"  style="font-family: sans-serif;"  type="submit" name="print" value=" Печатать ">
+    <input class="btn btn-secondary"  style="font-family: sans-serif;"  type="submit"  name="protocol_save"  value=" Сохранить ">
+    <textarea id="content-f" style="visibility: hidden"  name="editor" ></textarea>
+</form>
+</td>
+    <td></td>
+</tr>
+</table>
+
+<script>
+    window.INITIAL_CONTENT = `

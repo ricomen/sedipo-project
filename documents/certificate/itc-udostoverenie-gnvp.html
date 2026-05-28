@@ -1,0 +1,114 @@
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<style type="text/css">
+		@page { size: 210.01mm 297mm; style="padding-left: 0; margin-left: 5.01mm; margin-right: 5.01mm; margin-top: 5.01mm; margin-bottom: 5.01mm" }
+	p {  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: justify;  margin-bottom: 4px;  margin-top: 4px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: center;  margin-bottom: 4px;  margin-top: 4px; }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	td { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; line-height: 96%;  }
+	</style>
+</head>
+<body lang="ru-RU" text="#000000" link="#0066cc" vlink="#800000" dir="ltr">
+
+	<table dir="ltr" align="left" width="100%"  cellpadding="7" cellspacing="0" border="1">
+
+		<tr valign="top">
+			<td  width="49%"  >
+
+<table width="100%" border="0" cellpadding="1" cellspacing="1">
+    <tr>
+        <td valign="top" colspan="2" style="text-align:justify; margin-top: 0px; margin-bottom: 0px;">
+            В том, что он(а) обучался(лась) в ООО «ИНЖЕНЕРНО-ТЕХНИЧЕСКИЙ ЦЕНТР «БЕЗОПАСНОСТЬ» по программе: <b>«{$cert['name']}»</b>
+        </td>
+    </tr>  
+    <tr  >
+    <td colspan="2" height="50px" valign="top" style="padding-top: 10px;">
+        <p class="western" style="margin-bottom: 5x;  margin-top: 5px;  font-size: 8pt;" >Предоставляется право: <b>{$cert['competence']}</b></p>
+    </td>
+    </tr>    
+      
+<tr valign="bottom">
+    <td >
+        <p class="western" style="margin-bottom: 5x;  margin-top: 5px;  font-size: 8pt;" ><b>Председатель <br />комиссии:</b></p>
+    </td>
+    <td >
+        <p class="western" style="margin-bottom: 5x;  margin-top: 5px;  font-size: 8pt;" ><nobr><b>{$teachers_commission['chairman_short_b']}</b></nobr></p>
+    </td>
+</tr>  
+<tr   >
+    <td colspan="2" valign="top" style="padding-top: 10px;">
+        <b>Действительно до {$cert['date_finish']|date_format:"%02e.%m.%Y"}</b>
+    </td>
+</tr>    
+<tr>
+    <td>
+
+{if $print_v=="false"} 
+<div style="position: relative; top: 0px; right: 0px;">        
+<!--<div style="position: absolute; top: -80px; right: 150px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/podpis.png" width="70px" align="top" ></div>-->
+<div style="position: absolute; top: -130px; right: -30px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+</div>
+{/if}
+    </td>
+</tr>
+
+</table>
+
+			</td>
+
+
+			<td   width="49%">
+<table width="100%" border="0">
+<tr>
+    <td colspan="2" height="20" valign="top">
+        <p class="center"  style="margin-bottom: 0px;  margin-top: 1px; font-size: 7pt;" ><b>ООО «ИНЖЕНЕРНО-ТЕХНИЧЕСКИЙ ЦЕНТР «БЕЗОПАСНОСТЬ»</b></p>
+    </td>
+</tr>    
+
+<tr valign="bottom">
+    <td colspan="2">
+    <h1 class="western" style="margin-bottom: 20px;">УДОСТОВЕРЕНИЕ № {$user['certificate_num']}</h1>
+    </td>
+</tr>    
+<tr>
+    <td  valign="top" colspan="2" height="25">
+        <p class="western" >Ф.И.О: <b>{$user['lastname']} {$user['firstname']} {$user['middlename']}</b></p>
+    </td>
+</tr>
+
+<tr>
+    <td  valign="top" colspan="2" height="25">
+        <p class="western" >Место работы: <b>{$user['counterparty_shortname']}</b></p>
+    </td>
+</tr>
+
+<tr>
+    <td  valign="top" colspan="2" height="25">
+        <p class="western" >Должность: <b>{$user['position_name']}</b></p>
+    </td>
+</tr>
+
+<tr>
+    <td  valign="top" colspan="2" height="25">
+        <p class="western" >Протокол: <b>{$cert['protocol_num']} от {$cert['date_protocol']|date_format:"%02e.%m.%Y"}</b></p>
+    </td>
+</tr>
+  
+
+</table>
+
+
+			</td>
+		</tr>
+	</table><br/>
+
+
+
+</body>

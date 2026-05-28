@@ -1,0 +1,239 @@
+var GroupsList = {
+  data: function () {
+    return {
+      role: '',
+      moodle_path: '',
+      info: [],
+      info2: [],
+      info3: [],
+      order_id: 0,
+      make: 0,
+      a_counterparty_id: 0,
+      status: 0,
+      status_array:  [], 
+      DPO: DPO,
+      message: '',
+      namesearch: '',
+      numPages: 0,
+      page: 1
+     }
+   },
+
+
+   mounted() {
+      this.order_id = Number(this.$route.params.orderid)
+      this.make = Number(this.$route.params.make)
+      this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+
+      this.moodle_url = MoodleApiURL
+
+    axios
+      .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: this.make, page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+              console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+        }),
+
+
+
+    axios
+      .post(JsonApiURL+'api/status_json.php', {list: { where: "learn=1", sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.status_array = response.data.list
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+  },
+
+
+  methods: {
+    search_go(clean, page) {
+    if(clean){
+        this.namesearch = ''
+    }
+
+    axios
+      .post(JsonApiURL+'api/groups_json.php', {list: {name: this.namesearch,   page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            //this.isSysAdmin = this.info.isSysAdmin
+            //this.userId = this.info.userId
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+    },
+
+
+    groupDelete(groupId, name ){
+	var fl = confirm('Удалить  группу: ' + name + '?');
+	if(fl) {
+	axios
+          .post(JsonApiURL+'api/groups_json.php', {delete: {objectId: groupId}})
+          .then(response => { 
+            //this.info9 = response.data
+         axios
+           .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0, page: this.page, sessionId: session_t.sessionId }})
+           .then(response => { 
+              this.info = response.data
+            })
+           .catch(error => {
+              console.log(error.response)
+            })
+
+        })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+       }
+   },
+
+    cohortDelete(cohortId, name ){
+	var fl = confirm('Удалить  запись: ' + name + '?');
+	if(fl) {
+	axios
+          .post(JsonApiURL+'api/groups_json.php', {cohort_del: {cohortId: cohortId}})
+          .then(response => { 
+            //this.info9 = response.data
+         axios
+           .post(JsonApiURL+'api/groups_json.php', {list: {sessionId: session_t.sessionId }})
+           .then(response => { 
+              this.info = response.data
+            })
+           .catch(error => {
+              console.log(error.response)
+            })
+
+        })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+       }
+   }
+
+},
+
+
+	template: `<div><navigation></navigation><h3>Учебные группы</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+{{info}}
+    <br />
+    <table >
+        <tr  align="left">
+            <td  style="padding-left: 0px;  padding-right: 5px;" ><input type="text" v-model="namesearch" placeholder="Группа"   size="50"></td>
+            <td style="padding-left: 5px;  padding-right: 5px;" >
+		    <select  v-model="status"  id="input_status"  aria-label="Статус">
+    		    <option value="0"> - статус - </option>
+    		    <option v-for="item_status in status_array" :value="item_status.id">{{item_status.name}} </option>
+		    </select>
+	    </td>
+
+            <td  style="padding-left: 15px;  padding-right: 15px;" align="left"> <button  @click="search_go(0, '')">&nbsp;<i class="fa-solid fa-magnifying-glass"></i>&nbsp;Поиск&nbsp;</button></td>
+            <td  style="padding-left: 15px;  padding-right: 0px;" > <button  title="Сбросить все фильтры"   @click="search_go(1, '')"  ><i class="fa-solid fa-text-slash"></i> </button> </td>
+        </tr>
+    </table>
+
+    <br />
+    <table class="table">
+      <thead>
+        <tr  align="left">
+          <th scope="col"> Учебная группа </th>
+          <th> </th>
+          <th scope="col"><div align="right" style="margin-right: 110px;">Протоколы</div> <div> Курсы (состав коммиссии)</div> </th>
+          <th   scope="col" width="10%">  </th>
+          <th  v-if="role!='counterparty'"  scope="col"> <div style="float: right"><router-link  :to="{ name: 'group_edit', params: {groupid: 0 }}"   title="Добавить группу" ><b style=" font-size: larger;"><i class="far fa-plus-square"></i></b></router-link ></div>  </th>
+        </tr>
+      </thead>
+     <tbody>   
+        <tr v-for="item in info.list"  align="left" >  
+            <td><table border="0"><tr><td valign="middle" style="padding-left: 0px; padding-right: 7px;" > {{item.name}}</td>
+                  <td  v-if="role!='counterparty'"  style="padding-left: 0px; padding-right: 5px;"><router-link  :to="{ name: 'group_edit', params: {groupid: item.cohort_id, orderid: this.order_id}}" title="Редактировать настройки" ><span class="icon"><i class="fa-solid fa-pencil"></i></span></router-link></td>
+                  <td  style="padding-left: 5px; padding-right: 5px;"> ({{item.count}}) </td> 
+                  </tr>
+                </table>
+            </td>
+            <td> </td>
+            <td> 
+		        <table border="0" width="100%" >
+                   <tr  v-for="item2 in item.cohorts"  align="left" > 
+                      <td  style="padding-left: 0px; padding-right: 5px;"  >{{item2.name}} 
+                             <router-link  v-if="role!='counterparty'"   :to="{ name: 'cohort', params: {groupid: item.groupId, cohortid: item2.cohort_id}}" title="Редактировать настройки" ><span class="icon"><i class="fa-solid fa-pencil"></i></span></router-link>
+                      </td>
+                      <td v-if="role!='counterparty'"  style="padding-left: 5px; padding-right: 0px;" align="right" width="10%" >
+		                <a  :href="moodle_url+'moodle_sync.php?cohortId='+item2.cohort_id+'&groupId='+item.groupId+'&2Name='+item2.name"  target="_blank"  title="Синхронизировать с LMS" ><span class="icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></span></a>
+		              </td>
+                      <td v-if="role!='counterparty'"  style="padding-left: 0px; padding-right: 5px;"  width="10%">
+		                <div class="dropdown">
+	                    <button class="btn btn-link dropdown-toggle dropdown-toggle-split" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">|</button>
+		                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+		                    <li><a :href="'group_csv.php?cohortId='+item2.cohort_id+'&groupId='+item.groupId+'&groupName='+item2.name" target="_blank"  class="nav-link" title="Файл импорта" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-excel"></i></span> Файл импорта</a></li>
+		                </ul>
+		                </div>
+		            </td>
+
+                    <td  style="padding-left: 0px; padding-right: 5px;"  width="10%">
+	                <div class="dropdown">
+                        <button class="btn btn-link dropdown-toggle dropdown-toggle-split" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;"><i class="fa-solid fa-folder-open"></i>&nbsp;</button>
+	                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink" style="--bs-dropdown-min-width: 20rem;">
+	                        <li v-if="role!='counterparty' || item.status_id>=10"  ><a :href="'documents-protocol.php?template='+item2.protocol_temlate+'&id='+item2.cohort_id+'&file=протокол-'+item.name+'-'+item2.name" target="_blank"  class="nav-link" title="Протокол" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> Протокол </a></li>
+	                    </ul>
+	                </div>
+                   </td>
+            
+                   <td v-if="role!='counterparty'"  style="padding-left: 0px;  padding-right: 0px;" width="10%">
+		            <a   @click="cohortDelete(item2.cohort_id, item2.name)"   title="Удалить курс из группы" style="color: red;" ><i class="fa-solid fa-link-slash"></i></a>
+		           </td>
+                </tr>
+		       </table>
+            </td>
+            
+            <td  align="right"> <div style="float: right"  width="10%">
+		      <table border="0"><tr>
+                <td  style="padding-left: 5px; padding-right: 0px;">
+                  <router-link  :to="{ name: 'group_items', params: {groupid: item.groupId, orderid: this.order_id }}"  title="Cписок участников / документы по образованию" ><span class="icon"><b><i class="fa-solid fa-list-check"></b></span></router-link>
+		        </td>
+                <td style="padding-left: 0px; padding-right: 5px;">
+		            <div class="dropdown">
+	                <button class="btn btn-link dropdown-toggle dropdown-toggle-split" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">|</button>
+		            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+		                <li><a :href="'group_txt.php?groupId='+item.groupId+'&groupName='+item.name" target="_blank"  class="nav-link" title="Логины и пароли" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> Логины и пароли</a></li>
+		            </ul>
+		            </div>
+		        </td>
+                <td   v-if="role!='counterparty'"  style="padding-left: 0px; padding-right: 5px;"><router-link :to="{ name: 'cohort', params: {groupid: item.groupId  }}" title="Записать на курс" ><span class="icon"><i class="fa-solid fa-graduation-cap"></i></span></router-link></td>
+                <td  v-if="role!='counterparty'"   style="padding-left: 5px;  padding-right: 0px;">
+		            <a   @click="groupDelete(item.groupId, item.name)"   title="Удалить группу" style="color: red;" ><i class="far fa-trash-alt"></i></a>
+		        </td>
+                </tr></table>
+	         </div></td>
+          </tr>
+  </tbody>
+  </table>
+
+<span v-if="order_id>0">
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+      <router-link :to="{ name: 'orders_list' , params: {counterpartyid: this.a_counterparty_id}}" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+    </div>
+  </div>
+ </div>
+</span>
+
+	</div>`
+
+};
+
+
+
+

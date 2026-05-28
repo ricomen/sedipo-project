@@ -1,0 +1,69 @@
+<p>
+
+
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <br></p><style type="text/css">
+	@page { margin-left: 1.7cm; margin-right: 1.7cm; margin-top: 1cm; margin-bottom: 1cm; size: A4 landscape; }
+	p {  direction: ltr;  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-bottom: 2px;  margin-top: 2px; }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 2px;  margin-top: 10px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center; margin-bottom: 2px;  margin-top: 2px; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 14pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	th { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	td { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left margin-bottom: 2px;  margin-top: 2px; line-height: 96%; }
+	td.boss { text-align:top; font-size: 10pt; line-height: 0%;}
+	td.comand { text-align:middle; font-size: 10pt; margin-right: 20px; }
+    </style>
+	<p><title>Протокол</title>
+
+
+</p><h4 class="western" style="margin-top: 0; margin-bottom: 5px;  text-transform: uppercase;">{$self_data['name']}</h4>
+<h2 class="western" style="margin-top: 5px; margin-bottom: 2px; ">ПРОТОКОЛ №  {$course['protocol_num']} </h2>
+<p class="center" style="margin-top: 4px;  margin-left: 250px;  margin-right: 250px; line-height: 95%;">{$protocol['protocol_h']} </p>
+
+<table width="100%"><tbody><tr><td style="font-size: 12pt;"><p class="western"> {$course['date_protocol']|date_format:"%02e.%m.%Y"} </p></td><td> <br></td> <td width="10%" style="font-size: 12pt; text-align: right;"><p class="western" style="text-align: right;"> г. Уфа</p></td></tr></tbody></table>
+
+<p class="western" style="margin-top: 7px;"> {$teachers_commission['directive_num']}</p><p>
+
+{$teachers_commission['html1']}
+
+
+</p><p class="western" style="margin-bottom: 6px;  margin-top: 6px; line-height: 96%;"> {$protocol['protocol_p1']}:
+    <em>«{$course['name']}»</em>{if $protocol['is_hours_p']} в объеме {$course['hours']} {/if}{$protocol['protocol_p2']}</p>
+
+<p class="western">
+<br></p><p>
+{foreach from=$users_header item=cell name=users_header}
+		
+{/foreach}
+
+{foreach from=$users item=row name=users}
+    
+    {foreach from=$row item=cell name=users_cell}
+	    
+    {/foreach}
+    
+{/foreach}
+</p><table width="100%" cellpadding="2" cellspacing="0">
+<tbody><tr><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; font-size:8pt;">№ <br><nobr>п/п</nobr></th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;">{$cell}</th></tr><tr><td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;"><nobr>{$smarty.foreach.users.iteration}.</nobr></td><td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; ">{$cell}</td></tr></tbody></table>
+<p class="western" style="margin-top: 15px;">
+<br></p><p>
+
+{$teachers_commission['html2']}
+
+
+
+{if strlen($protocol['protocol_p3']) &gt; 0 }
+</p><p class="western"> {$protocol['protocol_p3']} </p><p>
+{/if}
+
+{if $print_v=="false"} 
+</p><div style="position: relative; top: 0px; left: 0px;">        
+<div style="position: absolute; top: -125px; left: 75px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top"></div>
+</div><p>
+{/if}
+</p>

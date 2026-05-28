@@ -1,0 +1,38 @@
+
+.text-right {text-align: right}
+header {min-height: 115px;display: flex;align-items: center;}
+section#title {min-height: 156px;display: flex;align-items: center;background: linear-gradient(90.33deg, #1B94F4 19.66%, #295C98 90.89%);}
+section#title h1 {font-family: 'Oswald', sans-serif;font-weight: 700;font-size: 30px;line-height: 41px;text-transform: uppercase;}
+section#title p {font-family:  'Helvetica', 'Arial', sans-serif;font-style: normal;font-weight: 400;font-size: 16px;line-height: 21px;}
+section#title * {color:#fff}
+
+footer {min-height: 156px;display: flex;align-items: center; background: #333333;}
+footer p.name {font-family: 'Oswald', sans-serif;font-weight: 700;font-size: 15px;line-height: 20px;}
+footer p {font-family:  'Helvetica', 'Arial', sans-serif;font-style: normal;font-weight: 400;font-size: 14px;line-height: 19px;text-transform: uppercase;}
+footer  * {color:#fff;}
+
+div#app {min-height: calc(100vh - 427px); padding-bottom: 2rem}
+.btn {border-radius: 23px;}
+.btn-gray {height: 44px;    border: 2px solid rgba(85, 85, 85, 0.6);    font-family: 'Oswald';    font-weight: 700;    font-size: 15px;    line-height: 28px;
+    text-align: center;    text-transform: uppercase;    color: rgba(85, 85, 85, 0.6);    padding: 5px 48px;}
+
+#app button {border-radius: 23px;height: 46px; height: 46px;  padding: 0 28px;border: none;   font-weight: 400;   font-size: 18px;}
+#app button:hover {opacity: 0.8;}
+#app button.green { background: #22cd2f;  color: #fff;  margin-right: 1rem; }
+#app button.blue {background: linear-gradient(102.3deg, rgba(0, 92, 170, 0.85) 8.97%, #292E99 119.38%);color: #fff; }
+#app button.red {background: red;  color: #fff; margin-right: 1rem;}
+#app button.add {color: #fff; font-size: 24px;  background: #39bd30; border-radius: 20px;padding: 0px 11px 3px; height: auto;}
+#app button.new, a.new {background: #b3dfb6; color: green;border-radius: 23px;height: 46px; line-height: 46px;  padding: 0 28px;border: none;   font-weight: 400;   font-size: 18px; display: inline-block; text-decoration: none;}
+span.num {font-family: 'Oswald', sans-serif;}
+
+#app h3 {font-family: 'Oswald', sans-serif;font-weight: 700;font-size: 26px;line-height: 41px;text-transform: uppercase;    margin: 2rem;}
+
+ul.list-ul {padding-left: 0px;}
+ul.list-ul li {list-style: none;padding: 10px 0; border-top: 1px solid #dbdbdb; border-right: 1px solid #dbdbdb; border-left: 1px solid #dbdbdb; padding-left: 1rem}
+ul.list-ul li:last-child {border-bottom:1px solid #dbdbdb;}
+ul.list-ul li a {font-weight: bold;font-size: 18px;}
+
+.os {font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: normal;margin-bottom: 0.6rem;  display: inline-block;}
+
+.table tr td {padding: 7px 0;}
+.table th {font-family: 'Oswald', sans-serif;  background: #f3f3f3;  height: 42px;}

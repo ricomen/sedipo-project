@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.0cm; margin-right: 1.0cm; margin-top: 1.0cm; margin-bottom: 1.0cm; size: A5 portrait;  }
+	p { margin-bottom: 0.25cm; font-family: "DejaVu Serif";  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 9pt; line-height: 99%; text-align: justify; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.right { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: right; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: center; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 14pt; text-align: center; margin-top: 3.5cm; margin-bottom: 3.5cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.2cm; margin-bottom: 0.2cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	td, th { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+    .header,
+	.footer {
+    	width: 100%;
+    	text-align: center;
+    	position: fixed;
+	}
+	.header {
+	    top: -75px;
+		text-align: left;
+	}
+	.footer {
+	    bottom: -20px;
+	}
+	.pagenum:before {
+	    content: counter(page);
+	}
+    .logo { display: inline-block; padding-left:20px; width:50px; height:50px; position: absolute; margin-top:12px;margin-right:10px;}
+	.text { display: inline-block; vertical-align: top; width: 100%; font-family: "Roboto", sans-serif; font-weight: 300; font-size: 10pt; line-height:95%; text-align: center; margin-left:0px; margin-top:30px; position: relative;}
+
+    </style>
+	<title>Справка ДПО </title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+	<div class="header">
+	
+		<div class="text">{$self_data['shortname']}</div>
+		<hr style="border-width:1px; margin-top: 20px;">
+	</div>
+	<div class="logo" style="margin-top:-65px; ;"><img src="https://{$smarty.server.SERVER_NAME}/images/logo.png" width="50" height="50"></div>
+	<div class="footer">
+		<span class="pagenum"></span>
+	</div>
+
+
+{foreach from=$users item=cell name=users}
+
+    <h1 class="western" style="text-transform:uppercase; page-break-before: avoid;">{$self_data['name']}
+       </h1>
+
+
+       <table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid;">
+        <tr valign="top">
+    
+    
+            <td   style="border: none; padding: 0mm 1.91mm"><p class="table" >
+                <p class="table" > 450083, Россия, Республика</p>
+                <p class="table" > Башкортостан, город Уфа, ул. 50 лет СССР, дом 2,</p>
+                <p class="table" > помещение 3.</p>		
+                <p class="table" > От  №<br/></p>
+                <p class="table" ><br/></p>
+                <p class="table" ><br/></p>
+                <p class="table" ><br/></p>
+            </td>
+            <td  style="border: none; padding: 0mm 1.91mm"><p class="table" >
+                <p class="table" > E-mail: ipo@ipo5.ru  </p>
+                <p class="table" > тел. +7 (347) 201-79-80, 8-919-612-84-48</p>
+            </td>
+    
+        </tr>
+    </table>
+
+<h1 class="western" style="text-transform:uppercase; page-break-before: avoid;">СПРАВКА
+   </h1>
+
+<table width="100%" border="1" cellpadding="7" cellspacing="0" style="page-break-before: avoid;"><tr style="page-break-before: avoid;"><td colspan="2"><b>Группа №</b> {$group['name']}</td></tr><tr style="page-break-before: avoid;"><td><b>Курс:</b></td><td>{$group['course_name']}</td></tr><tr style="page-break-before: avoid;"><td><b>Преподаватель:</b></td><td> {$group['main_teacher']}</td></tr></table>
+
+<br />
+                                                                       
+<p class="right" style="page-break-before: avoid;">Начало обучения: {$group['date_begin']|date_format:"%02e.%m.%Y"}</p>
+
+<p class="right" style="page-break-before: avoid;">Окончание обучения: {$group['date_protocol']|date_format:"%02e.%m.%Y"}</p>
+
+ 
+<h3  style="page-break-before: always;"  class="western" >Дана {$cell['lastname']} {$cell['firstname']} {$cell['middlename']}</h3> 
+
+<p class="right" style="page-break-before: avoid;">
+    В том, что он (а) действительно обучается (обучался) по  дополнительной профессиональной программе повышения квалификации (профессиональной подготовки) {$group['course_name']}
+</p>
+<p class="left" style="page-break-before: avoid;">Сроки обучения
+    с {$group['date_begin']|date_format:"%02e.%m.%Y"} по  {$group['date_protocol']|date_format:"%02e.%m.%Y"}</p>
+<table width="100%" cellpadding="2" cellspacing="0">
+    <tr style="page-break-before: avoid;" ><td colspan="2"><nobr>Директор ООО «ИПО»:</nobr></td><td>_________________  </td><td colspan="2">{$self_data['enterprise_manager3']} </td></tr>
+    <tr style="page-break-before: avoid;"><td colspan="2"></td><td><span style="font-size: 8px; padding-left: 30px;">(подпись)</span></td><td colspan="2"><span style="font-size: 8px; padding-left: 30px;">(Ф.И.О)</span></td></tr>
+    </table>
+
+
+{/foreach}
+
+<p class="western" ><span style="margin-right:25px;"> </span>Настоящий журнал предназначен для учета пройденного учебного материала и освоения его слушателями группы.</p>
+<p class="western" ><span style="margin-right:25px;"> </span>Данные журнала являются основанием для начисления заработной платы преподавателям и делопроизводителю.</p>
+<p class="western" ><span style="margin-right:25px;"> </span>Журнал хранится в течение одного года после окончания обучения группы.</p>
+<p class="western" ><span style="margin-right:25px;"> </span>Заполнение всех данных в журнале обязательно. Ответственность за ведение и хранение журнала возлагается на учебную часть ООО «ИПО». Специалист учебной части перед началом занятий заносит сведения об учащихся группы из приказа о начале обучения в раздел «Учет подготовки слушателей». </p>
+<p class="western" ><span style="margin-right:25px;"> </span>Расписание учебной группы составляется в соответствии с программой обучения и утверждается директором ООО «ИПО».</p>
+<p class="western" ><span style="margin-right:25px;"> </span>В процессе подготовки преподаватель заполняет графы «Дата занятий / оценка» раздела «Учет подготовки слушателей».</p>
+<p class="western" ><span style="margin-right:25px;"> </span>Внесение изменений, в состав обучающихся производится учебной частью. При исключении слушателя из состава группы учебной частью делается пометка в разделе «Учет подготовки слушателей» об исключении слушателя из состава группы усвоения слушателями учебного материала с указанием даты и причины исключения и заверяется подписью начальника учебной части.</p>
+<p class="western" ><span style="margin-right:25px;"> </span>Выбор методов, способов и видов проведения занятий, а также проверки усвоения слушателями учебного материала производится преподавателем. </p>
+<p class="western" ><span style="margin-right:25px;"> </span>После проведения итоговой аттестации/ проверки знаний составляется приказ о выпуске группы с указанием списка слушателей, успешно закончивших обучение.</p>
+<p class="western" ><span style="margin-right:25px;"> </span>Содержание изучаемых тем теоретических и практических занятий раскрыты в учебной программе.</p>
+
+
+<!--
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	ПРИКАЗ
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+-->
+<h2 class="western" style="page-break-before: always;">ПРИКАЗ</h2>
+
+<table width="100%"><tr><td style="font-size: 12pt;"><p class="western" > №{$group['name']} </p></td> <td width="10%" style="font-size: 12pt; text-align: right;"><p class="western"  style="text-align: right;"> {$group['date_begin']|date_format:"%02e.%m.%Y"}</p></td></tr></table>        
+<br \>     
+<p class="western" style="page-break-before: avoid;">О комплектовании группы №{$group['name']}<br \><br \>
+</p>
+<p class="western" style="page-break-before: avoid;">
+    На основании договора о предоставлении платных образовательных услуг
+    
+    <br />
+    <br />
+</p>    
+<p class="western" style="text-align:center; page-break-before: avoid;">ПРИКАЗЫВАЮ:</p> 
+    
+
+
+<ol style="page-break-before: avoid;">
+    <li>
+        В соответствии с утвержденным расписанием начать учебные занятия группы с {$group['date_begin']|date_format:"%02e.%m.%Y"} по курсу: {$group['course_name']} форма обучения – {$group['form_of_study']}; нормативный срок освоения программы – {$group['hours']}  ч.
+    </li>
+    <li>
+        Закрепленный за группой преподаватель: {$group['main_teacher']}
+    </li>
+    <li>
+            В состав группы включить следующих слушателей:
+            <br />
+            <br />
+            <table width="100%" cellpadding="2" cellspacing="0">
+            <tr><th  width="5%" style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >№ <br /><nobr>п/п</nobr></th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" > Фамилия </th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" > Имя </th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" > Отчество </th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" > Должность </th></tr>
+            {foreach from=$users item=cell name=users}
+            <tr>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$smarty.foreach.users.iteration}.</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['lastname']}</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['firstname']}</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['middlename']}</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['position']}</td>
+            </tr>
+            {/foreach}
+            <tr style="page-break-before: avoid;" ><td colspan="2"><nobr>Директор ООО «ИПО»:</nobr></td><td>_________________  </td><td colspan="2">{$self_data['enterprise_manager3']} </td></tr>
+            <tr style="page-break-before: avoid;"><td colspan="2"></td><td><span style="font-size: 8px; padding-left: 30px;">(подпись)</span></td><td colspan="2"><span style="font-size: 8px; padding-left: 30px;">(Ф.И.О)</span></td></tr>
+            </table>
+    </li>
+
+
+</ol >
+
+
+
+
+<p class="right"  style="page-break-before: always;"> УТВЕРЖДАЮ</p>
+<p class="right" style="page-break-before: avoid;"> Директор ООО «ИПО»</p>
+<p class="right" style="page-break-before: avoid;"> _______________  {$self_data['enterprise_manager3']}</p>
+<p class="right" style="page-break-before: avoid;"> {$group['date_begin']|date_format:"%02e.%m.%Y"}</p>
+
+
+<p class="center" style="page-break-before: avoid;"><b>РАСПИСАНИЕ</b></p>
+<p class="center" style="page-break-before: avoid;"><b>учебной группы № {$group['name']},</b></p>
+<p class="center" style="page-break-before: avoid;"><b>по программе «{$group['course_name']}»</b></p>
+<p class="left" style="page-break-before: avoid;">Нормативный срок освоения  – {$group['hours']} ч.,</p>
+<p class="left" style="page-break-before: avoid;">Период обучения
+ с {$group['date_begin']|date_format:"%02e.%m.%Y"} по  {$group['date_protocol']|date_format:"%02e.%m.%Y"}</p>
+<p class="left" style="page-break-before: avoid;">Занятия с 9.00-18.00 (по 45 минут, 15 минут перемена, с 13.00-14.00 обед)</p>
+<br/>
+
+<table width="100%" border="1" cellpadding="7" cellspacing="0" style="page-break-before: avoid;">
+<tr "><th>Дата</th><th></th><th>Тема занятий и учебные вопросы</th><th>Кол-во часов</th><th>Преподаватель </th></tr>
+{foreach from=$calendar item=row}
+    <tr "><td>{$row['date']|date_format:"%02e.%m.%Y"}</td><td>{$row['topic']}</td><td>{$row['name']}</td><td align="center">{$row['hours']}</td><td>{$group['main_teacher']}</td></tr>
+{/foreach}
+</table>
+
+
+
+<!--
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	УЧЕТ ПОДГОТОВКИ СЛУШАТЕЛЕЙ
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+	ПРИКАЗ О ВЫПУСКЕ
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+-->
+
+
+
+<h2 class="western" style="page-break-before: always;">ПРИКАЗ</h2>
+
+<table width="100%" style="page-break-before: avoid;"><tr><td style="font-size: 12pt;"><p class="western" style="page-break-before: avoid;"> №{$group['name']} </p></td> <td width="10%" style="font-size: 12pt; text-align: right;"><p class="western"  style="text-align: right;"> {$group['date_protocol']|date_format:"%02e.%m.%Y"}</p></td></tr></table>        
+      
+        <p class="western">О выпуске группы №{$group['name']}<br \><br \>
+        </p>
+<p class="western" style="page-break-before: avoid;">
+    В связи с окончанием обучения по программе &laquo;{$group['course_name']}&raquo;
+    
+    <br />
+
+</p>    
+<p class="western" style="text-align:center; page-break-before: avoid;">ПРИКАЗЫВАЮ:</p> 
+    
+
+<ol style="page-break-before: avoid;">
+    <li>
+
+            Нижеперечисленных слушателей допустить к итоговой аттестации: 
+            <br />
+            <br />
+            <table width="100%" cellpadding="2" cellspacing="0">
+            <tr><th  width="5%" style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >№ <br /><nobr>п/п</nobr></th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" > Фамилия </th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" > Имя </th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" > Отчество </th><th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" > Должность </th></tr>
+            {foreach from=$users item=cell name=users}
+            <tr>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$smarty.foreach.users.iteration}.</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['lastname']}</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['firstname']}</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['middlename']}</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['position']}</td>
+            </tr>
+            {/foreach}
+
+            </table>
+    </li>
+    <li>
+            Аттестационной комиссии провести итоговую аттестацию {$group['date_protocol']|date_format:"%02e.%m.%Y"} и выдать документ об окончании обучения.
+    </li>
+
+</ol>
+<table  cellpadding="2" cellspacing="0" style="page-break-before: avoid;">
+<tr><td><nobr>Директор ООО «ИПО»:</nobr></td><td>_________________  </td><td>{$self_data['enterprise_manager3']} </td></tr>
+<tr><td></td><td><span style="font-size: 8px; padding-left: 30px;">(подпись)</span></td><td><span style="font-size: 8px; padding-left: 30px;">(Ф.И.О)</span></td></tr>
+</table>
+
+</body>
+</html>

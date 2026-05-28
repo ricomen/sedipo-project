@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.4cm; margin-right: 0.9cm; margin-top: 2cm; margin-bottom: 1.5cm; size: A4 portrait;}
+	p { margin-bottom: 0.25cm; direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western {  font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0; margin-bottom: 0.1cm; text-indent:40px; line-height:1;}
+	p.westernli {  font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0.1cm; margin-bottom: 0.1cm; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; line-height: 90%; margin-top: 0cm; margin-bottom: 0.2cm; margin-left: 1cm; margin-right: 1cm }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center; margin-bottom: 0; }
+	li.western { font-family: "DejaVu Serif", serif; font-weight:bold; font-size: 10pt; text-align: center; margin-left:-40px;}
+	li.westernnormal { font-family: "DejaVu Serif", serif; font-weight:normal; font-size: 10pt; text-align: justify; margin-left:-40px;}
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.2cm; margin-bottom: 0.2cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm; text-indent:20px; }
+	td, th { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+    
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+	ol {
+    list-style: none;
+    counter-reset: li;
+    }
+    li:before {
+    counter-increment: li;
+    content: counters(li,".") ". ";
+    }
+	.header,
+	.footer {
+    	width: 100%;
+    	text-align: center;
+    	position: fixed;
+	}
+	.header {
+	    top: -75px;
+		text-align: left;
+	}
+	.footer {
+	    bottom: -20px;
+	}
+	.pagenum:before {
+	    content: counter(page);
+	}
+	.logo { display: inline-block; padding-left:20px; width:50px; height:50px; position: absolute; margin-top:12px;margin-right:10px;}
+	.text { display: inline-block; vertical-align: top; width: 100%; font-family: "Roboto", sans-serif; font-weight: 300; font-size: 10pt; line-height:95%; text-align: center; margin-left:0px; margin-top:30px; position: relative;}
+
+	</style>
+	<title>Карта партнера</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+
+	<div class="header">
+	
+		<div class="text">{$self_data['shortname']}</div>
+		<hr style="border-width:1px; margin-top: 20px;">
+	</div>
+	<div class="logo" style="margin-top:-65px; ;"><img src="https://{$smarty.server.SERVER_NAME}/images/logo.png" width="50" height="50"></div>
+	<div class="footer">
+		<span class="pagenum">.</span>
+	</div>
+
+
+<h1 class="western">Карта партнера {$order_data['name']}</h1>
+
+
+
+
+
+<table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid;">
+	<tr valign="top">
+
+		<td  width="49%" style="border: none; padding: 0mm 1.91mm"><p class="table" >
+            <p class="table" >Контрагент:</p>
+			<p class="table" >Полное название {$order_data['name']}  </p>
+			<p class="table" >Сокращённое название {$order_data['shortname']}  </p>
+			<p class="table" >Адрес  {$order_data['addres1']} </p>
+			<p class="table" >ИНН: {$order_data['inn']}</p>
+			<p class="table" >КПП: {$order_data['kpp']}</p>
+			<p class="table" >Расчетный счет: {$order_data['checking_account']}</p>
+			<p class="table" > {$order_data['bank']} </p>
+			<p class="table" >БИК: {$order_data['bik']}</p>
+			<p class="table" >ОГРН: {$order_data['ogrn']}</p>
+			<p class="table" ><br/></p>
+			<p class="table" ><br/></p>
+			<p class="table" ><br/></p>
+			<p class="table" style="margin-top: 23px;"><br/></p>
+			<p class="table" > {$order_data['position_head']}</p>
+			<p class="table" > {$order_data['enterprise_manager3']}</p>
+		</td>
+
+	</tr>
+
+</table>
+
+
+</body>
+</html>

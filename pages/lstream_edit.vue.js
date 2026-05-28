@@ -1,0 +1,314 @@
+var LstreamEdit = {
+  data: function () {
+    return {
+      info: [],
+      info2: [],
+      info6: [],
+      a_lstream_id: 0,
+      message: '',
+      lstream_id: 0,
+      name: '',
+      date_begin: '',
+      date_end: '',
+      date_protocol: '',
+      //status: 0,
+      main_teacher: '',
+      main_teacher_id: '',
+      course_id: '',
+      course_name: '',
+      course_shortname: '',
+      category: 0,
+      moodle_cohort_id: '',
+      list_length: 0,
+      commission_id: '',
+      order_id: 0,
+      //a_counterparty_id: 0,
+      //counterparty_name: '',
+      days: 0,
+      date_protocol: '',
+      lstream_protocol: '',
+      directive_num: '',
+     }
+   },
+
+   mounted() {
+    this.lstream_id = Number(this.$route.params.lstreamid)
+    this.order_id  = Number(this.$route.params.orderid)
+    //this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+    if(this.order_id>0)
+          this.a_lstream_id = session_navigation.lstream_lstream_id
+
+    if(this.lstream_id > 0){
+	axios
+    		.post(JsonApiURL+'api/lstream_json.php', {object: {objectId: this.lstream_id, sessionId: session_t.sessionId } })
+                .then(response => { 
+        	    this.info = response.data
+        	    this.status = this.info.result.status
+                    this.name = this.info.result.name
+                    this.date_begin = this.info.result.date_begin
+                    this.date_end = this.info.result.date_end
+                    this.date_protocol = this.info.result.date_protocol
+        	    this.main_teacher = this.info.result.main_teacher
+        	    this.main_teacher_id = this.info.result.main_teacher_id
+                    this.category = this.info.result.category
+            	    this.course_id = this.info.result.course_id
+            	    this.course_name = this.info.result.course_name
+            	    this.course_shortname = this.info.result.course_shortname
+                    this.moodle_cohort_id = this.info.result.moodle_cohort_id
+                    this.directive_num = this.info.result.directive_num
+                    this.commission_id = this.info.result.commission_id
+                    //this.counterparty_name = this.info.result.counterparty_name
+                
+     		    /*if( this.date_end!='' && this.date_begin2==''){
+		            var currentDate = new Date(this.date_end)
+		            currentDate.setDate(currentDate.getDate() - this.days )
+		            this.date_begin2 = currentDate.toLocaleDateString('en-CA')
+                    }*/
+                    if(this.course_id >0 && (this.main_teacher=='' || this.main_teacher_id<=0) ) {
+                        //conditions =  {"course_id": this.course_id}
+
+                        axios
+                        .post(JsonApiURL+'api/teacher2_json.php', {search: {course_id: this.course_id, limit: 25, sessionId: session_t.sessionId }})
+                        .then(response => { 
+                           this.info2 = response.data
+
+                           console.log(response)
+                         })
+                         .catch(error => {
+                             console.log(error.response)
+                        });
+                    }
+
+
+
+    	    })
+    	    .catch(error => {
+        	  console.log(error.response)
+            })
+    }
+
+
+    axios
+      .post(JsonApiURL+'api/teachers_commission_json.php', {list: { sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info6 = response.data
+       })
+      .catch(error => {
+              console.log(error.response)
+       })
+
+  },
+
+
+  methods: {
+        lstreamSave () {
+         if(this.lstream_id > 0){
+           axios
+            .post(JsonApiURL+'api/lstream_json.php', {update: {objectId: this.lstream_id,  main_teacher: this.main_teacher_id, commission_id: this.commission_id, directive_num: this.directive_num,  sessionId: session_t.sessionId } })
+            .then(response => {
+              console.log(response)
+              if(response.data.status==0) {
+                  if(this.order_id < 0) 
+                      this.$router.push({ name: 'calendar' } ) 
+                  else
+                      this.$router.push({ name: 'lstream_list', params: {orderid: this.order_id, lstreamid: this.a_lstream_id }} ) 
+              }
+              else {
+                    this.message = response.data.error
+              }
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+         }
+
+        },
+
+
+
+    search2(index){
+       this.main_teacher = this.info2.list[index].lastname + ' ' + this.info2.list[index].firstname + ' ' + this.info2.list[index].middlename
+       this.main_teacher_id = this.info2.list[index].user_id
+       this.info2.list = []
+    },
+
+
+    load_combo(){
+      if(this.main_teacher!=''){
+
+       axios
+	    //.post(JsonApiURL+'api/teacher_json.php', {list: {search: this.main_teacher, limit: 15,   sessionId: session_t.sessionId } })
+             .post(JsonApiURL+'api/teacher2_json.php', {search: {course_id:  this.course_id, search: this.main_teacher, limit: 25, sessionId: session_t.sessionId }})
+             .then(response2 => { 
+               this.info2 = response2.data
+              console.log(response2)
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+      }
+      else {
+          this.info2.list = []
+      }
+    },
+
+
+
+
+  },
+
+
+
+template: `<div><navigation></navigation>
+    <h4>Учебный поток: {{name}}</h4> 
+    <!--v-if="role!='counterparty' "-->
+    <h4 style="text-align: right;" > {{counterparty_name}} </h4>
+
+<div align="left">
+
+  <div class="mb-2">	
+    <h5> {{course_name}}</h5>
+
+  <br />
+  <!--<div class="row">
+   <div class="mb-2 col-4">	
+    <label for="input_date" class="form-label">Дата начала обучения</label>
+      <input v-model="date_begin"  class="form-control" id="input_date"  type="date"   @input="onChangeDateBegin()">
+   </div>
+   <div class="mb-4 col"> </div>
+   <div class="mb-2 col-4">	
+    <label for="input_date_end" class="form-label">Дата завершения</label>
+      <input v-model="date_end"  class="form-control" id="input_date_end"  type="date"   @input="onChangeDateEnd()" >
+   </div>
+   <div class="mb-4 col"> </div>
+  </div>
+
+  <div class="row">
+   <div class="mb-2 col-4">	
+      <label v-if="lstream_id==0" for="input_date" class="form-label form-control-sm">-</label>
+      <input v-if="lstream_id==0" v-model="date_begin2"  class="form-control" id="input_date"  type="date"  >
+   </div>
+   <div class="mb-4 col"> </div>
+   <div class="mb-2 col-4">	
+    <br /><label for="input_date_protocol" class="form-label">Дата оформления протокола</label>
+      <input v-model="date_protocol"  class="form-control" id="input_date_protocol"  type="date" >
+   </div>
+   <div class="mb-4 col"> </div>
+  </div>-->
+
+
+  <div class="row">
+   <div class="mb-4 col-6">	
+    <label for="input_main_teacher" class="form-label">Преподаватель</label>
+      <div class ="container">
+        <input  v-model="main_teacher"   class="form-control" id="input_main_teacher"  type="text" @input="load_combo()">
+		<ul class ="list-group" id ="listItem" style="text-align: left;">
+			<li  v-for="(item, index) in info2.list" class ="list-group-item" @click="search2(index)" > {{item.lastname}} {{item.firstname}} {{item.middlename}}</li>
+		</ul>
+      </div>
+   </div>
+   <div class="mb-4 col"> </div>
+  </div>
+ 
+
+  <div class="mb-2">
+      <label for="input_directive" class="form-label col-sm-3">Абзац протокола / Номер приказа</label>
+      <input v-model="directive_num"   class="form-control col" id="input_directive" type="text" />
+  </div>
+  <p style="color:#777;" ><i> * Заполняется при небходимости </i></p> 
+
+
+
+ <!--<div class="row">
+    <div class="mb-4 col">	
+      <label for="input_finalexamination" class="form-label ">Итоговая аттестация по умолчанию</label>
+      <input v-model="finalexamination"   class="form-control" id="input_finalexamination"   type="text"  >
+    </div>
+    <div class="mb-4 col"> </div>
+ </div>
+
+ <div class="row">
+    <div class="mb-4 col">	
+      <label for="input_certificate_grade" class="form-label ">Оценка в поле № выданного удостоверения</label>
+      <input v-model="certificate_grade"   class="form-control" id="input_certificate_grade"   type="text"  >
+  </div>
+    <div class="mb-4 col"> </div>
+ </div>-->
+ 
+
+  <div v-else class="row">
+    <p>Дата начала обучения:  {{new Date(this.date_begin).toLocaleDateString("ru")}}
+    <p>Дата окончания обучения: {{new Date(this.date_end).toLocaleDateString("ru")}}
+  </div>
+
+  <hr />
+
+  <div class="row">
+   <div class="mb-2 col-4">	
+      <label for="input_date_protocol" class="form-label">Дата оформления протокола</label>
+      <input v-model="date_protocol"  class="form-control" id="input_date_protocol"  type="date" >
+   </div>
+   <div class="mb-2 col-1"> </div>
+   <div class="mb-2 col-4">
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="checkbox" id="inlineCheckboxPotocol" v-model="lstream_protocol">
+      <label class="form-check-label" for="inlineCheckboxPotocol"> сформировать протокол для потока </label>&nbsp;&nbsp;
+    </div>
+    <br />
+    <span v-if="lstream_protocol">
+     <label for="input_custom_number_protocol" class="form-label">Номер протокола для потока</label>
+      <div class="input-group">
+        <input v-model="custom_number_protocol"  class="form-control" id="input_custom_protocol_number"  > <span class="input-group-text" title="Заполняется при необходимости ввести номер протокола для потока"> <i class="fa-regular fa-circle-question"></i> </span>
+      </div>
+    </span>
+   </div>
+   </div>
+   <div class="mb-2 col"> </div>
+  </div>
+
+
+  <div class="row">
+   <div class="mb-4 col-8">
+      <label for="input_commission" class="form-label">Состав комиссии</label>
+      <div class="mb-2 col">
+      	<select  v-model="commission_id"  id="input_commission" class="form-select" aria-label="template">
+	        <option value="0"> -  Состав комиссии - </option>
+                <option v-for="item2 in info6.list" :value="item2.commission_id">
+	            {{item2.name.substring(0, 100)}}
+	        </option>
+	    </select>
+      </div>
+     <div class="mb-4 col"> </div>
+  </div>
+
+
+
+ <!-- <div class="row">
+   <div class="mb-4 col-10">	
+    <label for="input_cohort" class="form-label">Глобальная группа</label>
+      <input v-if="moodle_cohort_id==0"  v-model="cohort_name"  class="form-control" id="input_cohort" >
+      <input v-if="moodle_cohort_id>0"   v-model="cohort_name"  class="form-control" id="input_cohort" readonly >
+   </div>
+   <div class="mb-4 col"> </div>
+  </div>
+ -->
+
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+    <button  class="btn btn-primary"    @click="lstreamSave()"> Сохранить </button>
+    &nbsp<router-link v-if="order_id<0" :to="{ name: 'calendar' }" > <button  class="btn btn-outline-primary">Отмена</button></router-link>
+          <router-link v-else :to="{ name: 'lstream_list', params: {orderid: this.order_id, lstreamid: this.a_lstream_id } }" > <button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </div>
+  </div>
+ </div>
+
+ </div>
+
+	</div>`
+
+};
+
+
+
+

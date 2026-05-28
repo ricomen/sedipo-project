@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<style type="text/css">
+		@page { size: 210.01mm 297mm; style="padding-left: 0; margin-left: 5.01mm;  margin-right: 5.01mm; margin-top: 5.01mm; margin-bottom: 5.01mm }
+	p {  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify;  margin-bottom: 4px;  margin-top: 4px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center;  margin-bottom: 4px;  margin-top: 4px; }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 13pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	td { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left }
+	</style>
+</head>
+<body lang="ru-RU" text="#000000" link="#0066cc" vlink="#800000" dir="ltr">
+
+	<table dir="ltr" align="left" width="100%"  cellpadding="7" cellspacing="7">
+
+		<tr valign="top">
+			<td  width="48%"  >
+                <p class="western"  style="margin-bottom: 15px;  margin-top: 15px;" ><img src="https://{$smarty.server.SERVER_NAME}/documents/certificate_1.png" width="200px"></p>
+                <h2 class="western"  style="margin-bottom: 5px;  margin-top: 95px;" ><b>СВИДЕТЕЛЬСТВО</b></h2>
+                <p class="center"  style="margin-bottom: 15px;  margin-top: 5px;" >о профессиональном обучении</p>
+
+                <p class="western"  style="margin-bottom: 15px;  margin-top: 155px; font-size: 4.5pt;  " >
+                    Лицензия на осуществление образовательной деятельности Управления по контролю и надзору <br />в сфере образования Республики Башкортостан серия Л035-01198-02/00962026 от 12.12.2023 г.
+                </p>
+			</td>
+
+			<td   width="4%"> </td>
+
+			<td   width="48%">
+<table width="100%" border="0">
+<tr  >
+    <td  valign="top">
+        <p class="western" style="font-size: 9pt;"  >ФИО:</p>
+    </td>
+    <td>
+        <b>{$user['lastname']}<br />
+        {$user['firstname']}<br />
+        {$user['middlename']}</b>
+    </td>
+</tr>    
+<tr>
+    <td colspan="2">
+        <p class="western" style=" margin-bottom: 15px;  margin-top: 15px; font-size: 9pt;" >Он (а) обучался (ась) в {$self_data['shortname']}</p>
+    </td>
+</tr>    
+<tr>
+    <td  valign="top">
+        <p class="western" >Профессия:</p>
+    </td>
+    <td>
+        <p class="western"  style="font-size: 9pt;" ><b>{$cert['name']}</b></p>
+    </td>
+</tr>  
+<tr>
+    <td  valign="top">
+        <p class="western" style="margin-right: 4px; font-size: 9pt;" >Квалификация:</p>
+    </td>
+    <td>
+        <p class="western"  style="font-size: 9pt;" ><b>{$cert['rank_of_profession']}</b></p>
+    </td>
+</tr>  
+
+<tr>
+    <td valign="top">
+        <p class="western"  style="font-size: 9pt;" >Протокол:</p>
+    </td>
+    <td>
+        <p class="western"  style="font-size: 9pt;" >№ {$cert['protocol_num']} от {$cert['date_protocol']|date_format:"%02e.%m.%Y"}</p>
+    </td>
+</tr>    
+<tr valign="bottom">
+    <td  valign="top">
+        <p class="western" style="margin-bottom: 5x;  margin-top: 25px; font-size: 9pt;" >Председатель  аттестационной<br/>комиссии:</p>
+    </td>
+    <td>
+        <p class="western" style="margin-bottom: 5x;  margin-top: 5px; font-size: 9pt;" ><nobr>___________{$cert['chairman']}</nobr></p>
+    </td>
+</tr>    
+<tr>
+    <td  valign="top">
+        <p class="western" style="font-size: 9pt;" >М.П.</p>
+    </td>
+    <td>
+
+{if $print_v=="false"} 
+<div style="position: relative; top: 0px; right: 0px;">        
+<!--<div style="position: absolute; top: -120px; right: 110px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/podpis.png" width="70px" align="top" ></div>-->
+<div style="position: absolute; top: -110px; right: 120px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+</div>
+{/if}
+
+
+    </td>
+</tr>
+
+<tr>
+    <td colspan="2">
+        <p class="center" style=" margin-bottom: 4px;  margin-top: 10px; "font-size: 9pt; " > <b>Регистрационный №  {$user['certificate_num']}</b></p>
+        <p class="center" style=" margin-bottom: 4px;  margin-top: 4px; "font-size: 9pt; " > г. Уфа </p>
+    </td>
+</tr>    
+
+</table>
+
+
+			</td>
+		</tr>
+	</table><br/>
+
+
+
+</body>
+</html>

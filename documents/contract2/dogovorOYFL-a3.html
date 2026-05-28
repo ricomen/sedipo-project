@@ -1,0 +1,308 @@
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p {  direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; line-height:1;  margin-top: 4px; margin-bottom: 4px; }
+        p.western li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; line-height:1; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cm; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+	<title>Согласие на обработку персональных данных</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+{$per=0}
+{$users1=[]}
+
+{foreach from=$courses item=row name=course}    
+
+{foreach from=$row['users'] item=row2 name=user}
+
+
+{if !in_array($row2,$users1) }
+{$users1[] = $row2}
+{/if}
+
+
+
+{/foreach}
+{/foreach}
+
+{foreach from=$users item=row2 name=user}
+<table width="100%" cellpadding="7" cellspacing="0" style=" {if $per!=0}page-break-before: always;{/if}">
+        {$per=1}
+        <tr>
+            <td width="40%">
+                
+            </td>
+            <td>
+                <p class="western" style="text-align: left; text-indent:0px ;">
+                    На имя {$self_data['position_head2']} {$self_data['shortname']}<br />
+                    {$self_data['enterprise_manager2']}<br />
+                    
+                    {if $row2['lastname'] != ''}
+                    Фамилия, имя, отчество: <u>{$row2['lastname']} {$row2['firstname']} {$row2['middlename']}</u><br />
+                    {else}
+                    Фамилия, имя, отчество:_____________________________
+                    __________________________________________________<br />
+                    {/if}
+                    {if $row2['date_of_birth']!=''}
+                    Дата рождения: <u>{$row2['date_of_birth']|date_format:"%02e.%m.%Y"}</u><br />
+                    {else}
+                    Дата рождения: _____________________________________<br />
+                    {/if}
+                    {if $row2['address']!=''}
+                    Адрес проживания: <u>{$row2['address']}</u><br />
+                    {else}
+                    Адрес проживания: _________________________________
+                    ______________________________________________________<br />
+                    {/if}
+                    Документ удостоверяющий личность: <u>паспорт</u><br />
+                    {if $row2['pasport_series']!=''}
+                    серия <u>{$row2['pasport_series']}</u> № <u>{$row2['pasport_number']}</u><br />
+                    {else}
+                    серия _________ № ________________<br />
+                    {/if}
+                    {if $row2['pasport_unit']!=''}
+                    кем и когда выдан: <u>{$row2['pasport_unit']}</u><br />
+                    {else}
+                    кем и когда выдан: __________________________________________
+                    ______________________________________________________<br />
+                    {/if}
+                    {if $row2['pasport_unit_number']!=''}
+                    код подразделения: <u>{$row2['pasport_unit_number']}</u><br />
+                    {else}
+                    код подразделения: ________________________________________<br />
+                    {/if}
+                    {if $row2['snils']!=''}
+                    СНИЛС: <u>{$row2['snils']}</u><br />
+                    {else}
+                    СНИЛС: _____________________________________________<br />
+                    {/if}
+                    {if $row2['phone']!=''}
+                    Контактный телефон: <u>{$row2['phone']}</u><br />
+                    {else}
+                    Контактный телефон: ______________________________<br />
+                    {/if}
+                    {if $row2['email']!=''}
+                    E-mail: <u>{$row2['email']}</u>                  
+                    {else}
+                    E-mail: ______________________________________________
+                    {/if}
+                </p>
+                
+            </td>
+        </tr>
+</table>
+
+<h1 class="western" style="text-align:center;  margin-bottom: 0;"><b>ЗАЯВЛЕНИЕ
+    </b></h1>
+
+<p class="western" >
+ 
+        <span style="margin-left: 20px;">&nbsp;</span>Согласно договору {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%02e.%m.%Y"} на оказание услуг, прошу организовать обучение по программам профессионального обучения и (или) дополнительного образования в {$center_data['name']} (ИНН {$center_data['inn']}, ОГРН {$center_data['ogrn']}, юридический адрес: {$center_data['addres1']}) (далее – {$center_data['shortname']}).
+    Ознакомлен с Уставом, лицензией на осуществление образовательной деятельности, «Правилами приема обучающихся», с программами обучения, с учебной документацией, другими документами, регламентирующими процесс и осуществление образовательной деятельности организации {$center_data['shortname']}.
+    Ознакомлен с Правилами оказания платных образовательных услуг (Утв. Постановлением Правительства РФ от 15.09.2020 № 1441). 
+
+
+</p>
+        <table width="100%" >
+            <tr>
+                <td width="30%" style="border-bottom: 1px solid #000000; text-align: center;"></td>
+                <td style="border-bottom: 1px solid #000000; text-align: center;">{$row2['firstname']} {$row2['middlename']} {$row2['lastname']}</td>
+            </tr>
+            <tr>
+                <td style="font-size: 5pt; text-align: center;">(подпись)</td>
+                <td style="font-size: 5pt; text-align: center;">(ИО Фамилия)</td>
+            </tr>
+        </table>
+
+<table width="100%" cellpadding="7" cellspacing="0" style="page-break-before: always;">
+        <tr>
+            <td width="40%">
+                
+            </td>
+            <td>
+                <p class="western" style="text-align: left; text-indent:0px ;">
+                    На имя {$self_data['position_head2']} {$self_data['shortname']}<br />
+                    {$self_data['enterprise_manager2']}<br />
+                    
+                    {if $row2['lastname'] != ''}
+                    Фамилия, имя, отчество: <u>{$row2['lastname']} {$row2['firstname']} {$row2['middlename']}</u><br />
+                    {else}
+                    Фамилия, имя, отчество:_____________________________
+                    __________________________________________________<br />
+                    {/if}
+                    {if $row2['date_of_birth']!=''}
+                    Дата рождения: <u>{$row2['date_of_birth']|date_format:"%02e.%m.%Y"}</u><br />
+                    {else}
+                    Дата рождения: _____________________________________<br />
+                    {/if}
+                    {if $row2['address']!=''}
+                    Адрес проживания: <u>{$row2['address']}</u><br />
+                    {else}
+                    Адрес проживания: _________________________________
+                    ______________________________________________________<br />
+                    {/if}
+                    Документ удостоверяющий личность: <u>паспорт</u><br />
+                    {if $row2['pasport_series']!=''}
+                    серия <u>{$row2['pasport_series']}</u> № <u>{$row2['pasport_number']}</u><br />
+                    {else}
+                    серия _________ № ________________<br />
+                    {/if}
+                    {if $row2['pasport_unit']!=''}
+                    кем и когда выдан: <u>{$row2['pasport_unit']}</u><br />
+                    {else}
+                    кем и когда выдан: __________________________________________
+                    ______________________________________________________<br />
+                    {/if}
+                    {if $row2['pasport_unit_number']!=''}
+                    код подразделения: <u>{$row2['pasport_unit_number']}</u><br />
+                    {else}
+                    код подразделения: ________________________________________<br />
+                    {/if}
+                    {if $row2['snils']!=''}
+                    СНИЛС: <u>{$row2['snils']}</u><br />
+                    {else}
+                    СНИЛС: _____________________________________________<br />
+                    {/if}
+                    {if $row2['phone']!=''}
+                    Контактный телефон: <u>{$row2['phone']}</u><br />
+                    {else}
+                    Контактный телефон: ______________________________<br />
+                    {/if}
+                    {if $row2['email']!=''}
+                    E-mail: <u>{$row2['email']}</u>                  
+                    {else}
+                    E-mail: ______________________________________________
+                    {/if}
+                </p>
+                
+            </td>
+        </tr>
+</table>
+<h1 class="western" >
+    СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ
+</h1>
+
+<p class="western" >
+        <span style="margin-left: 20px;">&nbsp;</span>Во исполнение требований федерального закона № 152-ФЗ от 27.07.2006 «О персональных данных» даю добровольное согласие организации {$self_data['name']} (ИНН {$self_data['inn']}, ОГРН {$self_data['ogrn']}, юридический адрес: {$self_data['addres1']}) ( далее - {$self_data['shortname']}) на обработку своих персональных данных, включая сбор, систематизацию, накопление, хранение, уточнение (обновление, изменение), использование, передачу (распространение, предоставление, доступ), обезличивание, блокирование, уничтожение персональных данных, в соответствии с договором {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%02e.%m.%Y"}, на следующих условиях:
+</p>
+
+<p class="western" >
+        <span style="margin-left: 20px;">1.</span>{$self_data['shortname']} обязуется обрабатывать данные Субъекта только с целью защиты конституционных прав и законных интересов субъекта персональных данных; обеспечения права на получение дополнительного образования и профессионального обучения; заключения и исполнения договора оказания услуг по подбору образовательной организации, образовательных программ в области дополнительного образования и профессионального обучения; заключения и исполнения договора на оказание платных образовательных услуг с другими образовательными организациями; обмена информацией в рамках {$self_data['shortname']} при заключении и исполнении указанных договоров; формирования необходимой отчетности; представления информации, относящейся к персональным данным, по запросам третьих лиц, связанных с получением образования области дополнительного образования и профессионального обучения; обеспечения соблюдения законов и иных нормативных правовых актов РФ и в иных случаях, предусмотренных законодательством РФ.
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">2.</span>В перечень персональных данных Субъекта, обрабатываемых {$self_data['shortname']}, входят:
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>фамилия, имя, отчество (при наличии);
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>дата рождения (число, месяц, год);
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>адрес регистрации; 
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>реквизиты страхового свидетельства обязательного пенсионного страхования (СНИЛС);
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>номер контактного телефона, адрес электронной почты;
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>паспортные данные; 
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>сведения об образовании, о квалификации или наличии специальных знаний или специальной подготовки; 
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>должность; 
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>сведения о месте работы; 
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">-</span>сведения о форме обучения, программе.
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">3.</span>Субъект дает согласие {$self_data['shortname']}  на передачу персональных данных третьим лицам: {$center_data['shortname']} (ИНН {$center_data['inn']}, ОГРН {$center_data['ogrn']}, юридический адрес: {$center_data['addres1']}) (далее - {$center_data['shortname']})  в целях заключения и исполнения договора оказания услуг по подбору образовательной организации, образовательных программ в области дополнительного образования и профессионального обучения; заключения и исполнения договора на оказание платных образовательных услуг заключенного {$self_data['shortname']}  в интересах Субъекта. 
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">4.</span>Обработка персональных данных Субъекта производится как с использованием автоматизированных средств обработки персональных данных, так и без использования средств автоматизации. 
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">5.</span>Субъект персональных данных по письменному запросу имеет право на получение информации, касающейся обработки его персональных данных (в соответствии со ст. 14 Федерального закона от 27.07.2006 №152-ФЗ «О персональных данных»).
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">6.</span>Обработка персональных данных прекращается при достижении целей обработки.
+</p>
+<p class="western" >
+        <span style="margin-left: 20px;">7.</span>Настоящее согласие действует с даты его подписания и на весь период оказания услуг, а также в течение всего срока хранения учетной документации в соответствии с локальными нормативными актами {$self_data['shortname']}.
+</p>
+
+
+
+        
+        <p class="western"><span style="margin-left: 20px;">&nbsp;</span>Я информирован (-а) о том, что настоящее согласие может быть отозвано мной в письменной форме в любое время. В случае отзыва настоящего согласия до окончания срока его действия, я предупрежден (- а) о возможных последствиях прекращения обработки своих персональных данных.
+        </p>
+        <p class="western"><span style="margin-left: 20px;">&nbsp;</span>В случае получения моего письменного заявления об отзыве настоящего согласия <nobr>{$self_data['shortname']}</nobr> обязан прекратить обработку или обеспечить прекращение обработки персональных данных и уничтожить или обеспечить уничтожение персональных данных в срок, не превышающий 30 (тридцать) дней с даты поступления указанного отзыва. 
+        </p>
+        <p class="western"><span style="margin-left: 20px;">&nbsp;</span>В случае отзыва согласия на обработку персональных данных {$self_data['shortname']}  вправе продолжить обработку персональных данных без согласия при наличии оснований, указанных в пунктах 2—11 части 1 статьи 6 Федерального закона от 27 июля 2006 г. № 152-ФЗ «О персональных данных». 
+        </p>
+        <br />
+        <p class="western"><span style="margin-left: 20px;">&nbsp;</span>Подтверждаю, что ознакомлен (-а) с положениями Федерального закона от 27.07.2006 №152-ФЗ «О персональных данных» (с изменениями и дополнениями), настоящее согласие является конкретным, предметным, информированным, сознательным и однозначным, права и обязанности в области защиты персональных данных мне разъяснены.
+        </p>
+
+        <br />
+        <br />
+        
+        <table width="100%" >
+            <tr>
+                <td width="30%" style="border-bottom: 1px solid #000000; text-align: center;"></td>
+                <td style="border-bottom: 1px solid #000000; text-align: center;">{$row2['firstname']} {$row2['middlename']} {$row2['lastname']}</td>
+            </tr>
+            <tr>
+                <td style="font-size: 5pt; text-align: center;">(подпись)</td>
+                <td style="font-size: 5pt; text-align: center;">(ИО Фамилия)</td>
+            </tr>
+        </table>
+        
+        <p class="western" style="text-indent: 0px;">{$order_data['date_order']|date_format:"%02e.%m.%Y"}</p>
+
+
+{/foreach} 
+
+
+<!-- {foreach from=$courses item=row name=course}    
+<p class="western" style="text-indent: 0px;">1</p>
+{foreach from=$row['users'] item=row2 name=user}
+
+
+<p class="western" style="text-indent: 0px;">US1 {$row2['lastname']}</p>
+
+
+
+{/foreach}
+{/foreach}
+{foreach from=$users item=row2 name=user}
+
+<p class="western" style="text-indent: 0px;">US {$row2['lastname']}</p>
+
+
+
+{/foreach} -->
+
+</body>
+</html>

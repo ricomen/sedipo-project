@@ -1,0 +1,499 @@
+var SelfEdit = {
+  data: function () {
+    return {
+      role: '',
+      info: [],
+      info1: [],
+      info2: [],
+      info9: [],
+      message: '',
+      edition_id: '',
+      edition: '',
+      logo: '-',
+      name: '',
+      shortname: '',
+      email1: ' ',
+      phone1: ' ',
+      email_contact: ' ',
+      phone_contact: ' ',
+      inn: '',
+      kpp: '',
+      ogrn: '',
+      position_head: '',
+      enterprise_manager: '',
+      position_head2: '',
+      enterprise_manager2: '',
+      enterprise_manager_signs: '',
+      company_signs: '',
+      addres1: '',
+      addres2: '',
+      bank: '',
+      checking_account: '',
+      correspondent_account: '',
+      bik: '',
+      comment: '',
+      contact: '',
+      city: '',
+      max_id: 0,
+      entity: 1,
+      is_logo: 0,
+
+      logo_upload: '',
+      uploadfile1: '',
+      file1_name: '',
+      file1_type: '',
+      sign_upload: '',
+      uploadfile2: '',
+      file2_name: '',
+      file2_type: '',
+      company_sign_upload: '',
+      uploadfile3: '',
+      file3_name: '',
+      file3_type: '',
+
+     }
+   },
+
+   mounted() {
+//    updated() {
+    this.counterparty_id = 1
+    this.edition_id = Number(this.$route.params.editionid)
+    this.max_id = Number(this.$route.params.maxid)
+
+    var   object_id = 0
+        
+    if(this.edition_id > 0){
+        object_id = this.edition_id
+    }
+    else {
+        object_id = this.max_id
+    }
+
+    if(object_id > 0){
+      axios
+      .post(JsonApiURL+'api/self_json.php', {object: {objectId: object_id, sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+            this.edition = this.info.result.edition
+            this.name = this.info.result.name
+            this.shortname = this.info.result.shortname
+            //this.entity = this.info.result.entity
+            this.email1 = this.info.result.email
+            this.phone1 = this.info.result.phone
+            this.inn = this.info.result.inn
+            this.kpp = this.info.result.kpp
+            this.ogrn = this.info.result.ogrn
+            this.position_head = this.info.result.position_head
+            this.enterprise_manager = this.info.result.enterprise_manager
+            this.position_head2 = this.info.result.position_head2
+            this.enterprise_manager2 = this.info.result.enterprise_manager2
+            this.enterprise_manager_signs  = this.info.result.enterprise_manager_signs
+            this.company_signs  = this.info.result.company_signs
+            this.addres1 = this.info.result.addres1
+            this.addres2 = this.info.result.addres2
+            this.bank = this.info.result.bank
+            this.checking_account = this.info.result.checking_account
+            this.correspondent_account = this.info.result.correspondent_account
+            this.bik = this.info.result.bik
+            this.comment = this.info.result.comment
+            this.license = this.info.result.license
+            this.accreditation = this.info.result.accreditation
+            this.city = this.info.result.city
+
+            if(this.position_head2 == '')
+                    this.position_head2 = this.position_head
+            if(this.enterprise_manager2 == '')
+                    this.enterprise_manager2 = this.enterprise_manager
+
+            if(this.edition_id == 0)
+                    this.edition = ''
+       })
+      .catch(error => {
+              console.log(error.response)
+        }),
+
+
+      axios
+      .post(JsonApiURL+'api/self2_json.php', {is_logo: { sessionId: session_t.sessionId } })
+      .then(response => { 
+            this.info2 = response.data
+            this.is_logo = this.info2.result
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+
+
+    }
+
+  },
+
+
+  methods: {
+        objectSave(fl) {
+          if(this.edition_id >0 && this.edition !='' ){
+           axios
+                 .post(JsonApiURL+'api/self_json.php', {update: {objectId: this.edition_id,  edition: this.edition,  name: this.name,  shortname: this.shortname, type: this.c_type,  entity: this.entity,   email: this.email1,   phone: this.phone1,  addres1: this.addres1, addres2: this.addres2,  inn: this.inn, kpp: this.kpp, ogrn: this.ogrn,  bank: this.bank, position_head: this.position_head, enterprise_manager: this.enterprise_manager, position_head2: this.position_head2, enterprise_manager2: this.enterprise_manager2, enterprise_manager_signs: this.enterprise_manager_signs, company_signs: this.company_signs,  checking_account: this.checking_account, correspondent_account: this.correspondent_account,  bik: this.bik,  comment: this.comment, license: this.license, accreditation: this.accreditation, city: this.city,   sessionId: session_t.sessionId } })
+                 .then(response => {
+                    console.log(response)
+    	           //this.info9 = response.data
+                   this.uploadGo() 
+                   //this.$router.push({ name: "self_list" }) 
+            })
+            .catch(error => {
+                  console.log(error.response)
+            })
+        }
+        else {
+           alert('Не все обязательные поля заполнены')
+        }
+      },
+
+
+      objectCreate(fl) {
+	  
+	     if(this.edition_id ==0 && this.edition !='' ){
+		  axios
+            .post(JsonApiURL+'api/self_json.php', {insert: {  edition: this.edition,  name: this.name,  shortname: this.shortname, type: this.c_type,  entity: this.entity,   email: this.email1,   phone: this.phone1,  addres1: this.addres1, addres2: this.addres2,  inn: this.inn, kpp: this.kpp, ogrn: this.ogrn,  bank: this.bank, position_head: this.position_head, enterprise_manager: this.enterprise_manager, position_head2: this.position_head2, enterprise_manager2: this.enterprise_manager2, enterprise_manager_signs: this.enterprise_manager_signs, company_signs: this.company_signs, checking_account: this.checking_account, correspondent_account: this.correspondent_account,  bik: this.bik,  comment: this.comment, license: this.license, accreditation: this.accreditation, city: this.city,  sessionId: session_t.sessionId } })
+            .then(response => {
+              console.log(response)
+    	      //this.info9 = response.data
+              this.uploadGo() 
+              //this.$router.push({ name: "self_list" }) 
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+        }
+        else {
+           alert('Не все обяательные поля заполнены')
+        }
+     },
+
+     uploadGo() {
+            this.wait = 1;
+            var fl = false;
+            const formData = new FormData();
+            if(this.file1_type == 'image/png' || this.file1_type == 'image/jpeg' ||  this.file1_type == 'image/webp' ){
+                formData.append('upload1', this.uploadfile1)
+                formData.append('file1_name', this.file1_name)
+                fl = true
+            }
+            if(this.file2_type == 'image/png' || this.file2_type == 'image/jpeg' ||  this.file2_type == 'image/webp' ){
+                formData.append('upload2', this.uploadfile2)
+                formData.append('file2_name', this.file2_name)
+                fl = true
+            }
+            if(this.file3_type == 'image/png' || this.file3_type == 'image/jpeg' ||  this.file3_type == 'image/webp' ){
+                formData.append('upload3', this.uploadfile3)
+                formData.append('file3_name', this.file3_name)
+                fl = true
+            }
+
+            if(fl){
+                formData.append('edition_id', this.edition_id)
+                formData.append('sessionId', session_t.sessionId)
+
+                axios
+                    .post(JsonApiURL+'api/self_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+                    .then(response2 => {
+                      this.info9 = response2.data
+                      console.log(response2)
+                      this.wait = 0;
+                      this.$router.push({ name: "self_list" }) 
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+            }
+            else {
+              this.$router.push({ name: "self_list" }) 
+            }
+     },
+
+
+     handleLogoUpload() {
+            this.uploadfile1 = document.getElementById('upload_logo').files[0];
+            this.file1_name = this.uploadfile1.name;
+            this.file1_type = this.uploadfile1.type;
+     },
+
+     handleSignsUpload() {
+            this.uploadfile2 = document.getElementById('upload_company_sign').files[0];
+            this.file2_name = this.uploadfile2.name;
+            this.file2_type = this.uploadfile2.type;
+     },
+
+     handleManagerUpload() {
+            this.uploadfile3 = document.getElementById('upload_enterprise_manager_signs').files[0];
+            this.file3_name = this.uploadfile3.name;
+            this.file3_type = this.uploadfile3.type;
+     },
+
+
+  },
+
+
+
+	template: `<div><navigation></navigation><h3>Редактирование реквизитов</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+<div align="left">
+<div class="container">
+  
+  <br /> 
+  <div v-if="role=='admin' && counterparty_id!=1"   class="mb-2 row">
+  <label for="input_type" class="form-label col-sm-2">Роль</label>
+  <select  v-model="c_type"  class="form-select col" id="input_type" >
+    <option value="0">Заказчик</option>
+    <option value="1">Учебный центр</option>
+  </select>
+    <div class="col-2">  </div>
+  <label for="input_entity" class="form-label col-sm-3" style="text-align: center;" >Хозяйствующий субъект</label>
+  <select  v-model="entity"  class="form-select col" id="input_entity" >
+    <option value="0"> </option>
+    <option value="1">Предприятие</option>
+    <option value="2">Индивидуальный предприниматель</option>
+    <!--<option value="3">Частное лицо</option>-->
+  </select>
+  </div>
+  <br />
+
+  <div class="mb-2 row">
+  <label for="input_edition" class="form-label col-sm-2">Дата обновления</label>
+    <input v-model="edition"   class="form-control col" id="input_edition"   type="date"  >
+    <div class="col-2" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+    <div class="col-6" style="color: red">  </div>
+  </div>
+  <hr />
+
+
+  <div class="mb-2 row">	
+     <label for="upload_logo" class="form-label col-sm-2" > Логотип </label>
+     <div class="col-2"><span v-if="is_logo>0" style="color: green;">&nbsp<i class="fa-solid fa-check"></i></span></div>
+     <input v-model="logo_upload"  class="form-control col" id="upload_logo"    type="file"     @change="handleLogoUpload()" >
+  </div>
+  
+
+  <div class="mb-2 row">
+  <label for="input_shortname" class="form-label col-sm-2">Краткое название</label>
+    <input v-model="shortname"   class="form-control col" id="input_shortname"   type="text"  >
+    <div class="col-2" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+  </div>
+
+
+  <div class="mb-2 row">	
+  <label for="input_name" class="form-label col-sm-2">Полное название</label>
+    <input v-model="name"   class="form-control col" id="input_name"   type="text"  >
+    <div class="col-1" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+  </div>
+
+
+
+<!--  <div class="mb-2">	
+      <label for="input_login" class="form-label">login</label>
+      <input v-model="login"   class="form-control" id="input_login"   type="text"  >
+  </div>  <hr />-->
+
+
+
+   <div class="mb-2 row">
+   <label for="input_inn" class="form-label col-sm-2">ИНН</label>
+     <input v-model="inn"   class="form-control col" id="input_inn"   type="text"  >
+     <div class="col" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+   </div>
+
+
+   <div class="mb-2 row">
+   <label for="input_kpp" class="form-label col-sm-2">КПП</label>
+     <input v-model="kpp"   class="form-control col" id="input_kpp"   type="text"  >
+     <div class="col"> </div>
+   </div>
+
+
+   <div class="mb-2 row">
+   <label for="input_ogrn" class="form-label col-sm-2"><span v-if="entity==2">ОГРНИП</span><span v-else>ОГРН</span></label>
+     <input v-model="ogrn"   class="form-control col" id="input_ogrn"   type="text"  >
+     <div class="col"> </div>
+   </div>
+
+  <div class="mb-2 row">
+  <label for="input_addres1" class="form-label col-sm-2">Юридический адрес</label>
+    <textarea v-model="addres1"   class="form-control col" id="input_addres1" ></textarea>
+  </div>
+
+  <div class="mb-2 row">
+  <label for="input_addres2" class="form-label col-sm-2">Фактический адрес</label>
+    <textarea v-model="addres2"   class="form-control col" id="input_addres2" ></textarea>
+  </div>
+
+
+  <div class="mb-2 row">
+  <label for="input_city" class="form-label col-sm-2">Населённый пункт</label>
+    <textarea v-model="city"   class="form-control col" id="input_city" ></textarea>
+  </div>
+
+  <div class="mb-2 row">	
+    <label for="input_email1" class="form-label col-sm-2">Официальный email</label>
+    <input v-model="email1"  class="form-control col" id="input_email1"    type="text"  >
+    <div class="col-4" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+  </div>
+  
+
+  <div class="mb-2 row">
+  <label for="input_phone1" class="form-label col-sm-2"> Телефон</label>
+    <input v-model="phone1"   class="form-control col" id="input_phone1"   type="text"  >
+    <div class="col-4">  </div>
+  </div>
+
+ <hr />
+
+  <div class="mb-2 row">
+  <label for="input_bank" class="form-label col-sm-1">Банк</label>
+    <textarea v-model="bank"   class="form-control col" id="input_bank"  ></textarea>
+  </div>
+
+  <div class="mb-2 row">
+  <label for="input_rs" class="form-label col-sm-1">Р/c</label>
+    <input v-model="checking_account"   class="form-control col" id="input_rs"   type="text"  >
+    <div class="col-2">  </div>
+  </div>
+
+  <div class="mb-2 row">
+  <label for="input_ks" class="form-label col-sm-1">К/c</label>
+    <input v-model="correspondent_account"   class="form-control col" id="input_ks"   type="text"  >
+    <div class="col-2">  </div>
+  </div>
+
+  <div class="mb-2 row">
+  <label for="input_bik" class="form-label col-sm-1">БИК</label>
+    <input v-model="bik"   class="form-control col" id="input_bik"   type="text"  >
+    <div class="col-2">  </div>
+  </div>
+
+ <span v-if="entity==1">
+  <hr />
+
+  <div class="mb-2 row">
+  <label for="input_enterprise_manager" class="form-label col-sm-3"></label>
+    <div class="col"><b>В именительном падеже</b></div>
+    <div class="col"><b>В родительном падеже</b></div>
+  </div>
+
+  <div class="mb-2 row">
+  <label for="input_position_head" class="form-label col-sm-3">Должность руководителя</label>
+    <input v-model="position_head"   class="form-control col" id="input_position_head"   type="text"  >
+     <div class="col"><input v-model="position_head2"   class="form-control col" id="input_position_head2"   type="text"  ></div>
+  </div>
+
+
+  <div class="mb-2 row">
+  <label for="input_enterprise_manager" class="form-label col-sm-3">Руководитель</label>
+    <input v-model="enterprise_manager"   class="form-control col" id="input_enterprise_manager"   type="text"  >
+     <div class="col"><input v-model="enterprise_manager2"   class="form-control col" id="input_enterprise_manager2"   type="text"  ></div>
+  </div>
+ </span>
+
+
+
+ <table width="100%" border="0">
+ <tr v-for="(item, index) in n">
+  <td style="padding: 5px 7px 5px 0px;" width="30%"><span v-if="item==0"><nobr><b>Председатель комиссии</b></nobr><br /></span><span v-if="item==1"><nobr><b>Члены комиссии</b></nobr><br /></span>
+        <input v-model="fullname[index]"   class="form-control"  id="input_fullname_index"   type="text" placeholder="Фамилия И.О." ></td>
+ <td style="padding: 5px 7px 5px 7px;" valign="bottom" width="30%"><input v-model="job_title[index]"   class="form-control"  id="input_job_title_index"   type="text"  placeholder="Должность"></td>
+  <td style="padding: 5px 0px 5px 7px;" valign="bottom"><input v-model="sign[index]"   class="form-control"  id="input_job_title_sign"   type="text"  placeholder="Файл скана подписи"></td>
+  <td style="padding: 5px 0px 5px 7px;" valign="bottom"><span v-if="item==0"><nobr><b><i>Файл скана подписи</i></b></nobr><br /></span><input v-model="sign_upload[index]"   class="form-control"  :id="'input_file_sign'+index" @change="handleUpload(index)"   type="file"  placeholder="Файл скана подписи"></td>
+<!--  :ref="el => { if (el) divs[index] = el }" -->
+ </tr>
+</table>
+
+
+ <div class="mb-2 row">
+      <label for="upload_enterprise_manager_signs" class="form-label  col-sm-3"> Скан подписи директора </label>
+      <input v-model="enterprise_manager_signs"   class="form-control col"  id="input_enterprise_manager_signs"   type="text"  placeholder="Файл скана подписи">
+      <input v-model="sign_upload"   class="form-control col"  id="upload_enterprise_manager_signs" @change="handleManagerUpload()"   type="file"  placeholder="Файл скана подписи">
+  </div>
+ 
+ <br />
+ <div class="mb-2 row">
+      <label for="upload_company_sign" class="form-label  col-sm-3"> Скан печати организации </label>
+      <input v-model="company_signs"   class="form-control col" id="input_company_signs"   type="text"  placeholder="Файл скана печати" >
+      <input v-model="company_sign_upload"   class="form-control col"  id="upload_company_sign" @change="handleSignsUpload()"   type="file"  placeholder="Файл скана печати">
+  </div>
+
+
+  <hr />
+  <div class="mb-2 row">
+  <label for="input_license" class="form-label col-sm-2">Лицензия</label>
+    <input v-model="license"   class="form-control col" id="input_license"   type="text"  >
+    <div class="col-2">  </div>
+  </div>
+
+  <div class="mb-1 row">
+  <label for="input_accreditation" class="form-label col-sm-2">Аккредитация</label>
+    <input v-model="accreditation"   class="form-control col" id="input_accreditation"   type="text"  >
+    <div class="col-2">  </div>
+  </div>
+
+
+ <sapan v-if="counterparty_id!=1">  
+  <hr />
+  <div class="mb-2 row">
+  <label for="input_contact" class="form-label col-sm-3">Контактное лицо</label>
+    <input v-model="contact"   class="form-control col" id="contact"   type="text"  >
+     <div class="col-1"></div>
+  </div>
+
+  <div class="mb-2 row">	
+    <label for="input_contact_email" class="form-label col-sm-3"> Email</label>
+    <input v-model="email_contact"  class="form-control col" id="input_contact_email"    type="text"  >
+     <div class="col-4"></div>
+  </div>
+
+  <div class="mb-2 row">
+  <label for="input_phone_contact" class="form-label col-sm-3"> Телефон</label>
+    <input v-model="phone_contact"   class="form-control col" id="input_phone_contact"   type="text"  >
+     <div class="col-4"></div>
+  </div>
+  </sapan>
+  
+ <sapan v-if="role == 'admin'  && counterparty_id!=1">  
+  <hr />
+  <div class="mb-2 row">	
+  <label for="input_comment" class="form-label col-sm-2">Комментарий</label>
+    <textarea v-model="comment"   class="form-control col" id="input_comment" ></textarea>
+  </div>
+ </sapan> 
+
+
+  <br />
+</sapan> 
+
+
+
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+    <button v-if="edition_id>0"   class="btn btn-primary"    @click="objectSave(0)"> Сохранить </button>
+    
+    <button v-if="edition_id==0"  class="btn btn-success"    @click="objectCreate(0)"> Создать период </button>
+      
+      &nbsp&nbsp<router-link   to="/self_list" ><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </div>
+  </div>
+ </div>
+
+
+
+
+</div>
+	</div>`
+
+};
+
+
+
+

@@ -1,0 +1,144 @@
+var Login = {
+  data: function () {
+    return {
+      title: '',
+      sessionId: '',
+      info: '',
+      login: '',
+      key: '',
+      password: '',
+      message: '',
+      BrowserTitle: BrowserTitle,
+      AuthTitle: AuthTitle,
+      LoginLogoImg: LoginLogoImg,
+      inputType: "password",
+      seePassword: false,
+      currentYear: 0,
+     }
+   },
+
+
+   mounted() {
+    this.key = this.$route.params.key
+
+    var key = '' 
+    if(this.key!== null  ){
+          key = this.key 
+
+          axios
+             .post(JsonApiURL+'api/auth_json.php', {auth: {login: '', password: '', sessionId: key}}, {withCredentials: true})
+             .then(response => { 
+                this.info = response.data
+                if(this.info.status==0){
+                   session_t.role = this.info.result.role
+	           window.location.href = '/'
+                }
+                else {
+                    this.message = 'Неправильный Логин или Пароль'
+                }
+             })
+            .catch(error => {
+                  console.log(error.response)
+              })
+
+    }
+    window.scrollTo(0, 0)
+    this.currentYear = new Date().getFullYear();
+  },
+
+
+  methods: {
+	a_login() {
+
+      axios
+        //.post(JsonApiURL+'api/auth_json.php', {auth: {login: this.login, password: this.password, sessionId: this.sessionId}}, {withCredentials: true})
+        .post(JsonApiURL+'api/auth_json.php', {auth: {login: this.login, password: this.password, sessionId: ''}}, {withCredentials: true})
+        .then(response => { 
+            this.info = response.data
+	    //session_t.sessionId = this.info.sessionId
+            if(this.info.status==0){
+	        session_t.role = this.info.result.role
+	        window.location.href = '/'
+            }
+            else {
+                this.message = 'Неправильный Логин или Пароль'
+            }
+         })
+        .catch(error => {
+              console.log(error.response)
+            })
+
+      },
+
+      togglePassword() {
+        if(this.inputType === 'text') this.inputType = 'password'
+        else this.inputType = 'text';
+        this.seePassword = !this.seePassword;
+      }
+
+   },
+
+	template: `<div>
+  <!--<div class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5" style="background-color: #ededee;">
+    <br/><h3>{{title}}</h3> 
+  </div>-->
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
++{{key}}+
+{{key}}
+
+<p><br /></p>
+<section class="vh-100">
+  <div class="container-fluid h-custom">
+    <div class="row d-flex justify-content-center align-items-center">
+      <div class="col-md-9 col-lg-6 col-xl-5">
+        <img :src="LoginLogoImg" width="160"
+          class="img-fluid" alt="image">
+      </div>
+      <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+
+	  <br/><br/>    
+          <div class="form-outline mb-4">
+            <label class="form-label" for="formLogin" >Логин</label>
+            <input  v-model="login"   type="text" id="formLogin" class="form-control" placeholder="Логин" />
+          </div>
+
+          <div class="form-outline mb-3 passwordBox">
+            <label class="form-label" for="formPassword">Пароль</label>
+            <div class="input-group">
+              <input  v-model="password" :type="inputType" id="formPassword" class="form-control"  placeholder="Пароль" />
+              <span  v-if="!seePassword"  class="input-group-text text-secondary"  @click="togglePassword" ><i class="fa fa-eye " ></i></span>
+              <span  v-if="seePassword"  class="input-group-text  text-secondary"  @click="togglePassword"><i class="fa fa-eye-slash"></i></span>
+            </div>
+          </div>
+
+
+          <div class="text-center text-lg-start mt-4 pt-2">
+            <button  @click="a_login()"  type="button" class="btn  custom-btn"      style="padding-left: 2.5rem; padding-right: 2.5rem;"> Войти </button>
+          </div>
+	  <br />
+
+      </div>
+    </div>
+  </div>
+  <p><br /><br /></p>
+  <div    class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-3 px-3 px-xl-4 bg-dark">
+    <div class="text-white mb-3 mb-md-0">
+      Copyright © 2024-{{ currentYear }} {{BrowserTitle}}
+    </div>
+
+    <div>
+      <a href="https://sedipo.ru" class="text-white me-4">
+        sedipo.ru
+      </a>
+  </div>
+</section>
+
+	</div>`
+
+};
+
+
+
+

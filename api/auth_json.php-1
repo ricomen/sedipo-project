@@ -1,0 +1,324 @@
+<?php
+/**
+ * @copyright 2022
+ */
+
+
+//$session_id = session_id();
+
+require_once '../../config/config-auth.php';
+$dbhost = $cfg_auth->host;
+$dbuser = $cfg_auth->user;
+$dbpassword = $cfg_auth->password;
+$dbname = $cfg_auth->name;
+
+
+try {  
+    $dbh = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+
+//$api_function = '';
+//$api_arg = [];
+
+$_JSON =  json_decode(file_get_contents('php://input'), true);
+foreach ($_JSON as $key => $value) {
+    $api_function = $key;
+    $api_arg = $value;
+    break; 
+}
+
+//$api_function='users_list';
+
+
+
+
+
+function auth( $login, $password,  $arg) {
+    global $api_arg,  $dbh;
+    global $php_sessionid, $sessionId;
+
+	$stmt = $dbh->query('DELETE  FROM `a_session`  WHERE `time_session`<now() - INTERVAL 1 DAY ');
+
+        if($arg!=''){
+              $stmt = $dbh->prepare('SELECT  `a_account`.`account_id`,  `a_customer`.`customer_id`, `a_customer`.`name`  as `customer_name`, `prefix`, `redirect`, `token`, `root`    FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`)  LEFT JOIN  `a_role` USING(`role_id`)  LEFT JOIN `a_customer` USING(`customer_id`)   WHERE  `token`=?');
+              $stmt->execute([$arg]);
+        }
+        else {
+              $stmt = $dbh->prepare('SELECT  `a_account`.`account_id`,  `a_customer`.`customer_id`, `a_customer`.`name`  as `customer_name`, `prefix`, `redirect`, `token`, `root`    FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`)  LEFT JOIN  `a_role` USING(`role_id`)  LEFT JOIN `a_customer` USING(`customer_id`)   WHERE `login`=? AND `password`=? ');
+              $stmt->execute([$login,  md5($password) ]);
+        }
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	    $rc = [ "role_id"=>intval($row->role_id), "customer_id"=>intval($row->customer_id), "customer_name"=>$row->customer_name, "prefix"=>$row->prefix, "redirect"=>$row->redirect, "token"=>$row->token,  "root"=>$row->root ];
+	    $result = ["status"=>0, "error"=>'',   "action"=>"auth",  "role"=>'auth', "result"=>$rc  ];
+	    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+	    return;
+	}
+
+	$stmt = $dbh->prepare('SELECT `a_account`.`account_id`,  `a_customer`.`customer_id`, `a_customer`.`name`  as `customer_name`, `prefix`, `root`   FROM `a_account`  LEFT JOIN  `a_role` USING(`role_id`)  LEFT JOIN `a_customer` USING(`customer_id`) WHERE `login`=? AND `password`=? ');
+        $stmt->execute([$login,  md5($password)]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	    //$token  = md5("$row->account_id" . time() ); 
+            $token  = sha1($php_sessionid, false);
+
+            $stmt2 = $dbh->prepare('DELETE  FROM `a_session`  WHERE  `session_id`=? OR  `token`=? ');
+            $stmt2->execute( [$php_sessionid, $token] );
+
+    	    $stmt2 = $dbh->prepare('INSERT INTO `a_session`(`session_id`, `token`, `account_id`  ) VALUES ( ?, ?, ? )');
+            $stmt2->execute( [$php_sessionid, $token, intval($row->account_id) ] );
+
+	    $rc = [ "role_id"=>intval($row->role_id), "customer_id"=>intval($row->customer_id), "customer_name"=>$row->customer_name, "prefix"=>$row->prefix, "redirect"=>$row->redirect, "token"=>$token, "root"=>$row->root  ];
+	    $result = ["status"=>0, "error"=>'',   "action"=>"auth",  "role"=>'auth', "result"=>$rc  ];
+	    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+	    return;
+	}
+
+	$result = ["status"=>1, "error"=>'not found',  "role"=>'auth', "action"=>"auth", "result"=>["token"=>'']   ];
+	echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+function is_auth( $arg ) {
+    global $api_arg,   $dbh;
+    global $php_sessionid, $sessionId;
+
+	$stmt = $dbh->query('DELETE  FROM `a_session`  WHERE `time_session`<now() - INTERVAL 1 DAY ');
+
+        $stmt = $dbh->prepare('SELECT `login`, `role`, `a_account`.`account_id`,  `a_customer`.`customer_id`, `a_customer`.`name`  as `customer_name`, `prefix`, `session_id`, `token`,  `root`,     `role_name`, `accountedit`, `self_list`, `rolelist`, `accountslist`, `set_template_contract`, `validity_period_counterparty_list`, `course_category_list`, `courses_list`, `teachers_commission_list`, `teacher_list`, `template_list`, `counterparty_list`, `students_list`, `orders_analytics`, `orders_table`, `stat_report`, `groups_list`, `lstream_list`, `calendar`, `eisot_import`, `orders_list`, `orders_list_buh`  FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`)  LEFT JOIN  `a_role` USING(`role_id`)  LEFT JOIN `a_customer` USING(`customer_id`)   WHERE `token`=? ');
+        $stmt->execute([$arg]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	    $stmt2 = $dbh->prepare('UPDATE `a_session` SET  `time_session`=now() WHERE `token`=? ');
+            $stmt2->execute([$row->token]);
+
+        $privileges = [
+          //"role_name"=>$row->role_name,
+          "accountedit"=>$row->accountedit,
+          "self_list"=>$row->self_list,
+          "rolelist"=>$row->rolelist,
+          "accountslist"=>$row->accountslist,
+          "set_template_contract"=>$row->set_template_contract,
+          "validity_period_counterparty_list"=>$row->validity_period_counterparty_list,
+          "course_category_list"=>$row->course_category_list,
+          "courses_list"=>$row->courses_list,
+          "teachers_commission_list"=>$row->teachers_commission_list,
+          "teacher_list"=>$row->teacher_list,
+          "template_list"=>$row->template_list,
+          "counterparty_list"=>$row->counterparty_list,
+          "students_list"=>$row->students_list,
+          "orders_analytics"=>$row->orders_analytics,
+          "orders_table"=>$row->orders_table,
+          "stat_report"=>$row->stat_report,
+          "groups_list"=>$row->groups_list,
+          "lstream_list"=>$row->lstream_list,
+          "calendar"=>$row->calendar,
+          "eisot_import"=>$row->eisot_import,
+          "orders_list"=>$row->orders_list,
+          "orders_list_buh"=>$row->orders_list_buh
+         ];
+
+            $rc = [ "role"=>$row->role_name, "role_id"=>$row->role_id, "login"=>$row->login, "account_id"=>$row->account_id, "customer_id"=>intval($row->customer_id), "customer_name"=>$row->customer_name, "prefix"=>$row->prefi, "token"=>$row->token,  "root"=>$row->root, "privileges"=>$privileges  ];
+            $result = ["status"=>0, "error"=>'',   "action"=>"auth",  "role"=>'auth', "result"=>$rc  ];
+            echo json_encode($result, JSON_UNESCAPED_UNICODE);
+	    return;
+	}
+
+	$result = ["role"=>$session_role,   "status"=>1, "error"=>'not found',   "action"=>"auth", "result"=>[]  ];
+	echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+function logout( $arg ) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+	$stmt = $dbh->query('DELETE  FROM `a_session`  WHERE `time_session`<now() - INTERVAL 1 DAY ');
+
+	$stmt = $dbh->prepare('DELETE  FROM `a_session`   WHERE `token`=? ');
+        $stmt->execute([$arg]);
+	$result = ["status"=>0, "error"=>'',   "action"=>"logout", "sessionId"=>'', "role"=>'', "role_id"=>0, "login"=>'' ];
+	echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+function update_mascotSession( $arg ) {
+    global $api_arg, $dbh;
+        $stmt = $dbh->prepare('UPDATE `a_session` SET  `mascotHome`=1 WHERE `token`=? ');
+        $stmt->execute([$arg]);
+        return;
+}
+
+function update_password($account_id,  $password0, $password1, $password2) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+
+    //if($account_id>0 && $password0!='' &&  $password1!='' &&  $password2!='' && $password1 ==  $password2 ) {
+    if($account_id>0 &&   $password1!='' &&  $password2!='' && $password1 ==  $password2 ) {
+	$old_password = '';
+	$stmt = $dbh->prepare('SELECT  `account_id`, `password`  FROM `a_account`   WHERE `account_id`=?');
+	$stmt->execute([$account_id ]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	    $old_password = $row->password;
+	}
+	if( $old_password == md5($password0) || $old_password == '' ){
+    	    $stmt2 = $dbh->prepare('UPDATE `a_account` SET  `password`=?  WHERE `account_id`=?');
+    	    $stmt2->execute([ md5($password1), $account_id ]);
+	}
+    }
+
+    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"update_password",  "result"=>$account_id ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+function accounts_list() {
+    global $api_arg,   $dbh;
+
+
+    $p_list = [];
+    $stmt = $dbh->prepare('SELECT `account_id`, `login`, `role`, `role_id`, `fullname`  FROM `a_account`  ORDER BY `login`');
+    $stmt->execute();
+    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $p_list[] =  ["accountId"=>$row->account_id,  "login"=>$row->login,  "role"=>$row->role,  "role_id"=>$row->role_id,  "fullname"=>$row->fullname  ];
+    }
+    $result = ["role"=>$session_role, "action"=>"accounts_list",  "list"=>$p_list ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+function account_detalies($arg_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+
+    $rc =  ["account_id"=>0, "login"=>'', "email"=>'',  "fullname"=>'',  "role"=>'', "role_id"=>0  ];
+    if($arg_id >0 ) {
+	$stmt = $dbh->prepare('SELECT  `account_id`,  `email`, `login`, `role`, `role_id`, `fullname`  FROM `a_account`   WHERE `account_id`=?');
+	$stmt->execute([$arg_id]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	    $rc =  ["account_id"=>$row->account_id, "login"=>$row->login, "email"=>$row->email,  "fullname"=>$row->fullname,  "role"=>$row->role,  "role_id"=>$row->role_id  ];
+	}
+    }
+    $result = ["role"=>$session_role, "action"=>"organization_detalies", "userId"=>$user_id_session, "accountInfo"=>$rc ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+function account_save($account_id, $fullname, $login,  $email, $password0, $password1, $password2) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+
+    $rc =  ["account_id"=>0  ];
+    if($account_id >0 ) {
+        $stmt = $dbh->prepare('UPDATE `a_account` SET  `fullname`=?, `login`=?,  `email`=?  WHERE `account_id`=?');
+        $stmt->execute([$fullname, $login,  $email, $account_id ]);
+        $p_arg_id = $account_id; 
+    }
+    else {
+        $stmt = $dbh->prepare('INSERT INTO `a_account`(`fullname`, `login`,  `email`, `password`, `role`, `role_id`) VALUES ( ?, ?, ?, ?, ?, ?)');
+	$stmt->execute([$fullname, $login,  $email, $password1, '']);
+	$p_arg_id = $dbh->lastInsertId(); 
+    }
+
+    if($account_id>0 && $password0!='' &&  $password1!='' &&  $password2!='' && $password1 ==  $password2 ) {
+	$old_password = '';
+	$stmt = $dbh->prepare('SELECT  `account_id`, `password`  FROM `a_account`   WHERE `account_id`=?');
+	$stmt->execute([$account_id ]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	    $old_password = $row->password;
+	}
+	if( $old_password == $password0 ){
+    	    $stmt2 = $dbh->prepare('UPDATE `a_account` SET  `password`=?  WHERE `account_id`=?');
+    	    $stmt2->execute([$account_id ]);
+	}
+    }
+
+    $rc =  ["account_id"=>$p_arg_id  ];
+    $rc2 =  ["objectId"=>$p_arg_id  ];
+    $result = ["status"=>"0", "error"=>'', "role"=>$session_role, "action"=>"organization_save", "userId"=>$user_id_session, "accountInfo"=>$rc, "result"=>$rc2 ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+function account_del($arg_id) {
+    global $api_arg, $user_id_session, $session_role, $customer, $dbh;
+
+    $status = "0";
+    $error = '';
+
+    if($arg_id >0) {
+	$stmt = $dbh->prepare('DELETE FROM `a_organizations`  WHERE `organization_id`=?');
+	$stmt->execute([$arg_id]);
+
+	if(!$stmt) {
+            $status = "4";
+	    $error = 'error 2: '. $dbh->errorInfo()[2];
+	}
+    }
+
+    $result = ["status"=>$status, "error"=>$error, "role"=>$session_role, "action"=>"organization_del", "customerId"=>$customer, "userId"=>$user_id_session];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+function info() {
+    global $api_arg, $user_id_session, $session_role, $customer, $dbh;
+
+    $result = ["role"=>$session_role, "status"=>"0", "error"=>'',  "action"=>"info",  "result"=>'' ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+$session_account_id = -1;
+$session_role = '';
+$stmt = $dbh->prepare('SELECT `login`, `role`, `role_id`, `a_account`.`account_id`, `counterparty_id`  FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`)  WHERE `token`=? ');
+$stmt->execute([ $api_arg['sessionId'] ]);
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+     $session_counterparty_id = $row->counterparty_id;
+     $session_account_id = $row->account_id;
+     $session_role = $row->role;
+}
+$php_sessionid = str_replace("'\'\\\n\r ", '', $_COOKIE['PHPSESSID'] );
+$sessionId = $api_arg["sessionId"];
+
+if($api_function=='auth'){
+    auth(strip_tags($api_arg["login"]), strip_tags($api_arg["password"]), str_replace("'\'\\\n\r ", '', $api_arg["sessionId"]));
+}
+else if($api_function=='is_auth'){
+    is_auth(str_replace("'\'\\\n\r ", '', $api_arg["sessionId"]) );
+}
+else if($api_function=='logout'){
+    logout($api_arg["sessionId"] );
+}
+else if($api_function=='update_password'){
+    update_password(intval($api_arg["accountId"]),   strip_tags($api_arg["password0"]),  strip_tags($api_arg["password1"]),  strip_tags($api_arg["password2"]) );
+}
+
+
+else if($api_function=='accounts_list'){
+    accounts_list();
+}
+else if($api_function=='account_detalies'){
+    account_detalies(intval($api_arg["accountId"]) );
+}
+else if($api_function=='account_save'){
+    account_save(intval($api_arg["accountId"]), strip_tags($api_arg["fullname"]), strip_tags($api_arg["login"]),  strip_tags($api_arg["email"]),  strip_tags($api_arg["password0"]),  strip_tags($api_arg["password1"]),  strip_tags($api_arg["password2"]) );
+}
+else if($api_function=='account_del'){
+    account_del(intval($api_arg["accountId"]) );
+}
+
+//else if($api_function=='info'){
+//    info();
+//}
+
+
+
+
+
+else {
+    $result = array('POST'=>$_POST, 'GET'=>$_GET, 'SERVER'=>$_SERVER, 'JSON'=>$_JSON);
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+?>

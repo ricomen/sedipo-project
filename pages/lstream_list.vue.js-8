@@ -1,0 +1,856 @@
+var LstreamList = {
+  data: function () {
+    return {
+      role: '',
+      moodle_path: '',
+      info: [],
+      info2: [],
+      info3: [],
+      info4: [],
+      info5: [],
+      info9: [],
+      order_id: 0,
+      make: 0,
+      a_lstream_id: 0,
+      status: 0,
+      status_array:  [], 
+      message: '',
+      datesearch: '',
+      datesearch2: '',
+      namesearch: '',
+      lstreamsearch: '',
+      counterpartysearch: 0,
+      numPages: 0,
+      page: 1,
+      date_begin: 0,
+      date_end: 0,
+      date_protocol: 0,
+      wait: 0,
+      modal_lstream_id: 0,
+      modal_objectId: 0,
+      modal_date_begin: '',
+      modal_date_begin2: '',
+      modal_date_end: '',
+      modal_date_protocol: '',
+      modal_days: '',
+      modal_item: [],
+      modal_counterparty_list: [],
+      modal_teacher_id: 0,
+      modal_snils_check_sum: true,
+      modal_cohort_id: 0,
+      users_list: [],
+      modal_counterparty_id: 0,
+      modal_order_id: 0,
+
+      modal_name: '',
+      modal_main_teacher_id: 0,
+
+      print_v: 'true',
+      mon_arr: [{name: 'Январь', t_class: 'nav-link'}, {name: 'Февраль', t_class: 'nav-link'}, {name: 'Март', t_class: 'nav-link'}, {name: 'Апрель', t_class: 'nav-link'}, {name: 'Май', t_class: 'nav-link'}, {name: 'Июнь', t_class: 'nav-link'}, {name: 'Июль', t_class: 'nav-link'}, {name: 'Август', t_class: 'nav-link'}, {name: 'Сентябрь', t_class: 'nav-link'}, {name: 'Октябрь', t_class: 'nav-link'}, {name: 'Ноябрь', t_class: 'nav-link'}, {name: 'Декабрь', t_class: 'nav-link'} ],
+      year_arr: [],
+      year_tab: new Date().getFullYear(),
+      mon__tab: 0,
+      importfile1: '',
+      importfile1_filename: '',
+      importfile1_file_type: '',
+      import_total: 0,
+      list_0_course_name: '',
+      is_LMS: IS_LMS,
+      IS_SECR: IS_SECR,
+
+     }
+   },
+
+
+   mounted() {
+      if(Number(this.$route.params.orderid)>0 )
+             this.order_id = Number(this.$route.params.orderid)
+      this.make = Number(this.$route.params.make)
+
+      if( Number(this.$route.params.lstreamid)>0 ){ 
+           this.a_lstream_id = Number(this.$route.params.lstreamid)
+      }
+      session_navigation.lstream_lstream_id = this.a_lstream_id
+
+      if(this.order_id==0)
+                this.make = 0
+      
+      for (var i=-1; i<4; i++){
+        this.year_arr.push({name: this.year_tab-i})
+      }    
+
+      this.moodle_url = MoodleApiURL
+      
+      
+      this.datesearch = session_var.lstream_datesearch
+      this.datesearch2 = session_var.lstream_datesearch2
+      this.namesearch = session_var.lstream_namesearch
+      this.lstreamsearch = session_var.lstream_lstreamsearch
+      this.counterpartysearch = session_var.lstream_counterpartysearch
+      
+
+    axios
+      .post(JsonApiURL+'api/lstream_json.php', {list: { order_id: this.order_id, lstream_id: this.a_lstream_id,  page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+            this.numPages = this.info.numPages
+	        this.page = this.info.page
+
+            this.list_0_course_name = this.info.list[0].course_name
+ 
+            if( this.role=='counterparty' )
+                    this.print_v = 'false'
+
+              console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+        }),
+
+    axios
+      .post(JsonApiURL+'api/status_json.php', {list: { where: "learn=1", sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.status_array = response.data.list
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+    if(this.order_id == 0) {
+	    axios
+                .post(JsonApiURL+'api/counterparty_json.php', {list: { sessionId: session_t.sessionId }})
+    		.then(response2 => { 
+        	    this.info2 = response2.data
+		    //this.numPages = this.info2.numPages
+		    //this.page = this.info2.page
+        	    console.log(response2)
+    		})
+    		.catch(error => {
+            	    console.log(error.response)
+        	})
+     }
+
+
+
+
+  },
+
+
+  methods: {
+    search_go(clean) {
+    if(clean){
+        this.namesearch = ''
+        this.lstreamsearch = ''
+        this.datesearch = ''
+        this.datesearch2 = ''
+        this.counterpartysearch = 0
+        this.status = 0
+    }
+    for (var i=0; i<12; i++){
+        this.mon_arr[i].t_class =  'nav-link'
+    }    
+    /*var counterparty_id = this.counterpartysearch
+    if(this.a_counterparty_id>0)
+          counterparty_id = this.a_counterparty_id*/
+
+      session_var.lstream_datesearch = this.datesearch
+      session_var.lstream_datesearch2 = this.datesearch2
+      session_var.lstream_namesearch = this.namesearch
+      session_var.lstream_lstreamsearch = this.lstreamsearch
+      session_var.lstream_counterpartysearch = this.counterpartysearch
+      
+
+
+    axios
+      .post(JsonApiURL+'api/lstream_json.php', {list: { order_id: this.order_id, date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, lstream: this.lstreamsearch, status: this.status,  counterparty_id: this.counterpartysearch,  page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+	        this.page = this.info.page
+              console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+      })
+    },
+
+    page_go(page) {
+    this.page = page
+
+    axios
+      .post(JsonApiURL+'api/lstream_json.php', {list: { order_id: this.order_id, date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, lstream: this.lstreamsearch, status: this.status,  counterparty_id: this.counterpartysearch,  page: this.page,  sessionId: session_t.sessionId }})
+      //.post(JsonApiURL+'api/groups_json.php', {list: {   page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+	        this.page = this.info.page
+       })
+      .catch(error => {
+              console.log(error.response)
+      })
+    },
+
+    tab_go(month) {
+     if(this.year_tab>0) {    
+        var date_t1 = new Date(this.year_tab, month, 1, 0, 0, 0, 0).toLocaleDateString('en-CA')
+        var date_t2 = new Date(this.year_tab, month+1, 0, 0, 0, 0, 0).toLocaleDateString('en-CA')
+        this.datesearch = date_t1
+        this.datesearch2 = date_t2
+        for (var i=0; i<12; i++){
+            this.mon_arr[i].t_class =  'nav-link'
+        }    
+        this.mon_arr[month].t_class =  'nav-link active'
+
+      session_var.lstream_datesearch = this.datesearch
+      session_var.lstream_datesearch2 = this.datesearch2
+      session_var.lstream_namesearch = this.namesearch
+      session_var.lstream_lstreamsearch = this.lstreamsearch
+      session_var.lstream_counterpartysearch = this.counterpartysearch
+      
+
+        axios
+        .post(JsonApiURL+'api/lstream_json.php', {list: {date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, lstream: this.lstreamsearch, status: this.status,  counterparty_id: this.counterpartysearch,  page: this.page,  sessionId: session_t.sessionId }})
+        //.post(JsonApiURL+'api/groups_json.php', {list: {date1: date_t1, date2: date_t2, course: this.namesearch,    page: this.page,  sessionId: session_t.sessionId }})
+        .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+	        this.page = this.info.page
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+     }    
+    },
+
+
+/*    lstream_create_go(){
+        axios
+        .post(JsonApiURL+'api/lstream_json.php', {lstream_create: {objectId: this.modal_objectId, date_begin: this.date_begin, date_end: this.date_end, date_protocol: this.date_protocol,   sessionId: session_t.sessionId }})
+        .then(response => { 
+            this.info9 = response.data
+
+            axios
+            .post(JsonApiURL+'api/lstream_json.php', {list: {date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, status: this.status,  counterparty_id: this.counterpartysearch,  page: this.page,  sessionId: session_t.sessionId }})
+            .then(response2 => { 
+                this.info = response2.data
+                this.numPages = this.info.numPages
+	            this.page = this.info.page
+            })
+            .catch(error => {
+                  console.log(error.response)
+            })
+        console.log(response)
+
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+    },*/
+
+    
+    onChangeDateBegin(){
+	  if( this.date_begin!='' ){
+          if(this.date_begin < this.modal_date_begin)
+                this.date_begin = this.modal_date_begin
+
+          if(this.date_begin > this.modal_date_begin2)
+                this.date_begin = this.modal_date_begin2
+
+	      var currentDate = new Date(this.date_begin)
+	      currentDate.setDate(currentDate.getDate() + this.modal_days )
+	      this.date_end = currentDate.toLocaleDateString('en-CA')
+	  }
+     },
+     
+    onChangeDateEnd(){
+	  if( this.date_end!='' ){
+          if(this.date_end > this.modal_date_end)
+                this.date_end = this.modal_date_end
+
+          if(this.date_end < date_begin)
+                this.date_end = this.date_begin
+	  }
+     },
+     
+     
+    cohortDelete(groupId, name ){
+	var fl = confirm('Удалить учебный поток: ' + name + '?');
+	if(fl) {
+	axios
+          .post(JsonApiURL+'api/lstream_json.php', {delete: {objectId: groupId}})
+          .then(response => { 
+            //this.info9 = response.data
+         axios
+           .post(JsonApiURL+'api/lstream_json.php', {list: { order_id: this.order_id, make: 0, page: this.page, sessionId: session_t.sessionId }})
+           .then(response => { 
+              this.info = response.data
+              this.numPages = this.info.numPages
+	          this.page = this.info.page
+            })
+           .catch(error => {
+              console.log(error.response)
+            })
+
+        })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+       }
+    },
+ 
+    lstream_unlink(cohort_id, name ){
+	var fl = confirm('Убрать группу из  учебого потока: ' + name + '?');
+	if(fl) {
+	axios
+          .post(JsonApiURL+'api/lstream_json.php', {lstream_unlink: { cohort_id: cohort_id}})
+          .then(response => { 
+            //this.info9 = response.data
+            axios
+            .post(JsonApiURL+'api/lstream_json.php', {list: { order_id: this.order_id, make: 0, page: this.page, sessionId: session_t.sessionId }})
+            .then(response => { 
+              this.info = response.data
+              this.numPages = this.info.numPages
+	          this.page = this.info.page
+             })
+            .catch(error => {
+              console.log(error.response)
+             })
+
+           })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+       }
+    },
+
+
+    documentModalArg(lstream_id, name, type_of_education_id, subtype_of_education_id, type_of_program_id, certificate1_template, certificate2_template, certificate1_name, certificate2_name, counterparty_list,  teacher_id, snils_check_sum ) {
+        this.modal_lstream_id = lstream_id
+        this.modal_name = name
+        this.modal_counterparty_list  =  counterparty_list
+//console.log(this.modal_counterparty_list);
+        this.modal_item = {type_of_education_id: type_of_education_id, subtype_of_education_id: subtype_of_education_id, type_of_program_id: type_of_program_id, certificate1_template: certificate1_template, certificate2_template: certificate2_template, certificate1_name: certificate1_name, certificate2_name: certificate2_name }
+        this.modal_teacher_id = teacher_id
+        this.import_total = 0
+        this.modal_snils_check_sum = snils_check_sum
+ 
+    },
+
+    listModalArg(cohort_id, counterparty_id, order_id ) {
+        this.modal_cohort_id = cohort_id
+
+        axios
+          .post(JsonApiURL+'api/groups_json.php', {items: {objectId: cohort_id, sessionId: session_t.sessionId } })
+          .then(response => { 
+                this.info5 = response.data
+                this.users_list = this.info5.list
+                this.modal_counterparty_id = counterparty_id
+                this.modal_order_id = order_id
+
+                console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+
+    },
+
+   handleEisotUpload() {
+            this.importfile1 = document.getElementById('input_eisot').files[0];
+            this.importfile1_filename = this.importfile1.name;
+            this.importfile1_file_type = this.importfile1.type;
+        },
+
+    eisotSave() {
+            this.wait = 1;
+            this.import_total = 0;
+            const formData = new FormData();
+            if(this.importfile1_file_type!=''){
+                formData.append('upload1', this.importfile1)
+                formData.append('name1', this.importfile1_filename)
+            }
+
+            formData.append('lstream_id', this.modal_lstream_id); 
+            //formData.append('cohort_id', this.cohort_id); 
+            formData.append('sessionId', session_t.sessionId); 
+            
+	        axios
+	           .post(JsonApiURL+'reports/eisot_import_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+               .then(response => {
+                    this.info4 = response.data
+                    this.wait = 0;
+                    this.import_total = this.info4.result.total 
+                    console.log(response)
+
+                })
+              .catch(error => {
+                    console.log(error.response)
+                })
+         }
+
+
+},
+
+
+	template: `<div><navigation></navigation><h3>Учебные потоки</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+
+    <h4 v-if="a_lstream_id>0"  style="text-align: right;" > {{list_0_course_name}} </h4>
+    <table v-if="a_lstream_id==0" >
+        <tr v-if="order_id==0"  align="left">
+            <td   colspan="4" style="padding-left: 0px;  padding-right: 10px;" >Начало обучения c <input type="date" v-model="datesearch" placeholder="Дата"  >  по <input type="date" v-model="datesearch2" placeholder="Дата"  ></td>
+            <td style="padding-left: 10px;  padding-right: 5px;" >
+		    <select  v-model="status"  id="input_status"  aria-label="Статус">
+    		    <option value="0"> - статус - </option>
+    		    <option v-for="item_status in status_array" :value="item_status.status_id">{{item_status.name}} </option>
+		    </select>
+	    </td>
+        <td style="padding-left: 5px;  padding-right: 15px;"  v-if="order_id==0 && role!='counterparty'" ><small>
+	        <select v-model="counterpartysearch">
+	        <option value="0"> -  Организация  - </option>
+            <option v-for="item2 in info2.list" :value="item2.counterparty_id">
+	            {{item2.shortname.substring(0, 45)}} 
+	        </option>
+	        </select>
+	    </small></td>
+        </tr>
+        <tr  align="left">
+            <td colspan="5" style="padding-top: 20px; padding-right: 15px;"><input type="text" v-model="namesearch" placeholder="Курс"   size="70"   @keyup.enter="search_go(0)"></td>
+            <td  style="padding-top: 20px; padding-left: 15px;  padding-right: 0px; text-align: right;" > <button  @click="search_go(0)">&nbsp;<i class="fa-solid fa-magnifying-glass"></i>&nbsp;Поиск&nbsp;</button>&nbsp;&nbsp;&nbsp;&nbsp;<button  title="Сбросить все фильтры"   @click="search_go(1)"  >&nbsp;<i class="fa-solid fa-xmark"></i>&nbsp;Сбросить фильтры&nbsp;</button> </td>
+        </tr>
+        <tr  align="left">
+            <td  style="padding-top: 10px; padding-left: 0px;  padding-right: 5px;" ><input type="text" v-model="lstreamsearch" placeholder="Поток"   size="50"   @keyup.enter="search_go(0)"></td>
+        </tr>
+    </table>
+
+
+    <br />
+    <table class="table">
+      <thead>
+        <tr  align="left">
+          <th scope="col"> <div style="margin-right: 0px; font-size: smaller;">Поток</div> </th>
+          <th scope="col"> <div style="margin-right: 0px; font-size: smaller;">Период обучения</div> </th>
+          <th>  <div style="margin-right: 0px; font-size: smaller;"><span v-if="a_lstream_id>0">Назначить преподавателя</span><span v-else>  Курсы</span></div> </th>
+          <th scope="col" colspan="2"><div align="center" style="margin-right: 0px; font-size: smaller;">Список <br />заказчиков / слушателей</div>  </th>
+          <th scope="col"><div align="center" style="margin-right: 0px; font-size: smaller;">Личное <br />дело</div>  </th>
+          <th scope="col"><div v-if="this.is_LMS>0" align="center" style="margin-right: 0px; font-size: smaller;">Синхронизация с LMS </th>
+
+        </tr>
+      </thead>
+     <tbody>   
+        <tr v-for="item in info.list"  align="left" >  
+            <td style="padding-left: 0px; padding-right: 10px;" >
+                <!--<table border="0"><tr><td valign="middle" style="padding-left: 0px; padding-right: 7px;" ><nobr>{{item.name}}&nbsp;&nbsp;<i>({{item.count}} чел.)</i></nobr></td></tr></table>-->
+                <nobr>{{item.name}}&nbsp;&nbsp;<i style="color: #555;">({{item.count}} гр.)</i></nobr>
+              
+                  
+                
+            </td>
+            <td  style="padding-left: 10px; padding-right: 10px;"  >
+                <small>{{new Date(item.date_begin).toLocaleDateString("ru")}} <!--<br /><small>-</small>--> <br />{{new Date(item.date_end).toLocaleDateString("ru")}}</small> 
+            </td>
+            <td  style="padding-left: 10px; padding-right: 10px;"  >{{item.course_name}} 
+               <nobr>
+                <router-link  :to="{ name: 'lstream_edit', params: {lstreamid: item.lstream_id, orderid: this.order_id}}" title="Редактировать настройки" ><i class="fa-solid fa-pencil"></i></router-link>
+                &nbsp;&nbsp;<span v-if="item.scheduler_count>0 && false"><router-link :to=""  title="Календарь" ><i class="fa-solid fa-calendar-day"></i></router-link><span style="color: green;">&nbsp;<i class="fa-solid fa-check"></i></span></span>
+               </nobr>
+            </td>
+            <td align="right" style="padding-top: 7px; padding-right: 1px;"   >
+                <div  style="padding-top: 5px;" class="dropdown">
+                    <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"> <i class="fa-solid fa-folder-tree"></i> </button>
+                    <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 30rem;">
+                        <!--<li  v-for="item2 in item.counterparty_list"><router-link class="dropdown-item" :to="{ name: 'orders_list', params: {counterpartyid: item2.counterparty_id, orderid: item2.order_id }}" title="Заявки" ><small>{{item2.shortname}}</small></router-link></li>-->
+                        <li  v-for="item2 in item.counterparty_list">
+                            &nbsp;&nbsp;<small>{{item2.shortname}}
+                            <span v-if="!item2.snils_check_sum" style="color: red;" title="Некорректный СНИЛС обучающегося" ><i class="fa-solid fa-circle-exclamation"></i></span>
+                            &nbsp;&nbsp;&nbsp;<button  @click="listModalArg(item2.cohort_id, item2.counterparty_id, item2.order_id)"    data-bs-toggle="modal" data-bs-target="#listModal"  title="Список обучающихся"  ><i class="fa-solid fa-list-check"></i>
+                            &nbsp;&nbsp;{{item2.order_name}}</button>&nbsp;&nbsp;&nbsp;&nbsp;<a @click="lstream_unlink(item.lstream_id, item2.cohort_id, item2.shortname )" style="color: red;" title="Открепить от учебного потока"><i class="fa-solid fa-thumbtack-slash"></i></a></small>
+                        </li>
+                    </ul>
+                </div>
+            </td>
+            <td align="left" style="padding-top: 15px; padding-left: 1px;"   >
+                <span v-if="!item.snils_check_sum" style="color: red;" title="Некорректный СНИЛС обучающегося" ><i class="fa-solid fa-circle-exclamation"></i></span>
+            </td>
+            <td  align="center">
+                <button  @click="documentModalArg(item.lstream_id, item.name, item.type_of_education_id, item.subtype_of_education_id, item.type_of_program_id, item.certificate1_template, item.certificate2_template, item.certificate1_name, item.certificate2_name,   item.counterparty_list, item.teacher_id, item.snils_check_sum)"  data-bs-toggle="modal" data-bs-target="#documentModal"   class="btn btn-light text-primary" ><i class="fa-solid fa-folder-open"></i></button>
+            </td>
+
+            <td  align="right"  width="5%">
+              <div style="float: right" >
+		      <table border="0"><tr>
+                <!--<td  v-if="role!='counterparty'"  style="padding-left: 0px; padding-right: 10px;">
+                    <router-link  :to="{ name: 'group_edit', params: {groupid: item.lstream_id, orderid: this.order_id, counterpartyid: this.a_counterparty_id}}" title="Редактировать настройки" ><span class="icon"><i class="fa-solid fa-pen-to-square"></i></span></router-link>
+                </td>-->
+
+                <td v-if="role!='counterparty' && this.is_LMS>0"   style="padding-left: 0px; padding-right: 13px;" align="right" width="10%" >
+                 <div class="btn-group"  style="padding-top: 3px;">
+                  <a  :href="'lms-api/lms_sync_json.php?lstreamId='+item.lstream_id"  target="_blank"  type="button" class="btn btn-outline-secondary  btn-sm" title="Синхронизировать с LMS"><i class="fa-solid fa-arrow-right-arrow-left"></i></a>
+                  <button type="button" class="btn btn-outline-secondary  btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+	            <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 25rem;  padding: 7px;">
+                         <!--<li><router-link  :to="{ name: 'group_items', params: {groupid: item.lstream_id, orderid: this.order_id }}" class="nav-link"   title="Список обучающихся" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-excel"></i></span> Cписок обучающихся</router-link></li>-->
+	                 <li><a :href="'lms-api/students_xls.php?lstreamId='+item.lstream_id+'&format=xls'" target="_blank"  class="nav-link" title="Логины и пароли" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-excel"></i></span> Логины и пароли</a></li>
+	                 <li><a :href="'lms-api/students_xls.php?lstreamId='+item.lstream_id+'&format=csv'" target="_blank"  class="nav-link" title="Файл импорта" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-excel"></i></span> Файл импорта</a></li>
+	            </ul>
+                 </div>
+                </td>
+
+                <td  v-if="role!='counterparty'"   style="padding-left: 5px;  padding-right: 0px;">
+		            <a   @click="cohortDelete(item.lstream_id, item.name)"   title="Удалить группу" style="color: red;" ><i class="far fa-trash-alt"></i></a>
+		        </td>
+                </tr></table>
+	           </div>
+	        </td>
+          </tr>
+          
+        <tr v-if="role!='counterparty'" align="left">
+          <td>  </td>
+          <td v-if="a_counterparty_id==0" >  </td>
+          <td colspan="6" align="right">
+            <!--<small>
+                <input v-model="print_v" type="radio" value="false"  class="form-check-input" id="print_Check0" > <label class="form-check-label" for="print_Check0">  скан-копия </label>&nbsp;&nbsp;&nbsp;&nbsp; 
+                <input v-model="print_v" type="radio" value="true"   class="form-check-input" id="print_Check1" > <label class="form-check-label" for="print_Check1"> версия для печати </label>&nbsp;&nbsp;&nbsp;&nbsp;
+                <input v-model="print_v" type="radio" value="edit"   class="form-check-input" id="print_Check3"> <label class="form-check-label" for="print_Check3"> редактор</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                <input v-model="print_v" type="radio" value="layout" class="form-check-input" id="print_Check4"> <label class="form-check-label" for="print_Check4" v-on:click="printChanged()" > интервалы</label>
+            </small>-->
+          </td>
+        </tr>
+
+  </tbody>
+  </table>
+
+<span v-if="a_lstream_id>0 && order_id>0">
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+      <router-link :to="{ name: 'groups_list' , params: {orderid: this.order_id}}" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+    </div>
+  </div>
+ </div>
+</span>
+<span v-if="order_id>0 && a_lstream_id<=0">
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+      <router-link :to="{ name: 'orders_list' , params: {counterpartyid: this.a_counterparty_id}}" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+    </div>
+  </div>
+ </div>
+</span>
+
+
+
+<!-- Modal -->
+<!--<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="exampleModalLabel">Создать новый учебный поток</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-check">
+      
+  <div class="row">
+   <div class="mb-2 col">	
+    <label for="input_date" class="form-label">Дата начала обучения</label>
+      <input v-model="date_begin"  class="form-control" id="input_date"  type="date"   @input="onChangeDateBegin()">
+    <p style="text-align: left; padding-top: 5px;"><button @click="this.date_begin=this.modal_date_begin; onChangeDateBegin()" type="button" class="btn btn-outline-secondary btn-sm">{{new Date(this.modal_date_begin).toLocaleDateString("ru")}}</button> - <button @click="this.date_begin=this.modal_date_begin2; onChangeDateBegin()" type="button" class="btn btn-outline-secondary btn-sm">{{new Date(this.modal_date_begin2).toLocaleDateString("ru")}}</button></p>  
+   </div>
+   <div class="mb-2 col">	
+    <label for="input_date_end" class="form-label">Дата завершения</label>
+      <input v-model="date_end"  class="form-control" id="input_date_end"  type="date"  @input="onChangeDateEnd()" >
+   </div>
+  </div>
+
+  <div class="row">
+   <div class="mb-4 col"> </div>
+   <div class="mb-2 col">	
+    <br /><label for="input_date_protocol" class="form-label">Дата оформления протокола</label>
+      <input v-model="date_protocol"  class="form-control" id="input_date_protocol"  type="date" >
+   </div>
+  </div>
+      
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"> Отмена </button>
+        <button v-if="date_begin!='' && date_end!='' && date_protocol!=''"  @click="lstream_create_go()"  type="button" class="btn btn-primary" data-bs-dismiss="modal"> &nbsp&nbspok&nbsp&nbsp </button>
+        <button v-else  type="button" class="btn btn-primary" data-bs-dismiss="modal" disabled> &nbsp&nbspok&nbsp&nbsp </button>
+      </div>
+    </div>
+  </div>
+</div>-->
+
+
+
+<!-- Modal -->
+<div class="modal fade modal-xl" ref="bsmodal" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" ref="modalContent">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="documentModalLabel">Личное дело</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" ></button>
+      </div>
+      <div class="modal-body" align="left">
+
+        <div class="row">
+            <div class="col-md" style="text-align: left;">
+               <div v-if="modal_item.type_of_program_id==1 || modal_item.subtype_of_education_id==3" >
+                 
+                     <b>Личное дело ДО</b><br />
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/kpk/journal_grp.html'+'&id='+this.modal_lstream_id+'&file=Журнал_обучения-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Журнал обучения</small> </a></p>
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/kpk/uchet.html'+'&id='+this.modal_lstream_id+'&file=Учет подготовки слушателей-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Учет подготовки слушателей</small> </a></p>
+                     <!--<li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-vedomost.php?template=usercase/kpk/vedomost.html'+'&id='+this.modal_lstream_id+'&file=Ведомость-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Ведомость</small> </a></li>-->
+                     <!--
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/kpk/vedomost.html'+'&id='+this.modal_lstream_id+'&file=Ведомость-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Ведомость</small> </a></li>
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/kpk/dogovorTeacher.html'+'&id='+this.modal_lstream_id+'&file=Договор с преподавателем-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Договор с преподавателем</small> </a></li>
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/kpk/dogovorTeacher-a1.html'+'&id='+this.modal_lstream_id+'&file=Акт с преподавателем-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Акт с преподавателем</small> </a></li>
+                     
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/kpk/opis.html'+'&id='+this.modal_lstream_id+'&file=Личное дело группы-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Личное дело группы</small> </a></li>
+            -->
+                  
+                </div>
+                <div v-if="modal_item.type_of_program_id==2 " >
+                  
+                     <b>Личное дело ПП</b><br />
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/pp/journal_grp.html'+'&id='+this.modal_lstream_id+'&file=Журнал_обучения-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Журнал обучения <span class="normative" data-attribute="journal" ></span></small></a></p>
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/pp/uchet.html'+'&id='+this.modal_lstream_id+'&file=Учет подготовки слушателей-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Учет подготовки слушателей <span class="normative" data-attribute="uchet"></span></small></a></p>
+                     <!--<li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-vedomost.php?template=usercase/pp/vedomost.html'+'&id='+this.modal_lstream_id+'&file=Ведомость-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Ведомость</small> </a></li>-->
+                     <!--
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/pp/vedomost.html'+'&id='+this.modal_lstream_id+'&file=Ведомость-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Ведомость</small> </a></li>
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/pp/vedomost.html'+'&id='+this.modal_lstream_id+'&file=Ведомость-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Ведомость</small> </a></li>
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-teacher.php?template=usercase/pp/dogovorTeacher.html'+'&id='+this.modal_main_teacher_id+'&file=Договор с преподавателем-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Договор с преподавателем</small> </a></li>
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/pp/dogovorTeacher-a1.html'+'&id='+this.modal_lstream_id+'&file=Акт с преподавателем-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Акт с преподавателем</small> </a></li>
+                     
+                     <li style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/pp/opis.html'+'&id='+this.modal_lstream_id+'&file=>Личное дело группы-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> <small>Личное дело группы</small> </a></li>
+             -->
+                  
+                </div>
+                <div v-if="modal_item.type_of_program_id==3"  >
+                     <b>Личное дело ПО</b><br />
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/po/diaryPO.html'+'&id='+this.modal_lstream_id+'&file=Дневник ПО-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<i class="fa-regular fa-file-lines"></i> <small>Дневник ПО</small> </a></p>
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/po/journal_grp.html'+'&id='+this.modal_lstream_id+'&file=Журнал_обучения-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<i class="fa-regular fa-file-lines"></i> <small>Журнал обучения</small> </a></p>
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/po/uchet.html'+'&id='+this.modal_lstream_id+'&file=Учет подготовки слушателей-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<i class="fa-regular fa-file-lines"></i> <small>Учет подготовки слушателей</small> </a></p>
+                    <!-- 
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/po/vedomostPO.html'+'&id='+this.modal_lstream_id+'&file=Ведомость промежуточной аттестации-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<i class="fa-regular fa-file-lines"></i> <small>Ведомость промежуточной аттестации</small> </a></p>
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/po/opis.html'+'&id='+this.modal_lstream_id+'&file=Личное дело группы-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<i class="fa-regular fa-file-lines"></i> <small>Личное дело группы</small> </a></p>
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><a :href="'d-api/documents-lstream.php?template=usercase/po/dogovorPractic.html'+'&id='+this.modal_lstream_id+'&file=Договор на организацию практики-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > &nbsp;<i class="fa-regular fa-file-lines"></i> <small>Договор на организацию практики</small> </a></p>
+                    -->
+                     <p style="margin-left: 12px; margin-bottom: 7px; margin-top: 7px;" ><!--<a :href="'d-api/documents-lstream.php?template=usercase/po/lineonPO.html'+'&id='+this.modal_lstream_id+'&file=Направление-'+this.modal_name+'-'+'&print_v='+this.print_v" target="_blank"  class="nav-link" > --> &nbsp;<i class="fa-regular fa-file-lines"></i> <small>Направление</small> <!--</a>--></p>
+                 </div>
+
+
+                   <div  style="padding-top: 2px; padding-left: 15px;" class="dropdown">
+                     <i class="fa-regular fa-file-lines"></i> <small>Договор</small> <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"> <i class="fa-solid fa-folder-tree"></i> </button><small> <span class="normative" data-attribute="contract" ></span></small>
+                     <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 45rem;">
+                        <li  v-for="item2 in modal_counterparty_list" style="padding-left: 10px;" ><small>
+                            <span  v-if="item2.additions_list[0].upload_file == ''"  ><a :href="'d-api/documents-order.php?contract_id='+item2.contract_id+'&id='+item2.order_id+'&print_v='+this.print_v"  target="_blank"  class="nav-link" title="Договор" >{{item2.shortname}} - {{item2.contract_name}}</a></span>
+                            <span  v-if="item2.additions_list[0].upload_file != ''" ><small><a  :href="'d-api/documents-view.php?file='+item2.additions_list[0].upload_dir+item2.additions_list[0].upload_file"  target="_blank" class="nav-link"  title="Договор" >{{item2.shortname}} - {{item2.contract_name}} &nbsp<span style="color: green;">&nbsp<i class="fa-solid fa-check"></i></a></small></span>
+                        </li>
+                     </ul>
+                   </div>
+
+
+                   <div style="padding-top: 2px; padding-left: 15px;" class="dropdown">
+                     <i class="fa-regular fa-file-lines"></i>{{modal_counterparty_list['contract_id']}} <small>Приложения к договору</small> <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"> <i class="fa-solid fa-folder-tree"></i> </button><small> <span class="normative" data-attribute="application" ></span></small>
+                     <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 45rem;">
+                        <li  v-for="item2 in modal_counterparty_list" style="padding-left: 10px;" ><small>
+                        <span  v-if="item2.template1_id>0 && item2.additions_list[1].upload_file == '' && item2.contract_id != 8" ><small><a :href="'d-api/documents-order.php?contract_id='+item2.contract_id+'&addition=1&id='+item2.order_id+'&print_v='+this.print_v"  target="_blank"  class="nav-link" title="Приложение 1" >{{item2.shortname}} -  Приложение 1</a></small></span>
+                        <span  v-if="item2.template2_id>0 && item2.additions_list[2].upload_file == '' && item2.contract_id != 8" ><small><a :href="'d-api/documents-order.php?contract_id='+item2.contract_id+'&addition=2&id='+item2.order_id+'&print_v='+this.print_v"  target="_blank"  class="nav-link" title="Приложение 2" >{{item2.shortname}} -  Приложение 2</a></small></span>
+                        <span  v-if="item2.template1_id>0 && item2.additions_list[1].upload_file != ''" ><small><a  :href="'d-api/documents-view.php?file='+item2.additions_list[1].upload_dir+item2.additions_list[1].upload_file"  target="_blank" class="nav-link"  title="Приложение 1" >{{item2.shortname}} -  Приложение 1 &nbsp<span style="color: green;">&nbsp<i class="fa-solid fa-check"></i></a></small></span>
+                        <span  v-if="item2.template2_id>0 && item2.additions_list[2].upload_file != ''" ><small><a  :href="'d-api/documents-view.php?file='+item2.additions_list[2].upload_dir+item2.additions_list[2].upload_file"  target="_blank" class="nav-link"  title="Приложение 2" >{{item2.shortname}} -  Приложение 2 &nbsp<span style="color: green;">&nbsp<i class="fa-solid fa-check"></i></a></small></span>
+                     </ul>
+                   </div>
+
+
+                   <div  style="padding-top: 2px; padding-left: 15px;" class="dropdown">
+                     <i class="fa-regular fa-file-lines"></i> <small>Ведомость</small> <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"> <i class="fa-solid fa-folder-tree"></i> </button><small> <span class="normative" data-attribute="vedomost"></span></small>
+                     <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 25rem;">
+                        <li  v-for="item2 in modal_counterparty_list" style="padding-left: 10px;" ><small>
+                           <span><a :href="'d-api/documents-protocol.php?groupid='+item2.cohort_id+'&add_template=20&print_v='+this.print_v" target="_blank"  class="nav-link" title="Ведомость" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> {{item2.shortname}} </a></span>
+                        </li>
+                     </ul>
+                   </div>
+
+                   <div  style="padding-top: 2px; padding-left: 15px;" class="dropdown">
+                     <i class="fa-regular fa-file-lines"></i> <small>Удостоверения</small> <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"> <i class="fa-solid fa-folder-tree"></i> </button><small> <span class="normative" data-attribute="certificate" ></span></small>
+                     <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 45rem;">
+                        <li  v-for="item2 in modal_counterparty_list" style="padding-left: 10px;" ><small>
+                            <span  v-if="modal_item.certificate1_template>0 && item2.modify_certificate1==''"><a :href="'d-api/documents-cert.php?template='+modal_item.certificate1_template+'&groupid='+item2.cohort_id+'&id=0'+'&print_v='+this.print_v" target="_blank"  class="nav-link" title="документ об обраовании" > &nbsp; <i class="fa-regular fa-file-lines"></i> {{item2.shortname}} - {{modal_item.certificate1_name}} </a></span>
+                            <span  v-if="modal_item.certificate2_template>0 && item2.modify_certificate2==''"><a :href="'d-api/documents-cert.php?template='+modal_item.certificate2_template+'&groupid='+item2.cohort_id+'&id=0'+'&print_v='+this.print_v" target="_blank"  class="nav-link" title="документ об обраовании" > &nbsp; <i class="fa-regular fa-file-lines"></i> {{item2.shortname}} - {{modal_item.certificate2_name}} </a></span>
+                            <span  v-if="modal_item.certificate1_template>0 && item2.modify_certificate1!=''"><a :href="'d-api/documents-view.php?file=groups/certificate/'+item.upload_certificate1" target="_blank"  class="nav-link" title="документ об обраовании" > &nbsp;<i class="fa-regular fa-file-lines"></i> {{item2.shortname}} - {{modal_item.certificate1_name}} </a></span>
+                            <span  v-if="modal_item.certificate2_template>0 && item2.modify_certificate2!=''"><a :href="'d-api/documents-view.php?file=groups/certificate/'+item.upload_certificate2" target="_blank"  class="nav-link" title="документ об обраовании" > &nbsp;<i class="fa-regular fa-file-lines"></i> {{item2.shortname}} - {{modal_item.certificate2_name}} </a></span>
+
+                            <span  v-if="item2.upload_certificate!=''"><a :href="'d-api/documents-view.php?file=groups/certificate/'+item2.upload_certificate" target="_blank"  class="nav-link" title="Скан документа об обраовании" > &nbsp;<i class="fa-regular fa-file-lines"></i> Скан документов об обраовании - {{item2.shortname}} </a></span>
+                     </ul>
+                   </div>
+
+                   <div  style="padding-top: 2px; padding-left: 15px;" class="dropdown">
+                     <i class="fa-regular fa-file-lines"></i> <small>Протоколы</small> <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"> <i class="fa-solid fa-folder-tree"></i> </button><small> <span class="normative" data-attribute="protocol" ></span></small>
+                     <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 25rem;">
+                        <li  v-for="item2 in modal_counterparty_list" style="padding-left: 10px;" ><small>
+                            <span  v-if="item2.upload_protocol!=''""><a :href="'uploads/groups/protocol/'+item2.upload_protocol" target="_blank"  class="nav-link" title="Скан протокола" >{{item2.shortname}}</a></span>
+                            <span  v-else-if="item2.protocol_html_length>0"><a :href="'d-api/protocol-saved.php?id='+item2.cohort_id+'&print_v='+this.print_v" target="_blank"  class="nav-link" title="Протокол"  >{{item2.shortname}}</a>  </span>
+                            <span  v-else ><a :href="'d-api/documents-protocol.php?groupid='+item2.cohort_id+'&id=0&print_v='+this.print_v"  target="_blank"  class="nav-link" title="Протокол" >{{item2.shortname}}</a></span>
+                        </small></li>
+                   </div>
+
+                   <div  style="padding-top: 2px; padding-left: 15px;" class="dropdown">
+                     <i class="fa-regular fa-file-lines"></i> <small>Заявление / Согласие на обработку персональных данных</small> <button class="btn btn-link btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"> <i class="fa-solid fa-folder-tree"></i> </button><small> <span class="normative" data-attribute="agreement" ></span></small>
+                     <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 25rem;">
+                        <li  v-for="item2 in modal_counterparty_list" style="padding-left: 10px;"><small>
+                          <span  v-if="item2.additions_list[3].upload_file == ''" ><small><a :href="'d-api/documents-order.php?contract_id='+item2.contract_id+'&addition=0&id='+item2.order_id+'&print_v='+this.print_v"  target="_blank"  class="nav-link" title="Заявление / Согласие на обработку персональных данных" >{{item2.shortname}}</a></small></span>
+                          <span  v-if="item2.additions_list[3].upload_file != ''" ><small><a :href="'d-api/documents-view.php?file='+item2.additions_list[3].upload_dir+item2.additions_list[3].upload_file"  target="_blank" class="nav-link"  title="Заявление / Согласие на обработку персональных данных" >{{item2.shortname}}&nbsp<span style="color: green;">&nbsp<i class="fa-solid fa-check"></i></span></a></small></span>
+                        </li>
+                     </ul>
+                   </div>
+                   <div  style="padding-top: 2px; padding-left: 15px;" class="dropdown">
+                     <i class="fa-regular fa-file-lines"></i> <small><span v-if="modal_teacher_id>0"><a :href="'d-api/files_teacher.php?teacher_id='+modal_teacher_id" target="_blank"  class="nav-link" title="Договор с преподавателем"> Договор с преподавателем </a></span><span v-else>Договор с преподавателем (преподаватель не назначен)</span>  <span class="normative" data-attribute="teacher_contract"></small></span>
+                   </div>
+                </div>
+
+                <div  class="col-md" style="text-align: left;">
+                     <p v-if="modal_item.type_of_education_id==1 || (modal_item.type_of_education_id==2 && modal_item.subtype_of_education_id!=3 )" style="margin-bottom: 7px; margin-top: 7px;" >
+                          <nobr><a :href="'reports/frdo.php?t='+modal_item.type_of_education_id+'&id='+this.modal_lstream_id"  target="_blank"  class="nav-link" >&nbsp;<i class="fa-regular fa-file-excel"></i></span><small>ФИС ФРДО</small>
+                           <button v-if="!modal_snils_check_sum" style="color: red;" title="Некорректный СНИЛС обучающегося" class="btn btn_link"  data-bs-dismiss="modal"   ><i class="fa-solid fa-circle-exclamation"></i></button>
+                          <small><span class="normative" data-attribute="fis_frdo" ></span></small></a></nobr>
+                     </p>
+
+                     <p v-if="modal_item.type_of_education_id==1 || (modal_item.type_of_education_id==2 && modal_item.subtype_of_education_id!=3 )" style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'reports/ercdo.php?t='+modal_item.type_of_education_id+'&id='+this.modal_lstream_id"  target="_blank"  class="nav-link" ><nobr> &nbsp;<i class="fa-regular fa-file-excel"></i></span> <small>ЕР ЦДО</small></nobr> <span class="normative" data-attribute="ercdo" ></span></a></p>
+
+                     <p v-if="modal_item.type_of_education_id==3 || modal_item.subtype_of_education_id==3 "  style="margin-bottom: 7px; margin-top: 7px;" ><a :href="'reports/eisot.php?id='+this.modal_lstream_id"  target="_blank" class="nav-link" > &nbsp;<i class="fa-regular fa-file-excel"></i></span> <small>Выгрузка в ЕИСОТ</small> </a>
+                        &nbsp;&nbsp;<small><label for="input_calendar1"  class="form-label "   ><b>Импорт номеров удостоверений из ЕИСОТ<b/></label>
+                        <input name="importfile1"  class="form-control" id="input_eisot"    type="file"     @change="handleEisotUpload()" >
+                        <span v-if="wait"><i class="fa-solid fa-cog fa-spin"></i></span>
+                        <span v-if="import_total==0"><button type="button" class="btn btn-primary" @click="eisotSave()" > Загрузить </button></span>
+                        <span v-else><p>Загружено: {{import_total}} записей</p></span>
+                        </small>
+                      </p>
+                 </div>
+        </div>
+
+<div>
+<!--<br /><b>Дополнительные документы</b><br />
+
+<div class="row">
+<label for="input_add"  class="form-label col-2" >Новый документ</label>
+                        <div class="col"><input name="importfile1"  class="form-control " id="input_add"    type="file"     @change="handleAddUpload()" >    <span v-if="wait"><i class="fa-solid fa-cog fa-spin"></i></span></div>
+                        <div class="col-2"><span v-if="import_total==0"><button type="button" class="btn btn-outline-primary" @click="addSave()" > Загрузить </button></span>  <span v-else><p>Загружено</p></span></div>
+</div>-->
+
+</div>
+
+
+        </div>
+            <div class="modal-footer">
+            <div class="row" v-if="role!='counterparty'"  style="text-align: right">
+              <div class="col-md-10" style="text-align: right; padding-top: 5px;"><small><nobr>
+                <input v-model="print_v" type="radio" value="false" class="form-check-input" id="print_Check0" > <label class="form-check-label" for="print_Check0">  скан-копия </label>&nbsp;&nbsp;&nbsp;&nbsp; 
+                <input v-model="print_v" type="radio" value="true"  class="form-check-input" id="print_Check1" > <label class="form-check-label" for="print_Check1"> версия для печати </label>&nbsp;&nbsp;&nbsp;&nbsp;
+                <input v-model="print_v" type="radio" value="edit"  class="form-check-input" id="print_Check3"> <label class="form-check-label" for="print_Check3"> редактор</label>
+              </nobr></small></div>
+          </div>
+          </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" > Закрыть </button>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Modal -->
+<div class="modal fade modal-xl" id="listModal" tabindex="-1" aria-labelledby="listModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="exampleModalLabel">Список слушателей по заявке</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" align="left">
+
+  <div   v-for="(item3, index3) in users_list" style="padding-left: 10px; font-size: small;" class="row">
+   <div class="col">
+       {{item3.lastname}} {{item3.firstname}} {{item3.middlename}}
+   </div>
+   <div class="col-4">
+      {{item3.job_title}}
+  </div>
+   <div class="col-1"><nobr>
+       <router-link   v-if="item3.userId>1"  :to="{ name: 'student_edit', params: { userid: item3.userId, counterpartyid: this.modal_counterparty_id, orderid: this.modal_order_id }}"   title="Редактировать учетную запись"  ><buton data-bs-dismiss="modal"><i class="fa-solid fa-user-pen"></i></buton></router-link >
+       <span v-if="!item3.snils_check_sum" style="color: red;" title="Некорректный СНИЛС" ><i class="fa-solid fa-circle-exclamation"></i></span>
+  </nobr></div>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"> Закрыть </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="row">
+<div class="col"> </div>
+<div  v-if="numPages>1" aria-label="Page navigation" class="btn-toolbar col"  aria-label="pages"   style="text-align: center;">
+  <ul class="pagination" >
+
+    <li v-if="page>1" class="page-item">
+      <button  @click="page_go(this.page-1)"  class="page-link" aria-label="Previous"> <span aria-hidden="true"><i class="fa-solid fa-caret-left"></i></span> </button>
+    </li>
+    <li v-if="page>1"class="page-item"><button @click="page_go(1)"  class="page-link" >1</button></li>
+    <li v-if="page>2" class="page-item"><button   class="page-link" >...</button></li>
+    <li v-if="page-2>2"class="page-item"><button @click="page_go(this.page-2)"  class="page-link" >{{page-2}}</button></li>
+    <li v-if="page-1>2"class="page-item"><button @click="page_go(this.page-1)"  class="page-link" >{{page-1}}</button></li>
+    <li class="page-item active" aria-current="page"><button   class="page-link">{{page}}</button></li>
+    <li v-if="page+1<numPages"class="page-item"><button @click="page_go(this.page+1)"  class="page-link" >{{page+1}}</button></li>
+    <li v-if="page+2<numPages"  class="page-item"><button @click="page_go(this.page+2)"  class="page-link" >{{page+2}}</button></li>
+    <li v-if="page+3<numPages" class="page-item"><button   class="page-link" >...</button></li>
+    <li v-if="page<numPages" class="page-item"><button @click="page_go(this.numPages)"  class="page-link" >{{numPages}}</button></li>
+    <li v-if="page<numPages" class="page-item">
+      <button  @click="page_go(this.page+1)"  class="page-link"  aria-label="Next">  <span aria-hidden="true"><i class="fa-solid fa-caret-right"></i></span>  </button>
+    </li>
+  </ul>
+</div>
+<div class="col-2"> </div>
+</div>
+
+
+<div class="row">
+<small class="col-1" >
+		    <select  v-model="year_tab"  id="input_status" class="form-select form-select-sm"  aria-label="Статус"  >
+    		    <option value="0"> - год - </option>
+    		    <option v-for="item in year_arr" :value="item.name">{{item.name}}&nbsp; </option>
+		</select>
+</small>    
+<small class="col"><ul class="nav nav-tabs" >
+    <li v-for="(item, index) in mon_arr"  class="nav-item">
+        <a :class="item.t_class" @click="tab_go(index)">{{item.name}}</a>
+    </li>
+    </ul></small>
+</div>
+
+	</div>`
+
+};
+
+
+
+

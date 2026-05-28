@@ -1,0 +1,83 @@
+var OrdersTable = {
+  data: function () {
+    return {
+      role: '',    
+      moodle_path: '',
+      info: [],
+      datesearch: '',
+      datesearch2: '',
+      total: 0,
+     }
+   },
+
+
+   mounted() {
+
+
+  },
+
+
+  methods: {
+      
+    search_go() {
+
+    axios
+      .post(JsonApiURL+'analytics/table_xls.php', {count: {date1: this.datesearch, date2: this.datesearch2,   sessionId: session_t.sessionId }}, {withCredentials: true})
+      .then(response => { 
+            this.info = response.data
+            this.total = this.info.result
+             console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+            })
+    },
+
+
+    report_xlsx(){
+         var argj = [ this.datesearch, this.datesearch2,   session_t.sessionId];
+         window.open(JsonApiURL+'analytics/table_xls.php?search='+argj.join(), '_blank');
+    },
+    
+
+},
+
+
+	template: `<div><navigation></navigation><h3>Сводная таблица по заявкам на обучение</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+    <br />
+    <table >
+        <tr  align="left">
+            <td  style="padding-left: 0px;  padding-right: 10px;" >c </td>
+            <td  style="padding-left: 0px;  padding-right: 15px;" ><input type="date" v-model="datesearch" placeholder="Дата"  ></td>
+            <td style="padding-left: 5px;  padding-right: 5px;"> по </td>
+            <td  style="padding-left: 0px;  padding-right: 15px;" ><input type="date" v-model="datesearch2" placeholder="Дата"  ></td>
+
+        <td  style="padding-left: 15px;  padding-right: 0px; text-align: right;" > <button  @click="search_go(0)">&nbsp;<i class="fa-solid fa-magnifying-glass"></i>&nbsp;Сформировать&nbsp;</button> </td>
+        
+        </tr>
+        
+    </table>
+    <hr />
+    <div class="row">
+        <div class="col">
+            <p align="left"><b> Всего найдено: {{total}} записей </b></p>
+        </div>
+        <div class="col">
+        </div>
+        <div class="col-2" >
+            <div v-if="total>0"  align="right"><button @click="report_xlsx()" class="btn btn-primary"><i class="fa-solid fa-file-excel"></i> Скачать отчет  </button></div>
+            <div v-else align="right"><button @click="report_xlsx()" class="btn btn-outline-secondary"><i class="fa-solid fa-file-excel"></i> Скачать отчет  </button></div>
+        </div>
+    </div>
+    <hr />
+
+
+    </div>`
+};
+
+
+
+

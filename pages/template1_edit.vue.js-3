@@ -1,0 +1,409 @@
+var Template1Edit = {
+  data: function () {
+    return {
+      role: '', 
+      info: [],
+      info2: [],
+      info3: [],
+      info9: [],
+      message: '',
+      template_id: 0,
+      name: '',
+      filename: '',
+      type_id: '',
+      size_page: '',
+      is_blank: false,
+      num_of_page: 1,
+      output_format: ' ',
+      output_format_arr: {"word": "docx", "": "html" },
+      wysiwyg: 'true',
+      template_html: '',
+      footer_file: '',
+      wait: 0,
+      allow_wysiwyg: [0, 0, 1, 1, 0, 1, 1, 0],
+      upload_1: '',
+      importfile1: '',
+      importfile1_filename: '',
+      importfile1_file_type: '',
+     }
+   },
+
+   mounted() {
+    this.template_id = Number(this.$route.params.templateid)
+    this.copy_id = Number(this.$route.params.copyid)
+
+    if(this.template_id >0 )
+         var templateId = this.template_id 
+    else if(this.copy_id >0 )
+           templateId = this.copy_id 
+    else
+           templateId = 0 
+
+    if(templateId >0 ) {
+        axios
+            .post(JsonApiURL+'api/template_json.php', {object: {objectId: templateId, sessionId: session_t.sessionId } })
+            .then(response => { 
+                this.info = response.data
+                this.role = this.info.role
+                this.filename = this.info.result.file
+                this.footer_file = this.info.result.footer_file
+                this.type_id = this.info.result.type
+                this.size_page = this.info.result.size_page
+                this.num_of_page = this.info.result.num_of_page
+                this.is_blank = this.info.result.is_blank
+                if(this.is_blank == 1)
+                     this.is_blank = true
+
+                this.output_format = this.info.result.output_format
+                this.wysiwyg = this.info.result.wysiwyg
+                if(this.copy_id>0) {
+                     this.name = this.info.result.name+' - копия'
+                     this.wysiwyg = 'true'
+                     this.filename = this.translit(this.info.result.name)+'-copy.html'
+                }
+                else {
+                     this.name = this.info.result.name
+                }
+
+                axios
+                    .post(JsonApiURL+'api/template2_json.php', {template_html: {objectId: templateId, sessionId: session_t.sessionId } })
+                    .then(response2 => { 
+                        this.info2 = response2.data
+                        this.template_html = this.info2.result
+
+/*                        if(this.wysiwyg == 'true' &&  this.allow_wysiwyg[this.type_id]>0) {
+const editor = Jodit.make('#editor');
+editor.value = this.template_html;
+                        }*/
+
+                })
+                  .catch(error => {
+                      console.log(error.response)
+                })
+
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+
+          }
+/*          else {
+const editor = Jodit.make('#editor');
+editor.value = '';
+          }*/
+
+  },
+
+
+  methods: {
+        templateSave () {
+          if(this.template_id >0){
+
+                var text = ''
+                if(this.output_format == ""){
+                      text = document.getElementById("editor").value;
+                }
+
+          if(this.is_blank)
+                this.is_blank = 'true'
+
+          axios
+            .post(JsonApiURL+'api/template_json.php', {save: {objectId: this.template_id, name: this.name,  type: this.type_id,  size_page: this.size_page, is_blank: this.is_blank,   sessionId: session_t.sessionId } })
+            .then(response => {
+                console.log(response)
+    	        //this.info9 = response.data
+                if(this.output_format == "word"){
+                        this.templateUpload( this.template_id, this.filename )
+                }
+                else {
+                        axios
+                            .post(JsonApiURL+'api/template2_json.php', {html_save: {objectId: this.template_id, template_html: text,  sessionId: session_t.sessionId } })
+                            .then(response3 => {
+                             console.log(response3)
+                                //this.info9 = response3.data
+                                this.$router.push({ name: 'template_list', params: { }})
+
+                            })
+                             .catch(error3 => {
+                             console.log(error3.response)
+                         })
+                }
+
+            })
+            .catch(error => {
+              console.log(error.response)
+            })
+          }
+        },
+
+
+        templateCreate () {
+          if(this.template_id ==0){
+               if( this.name=='' || this.filename=='' || this.type_id==0  ){
+                    alert('Не все обязательные поля заполнены')
+                    return 
+               }
+               var objectId = 0
+               var dir_d = ''
+               if(this.type_id == 1)
+                  dir_d = 'protocol/'
+               else if(this.type_id == 2 || this.type_id == 3)
+                  dir_d = 'certificate/'
+               else if(this.type_id == 5)
+                  dir_d = 'contract1/'
+               else if(this.type_id == 6)
+                  dir_d = 'contract2/'
+
+                if(this.num_of_page=='' || this.num_of_page==0)
+                        this.num_of_page = 1
+
+                var text = ''
+                if(this.output_format == ""){
+                      text = document.getElementById("editor").value;
+                }
+
+	        axios
+                .post(JsonApiURL+'api/template_json.php', {insert: { name: this.name, file: dir_d+this.filename, type: this.type_id,  size_page: this.size_page, num_of_page: this.num_of_page, output_format: this.output_format,   wysiwyg: 'true', hidden: 0, footer_file: '', file_php: '',   sessionId: session_t.sessionId } })
+                .then(response => {
+                    console.log(response)
+                    this.info3 = response.data
+                    objectId = this.info3.result
+
+                if(this.output_format == "word"){
+                        this.templateUpload(objectId, dir_d+this.filename)
+                }
+                else {
+                    if(objectId>0){
+                        axios
+                            .post(JsonApiURL+'api/template2_json.php', {html_save: {objectId: objectId, template_html: text,  sessionId: session_t.sessionId } })
+                            .then(response3 => { 
+                               console.log(response3)
+                                //this.info9 = response3.data
+                                this.$router.push({ name: 'template_list', params: { }}) 
+                            })
+                             .catch(error3 => {
+                              console.log(error3.response)
+                            })
+                    }
+                }
+            })
+            .catch(error => {
+                 console.log(error.response)
+            })
+          }
+        },
+
+    translit(word){
+    var converter = {
+        'а': 'a',    'б': 'b',    'в': 'v',    'г': 'g',    'д': 'd',
+        'е': 'e',    'ё': 'e',    'ж': 'zh',   'з': 'z',    'и': 'i',
+        'й': 'y',    'к': 'k',    'л': 'l',    'м': 'm',    'н': 'n',
+        'о': 'o',    'п': 'p',    'р': 'r',    'с': 's',    'т': 't',
+        'у': 'u',    'ф': 'f',    'х': 'h',    'ц': 'c',    'ч': 'ch',
+        'ш': 'sh',   'щ': 'sch',  'ь': '',     'ы': 'y',    'ъ': '',
+        'э': 'e',    'ю': 'yu',   'я': 'ya'
+    };
+    word = word.toLowerCase();
+    var answer = '';
+    for (var i = 0; i < word.length; ++i ) {
+        if (converter[word[i]] == undefined){
+            answer += word[i];
+        } else {
+            answer += converter[word[i]];
+        }
+    }
+    answer = answer.replace(/[^-0-9a-z]/g, '-');
+    answer = answer.replace(/[-]+/g, '-');
+    answer = answer.replace(/^\-|-$/g, ''); 
+    return answer;
+  },
+   
+
+    filename_go(){
+       if(this.template_id==0) {
+            if(this.output_format == "word")
+                 this.filename = this.translit(this.name)+'.docx'
+            else
+                 this.filename = this.translit(this.name)+'.html'
+       }
+  },
+
+    preview(){
+         var preview_href = ''
+
+         if(this.type_id==1)
+            preview_href = 'd-api/documents-protocol.php?template='+this.template_id+'&groupid=0&print_v=true'
+
+         else if(this.type_id==2 || this.type_id==3)
+            preview_href = 'd-api/documents-cert.php?template='+this.template_id+'&groupid=0&id=0&print_v=true'
+
+         else if(this.type_id==5 || this.type_id==6)
+            preview_href = 'd-api/documents-contract.php?template='+this.template_id+'&contract_id=0&counterparty_id=0&print_v=true&paper=l'
+
+         window.open(preview_href, '_blank')
+    },
+
+
+    templateUpload(template_id, filename) {
+        var status = this.status
+
+        const formData = new FormData();
+        formData.append('upload1', this.importfile1)
+        formData.append('template_id', template_id); 
+        formData.append('output_format',  "word");
+        formData.append('filename',  filename);
+        formData.append('sessionId', session_t.sessionId); 
+
+        axios
+           .post(JsonApiURL+'api/template_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+           .then(response => {
+                    this.info9 = response.data
+                    console.log(response)
+                    this.$router.push({ name: 'template_list', params: { }})
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+     },
+
+     handleUpload() {
+            this.importfile1 = document.getElementById('input_file1').files[0];
+            this.importfile1_filename = this.importfile1.name;
+            this.importfile1_file_type = this.importfile1.type;
+            if( this.name=='' && this.importfile1_filename!='' )
+                      this.name =  this.importfile1_filename.substr(0, this.importfile1_filename.lastIndexOf('.'))
+     }
+
+
+
+},
+
+	template: `<div><navigation></navigation><h3>Редактирование шаблона</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+<div align="left">
+
+  <div class="mb-2 row">
+  <label for="input_type" class="form-label col-sm-3" >Тип шаблона</label>
+    <select  v-model="type_id" @change="search_go()" class="form-control col" >
+        <option value=""> - Тип шаблонов - </option>
+        <option value="1">Шаблон протокола </option>
+        <option value="2">Шаблон документа об образовании </option>
+        <option value="3">Шаблон дополнительного документа об образовании </option>
+        <option value="4">Шаблон бухгалтерских документов </option>
+        <option value="5">Шаблон договора с юр. лицом </option>
+        <option value="6">Шаблон договора с физ. лицом </option>
+    </select>
+    <div class="col-1" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+    <div class="col-2" >  </div>
+  </div>
+
+  <div class="mb-2 row">
+  <label for="input_name" class="form-label col-sm-3" >Наименование</label>
+    <input v-model="name"  class="form-control col"  id="input_name" @change="filename_go()"  type="text"  >
+    <div class="col-2" style="color: red"> <a title="Обязательное для заполнения поле"><b>*</b></a> </div>
+  </div>
+
+
+  <div class="mb-2 row">
+    <label for="input_blank" class="form-label col-sm-3"></label>
+        <div class="form-check form-check-inline col">
+        <input class="form-check-input" type="checkbox" id="input_blank" v-model="is_blank">
+        <label class="form-check-label" for="input_blank"> на нумерованном бланке </label>
+        </div>
+  </div>
+
+
+  <!--<div v-if="template_id==0" class="mb-2 row">
+    <label for="input_file_name" class="form-label col-sm-3">Имя файла</label>
+      <input v-model="filename"  class="form-control col" id="input_file_name"     >
+    <div class="col-3" >  </div>
+  </div>-->
+
+
+  <div class="mb-2 row">
+  <label for="input_size" class="form-label col-sm-3" >Формат листа</label>
+    <select  v-model="size_page"  class="form-control col"  >
+        <option value=""> - Формат листа - </option>
+        <option value="A4 portrait"> A4 книжнный </option>
+        <option value="A4 landscape">A4 альбомный </option>
+    </select>
+    <div class="col-6" >  </div>
+  </div>
+
+
+  <div class="mb-2 row">
+    <label for="input_middlename" class="form-label col-sm-3">Количество экземпляров на листе</label>
+     <input v-model="middlename"  class="form-control col text-capitalize" id="input_middlename"  type="text"  >
+    <div class="col-8"  > <i><small>Заполняется при необходимости</small></i> </div>
+  </div>
+
+
+  <div class="mb-2 row">
+  <label for="input_output_format" class="form-label col-sm-3" >Тип файла</label>
+    <span v-if="template_id>0" class="col">
+      {{output_format_arr[output_format] }}
+    </span>
+    <span v-else class="col">
+      <select  v-model="output_format"  class="form-control" id="input_output_format"  @change="filename_go()"  >
+        <option value=""> - Тип файла - </option>
+        <option value=""> html </option>
+        <option value="word"> docx </option>
+      </select>
+    </span>
+    <div class="col-6" >  </div>
+  </div>
+
+  <hr />
+
+  <!--<div class="row" style="padding-bottom: 10px; text-align: right;" >
+    <span class="col-9"><hr /></span>
+    <a class="col d-grid gap-2"  @click="preview()" ><button  class="btn btn-outline-primary btn-sm"  ><small><i class="fa-solid fa-eye"></i>&nbsp&nbspПредварительный просмотр</small></button></a>
+  </div>-->
+
+ <span v-if="output_format==''">
+  <textarea  id="editor" name="editor" style="width:1290px; height:400px;"  >{{template_html}}</textarea>
+  <br />
+ </span>
+
+ <span v-if="output_format=='word'">
+  <div  class="mb-2 row">
+  <div class="col-7" align="right">
+      <i class="fa-regular fa-file-lines"></i> &nbsp;Инструкция по написанию шаблонов
+  </div>
+  </div>
+
+  <div  class="mb-2 row">
+  <div class="col-7">
+  <label for="input_file1" class="form-label"><a :href="'documents/'+this.filename" target="_blank"  class="nav-link" title="Шаблон" >&nbsp;<i class="fa-regular fa-file-word"></i>&nbsp;Шаблон <span v-if="this.upload_file!=''"><i class="fa-solid fa-check" style="color:green"></i></span> </a></label><br />
+  <input type="file" v-model="upload_1" placeholder="Шаблон"   class="form-control"  id="input_file1"  @change="handleUpload()"  type="file"  placeholder="Шаблон" >
+  </div>
+  <div class="col-md-1">
+  <br/><br/>.docx
+  </div>
+  </div>
+ </span>
+
+
+
+
+  <div class="mb-2">	
+    <div align="right">
+    <button v-if="template_id>0"  class="btn btn-primary"    @click="templateSave()"> Сохранить </button>
+    <button v-if="template_id<=0"  class="btn btn-success"    @click="templateCreate()"> Создать новый шаблон </button>
+      &nbsp<router-link :to="{ name: 'template_list'}" ><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </div>
+  </div>
+ </div>
+
+
+
+</div>
+	</div>`
+
+};
+
+
+
+

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title> plan </title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+	  <link rel="stylesheet" href="css/all.css">
+	  <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed:300,300i,400,400i,700,700i&amp;subset=cyrillic,cyrillic-ext&amp;display=swap">
+	  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" >
+
+
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://unpkg.com/vue-router@4"></script>
+    <!--<script src="https://unpkg.com/vuex@4.0.0/dist/vuex.global.js"></script>-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+</head>
+<body>
+	
+	<header>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-6"><a href="https:///#/"><img src="images/logo.png" alt="Конструктор курсов"></a></div>
+				<div class="col-md-6 text-right"><a href="#" class="btn btn-gray">ВХОД В ЛИЧНЫЙ КАБИНЕТ</a></div>
+			</div>
+		</div>
+	</header>
+	
+	
+	<section id="title" name="top">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12"><h1>Конструктор учебных программ</h1><p>Cформируйте уникальную программу обучения </p></div>
+			</div>
+		</div>
+	</section>
+	
+	
+<div id="app" class="container" style="margin-top: 5px;">
+	<div class="text-center" style="margin-top: 2px;">
+		<router-view></router-view>
+	</div>
+</div>
+
+<script>
+    const AuthTitle = 'Конструктор учебных программ'
+    const ShortTitle = 'Конструктор учебных программ'
+    const JsonApiURL = 'https://test.sedipo.ru/plan/'
+    const MoodleApiURL = 'https://plan/users/'
+</script>
+
+<!-- Vue Pages -->
+<script src="pages/list.vue.js?v=4"></script>
+<script src="pages/new.vue.js?v=6"></script>
+<script src="pages/rprg.vue.js?v=26"></script>
+<script src="pages/p.vue.js?v=8"></script>
+<script src="pages/auth.vue.js?v=2"></script>
+<script src="pages/logout.vue.js?v=1"></script>
+<script src="pages/home.vue.js?v=1"></script>
+<script src="pages/about.vue.js"></script>
+
+<script>
+var routes = [
+  { path: '/auth/:key?', component: Auth, props: true  },
+//  { path: '/', name: 'list', component: Home },
+  { path: '/', name: 'list', component: List },
+  { path: '/edit/:id/:pos?', name: 'edit', component: Rprg },
+  { path: '/new/', name: 'new', component: New },
+  { path: '/p/:parent/:id/:p_id?', name: 'p_item',  component: P_item, props: true  },
+//  { path: '/logout', name:'logout', component: Logout },
+//  { path: '/about', component: About },
+//  { path: '/contact', component: Contact }
+];
+
+
+const router = VueRouter.createRouter({
+  history: VueRouter.createWebHashHistory(),
+  routes, // short for `routes: routes`
+})
+
+
+var session_t = {
+      login: '',
+      sessionId: '',
+      role: ''
+};
+
+var search_u = {
+      lastnamesearch: '',
+      firstnamesearch: '',
+      middlenamesearch: '',
+      organizationsearch: 0
+};
+
+
+/*const store = Vuex.createStore({
+  state () {
+    return {
+      count: 0
+    }
+  },
+  mutations: {
+    increment (state) {
+      state.count++
+    }
+  }
+})*/
+
+const app = Vue.createApp({})
+app.use(router)
+
+app.component('navigation', {
+  data() {
+    return {
+	info: '',
+        sessionId: '',
+	accountId: '0'
+    }
+  },
+
+   mounted() {
+//    updated() {
+
+      axios
+        .post(JsonApiURL+'account_json.php', {is_auth: {sessionId: session_t.sessionId}})
+        .then(response => { 
+            this.info = response.data
+	    this.sessionId = this.info.sessionId
+	    this.accountId = this.info.accountId
+	    //session_t.sessionId = this.info.sessionId
+	    if(this.info.status>0)
+		window.location.href = '#/auth';
+
+            //this.isSysAdmin = this.info.isSysAdmin
+            //this.userId = this.info.userId
+         })
+        .catch(error => {
+              console.log(error.response)
+            })
+
+
+	//this.sessionId = session_t.sessionId
+	//if(this.sessionId=='') {
+	//    window.location.href = '#/auth';
+	//}
+    },
+
+  template: `<div>
+<!--
+<nav class="navbar navbar-expand-lg navbar-light bg-dark navbar-dark shadow">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="fa-solid fa-house-laptop"  style="font-size: larger;"></i> </a>
+
+      <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-content">
+        <div class="hamburger-toggle">
+          <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbar-content">
+        <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Информация о системе</a></li>
+            </ul>
+          </li>
+        </ul>
+
+        <div class="d-flex ms-auto">
+          <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" data-bs-auto-close="outside"> <i class="fa-solid fa-circle-user" style="font-size: larger;"></i> {{info.login}} </a>
+              <ul class="dropdown-menu shadow">
+                <li><router-link  :to="{ name: 'accountedit', params:{ accountid: accountId }}"  class="dropdown-item" >Настройки аккаунта</router-link></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#/logout">Выход</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </nav>
+-->
+</div>`
+})
+
+
+app.mount('#app')
+
+</script>
+	<footer>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-6"><p class="name"> C </p><p> <br><</div>
+				
+				<div class="col-md-6 text-right"><p class="text-right">© 2022 </p></div>
+			</div>
+		</div>
+	</footer>
+</body>
+</html>

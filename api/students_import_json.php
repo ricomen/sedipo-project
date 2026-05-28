@@ -1,0 +1,340 @@
+<?php
+/*
+ * @copyright 2022
+ */
+
+require_once '../config.php';
+require_once 'lib.php';
+$dbhost = $cfg->host;
+$dbuser = $cfg->user;
+$dbpassword = $cfg->password;
+$dbname = $cfg->name;
+try {  
+    $dbh = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+require_once '../../config/config-auth.php';
+$dbhost_a = $cfg_auth->host;
+$dbuser_a = $cfg_auth->user;
+$dbpassword_a = $cfg_auth->password;
+$dbname_a = $cfg_auth->name;
+try {  
+    $dbh_a = new PDO("mysql:host=$dbhost_a;dbname=$dbname_a;charset=utf8", $dbuser_a, $dbpassword_a);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+require_once 'students_lib.php';
+
+
+require_once('../PhpSpreadsheet/vendor/autoload.php');
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+
+
+function user_import( $counterparty_id, $order_id, $item ) {
+    global $api_arg, $user_id_session, $AccountPrefix, $EmailDomain,  $dbh;
+    
+    $reader = new Xlsx();
+    $spreadsheet = $reader->load($_FILES['upload']['tmp_name']); 
+    $worksheet = $spreadsheet->setActiveSheetIndex(0);
+    $highestRow = $worksheet->getHighestRow();
+    $highestCol = $worksheet->getHighestColumn();
+
+    $info = $worksheet->rangeToArray("A1:$highestCol$highestRow", null, true, false, false);
+
+
+//file_put_contents("lst2.txt", json_encode($info, JSON_UNESCAPED_UNICODE));
+    $i_date_of_birth = 0;
+    $i_snils = 0;
+    $i_sex = 0;
+    $i_email = 0;
+    $i_job_title = 0;
+    $i_subdivision = 0;
+    $i_pasport_series = '';
+    $i_pasport_number = '';
+    $i_pasport_unit = '';
+    $i_pasport_unit_number = '';
+    $i_phone = '';
+    $i_address  = '';
+    $rows_count = 0;
+    foreach ($info as $listRrow) {
+        //$myDate = date('Y-m-d h:i',\PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($tableRow[2]));
+	    if($rows_count == 0) {
+	        $i = 0;
+	        foreach ($listRrow as  $value){
+                        //$value = mb_substr($value_r, 0,  mb_strpos($value_r, ' '));
+
+		        if($value == 'Дата рождения')
+		            $i_date_of_birth = $i;
+
+		        if($value == 'СНИЛС')
+		            $i_snils = $i;
+
+		        if($value == 'Пол (Муж. / Жен.)')
+		            $i_sex = $i;
+
+		        if($value == 'email')
+		            $i_email = $i;
+
+		        if($value == 'Должность')
+		            $i_job_title = $i;
+
+		        if($value == 'Подразделение')
+		            $i_subdivision = $i;
+
+		        if($value == 'Паспорт серия')
+		            $i_pasport_series = $i;
+
+		        if($value == 'Паспорт номер')
+		            $i_pasport_number = $i;
+
+		        if($value == 'Выдан')
+		            $i_pasport_unit = $i;
+
+		        if($value == 'Код подразделения')
+		            $i_pasport_unit_number = $i;
+
+		        if($value == 'Телефон')
+		            $i_phone = $i;
+
+		        if($value == 'Адрес')
+		            $i_address  = $i;
+
+		        $i = $i+1;
+	        }
+	        //continue;
+	    }
+	    else {
+//file_put_contents("lst.txt", print_r($listRrow, true) );
+                if( trim($listRrow[0])=='' || trim($listRrow[0])==null ||  trim($listRrow[1])=='' ||  trim($listRrow[1])==null )
+                              continue;
+
+	        $date_of_birth = '1000-01-01';
+	        if($i_date_of_birth>0 && trim($listRrow[$i_date_of_birth])!=''){
+	            //$date_of_birth_a = explode(".", trim($listRrow[$i_date_of_birth]));
+	            $date_of_birth_t = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp(trim($listRrow[$i_date_of_birth]));
+                    $date_of_birth =  date('Y-m-d', $date_of_birth_t );
+	        }
+
+	        $snils = '';
+	        if($i_snils>0 && trim($listRrow[$i_snils])!=''){
+	            $snils = trim($listRrow[$i_snils]);
+	        }
+
+	        $sex = '';
+	        if($i_sex>0 && trim($listRrow[$i_sex])!=''){
+	            $sex_i = mb_substr($listRrow[$i_sex], 0, 1);
+                    if($sex_i == 'М' || $sex_i == 'м')
+                            $sex = 'Муж';
+                    if($sex_i == 'Ж' || $sex_i == 'ж')
+                            $sex = 'Жен';
+	        }
+
+	        $email = '';
+	        if($i_email>0 && trim($listRrow[$i_email])!=''){
+	            $email = trim($listRrow[$i_email]);
+	        }
+
+	        $job_title_id = 0;
+	        if($i_job_title>0 && trim($listRrow[$i_job_title])!=''){
+	            $is_job_title = 0;
+	            $stmt = $dbh->prepare("select `job_title_id` FROM  `a_job_title`  WHERE `name`=?   ");
+                    $stmt->execute([ trim($listRrow[$i_job_title]) ]);
+	            if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	                $is_job_title = 1;
+	                $job_title_id = $row->job_title_id;
+	            }
+	            if($is_job_title == 0) {
+	                $stmt = $dbh->prepare("INSERT INTO `a_job_title`(`name`) VALUES(?)");
+    	                $stmt->execute([trim($listRrow[$i_job_title])]);
+	                $job_title_id = $dbh->lastInsertId(); 
+	            }
+	        }
+
+	        $subdivision = '';
+	        if($i_subdivision>0 && trim($listRrow[$i_subdivision])!=''){
+	            $subdivision = trim($listRrow[$i_subdivision]);
+	        }
+
+	        $pasport_series = '';
+	        if($i_pasport_series>0 && trim($listRrow[$i_pasport_series])!=''){
+	            $pasport_series = trim($listRrow[$i_pasport_series]);
+	        }
+
+	        $pasport_number = '';
+	        if($i_pasport_number>0 && trim($listRrow[$i_pasport_number])!=''){
+	            $pasport_number = trim($listRrow[$i_pasport_number]);
+	        }
+
+	        $pasport_unit = '';
+	        if($i_pasport_unit>0 && trim($listRrow[$i_pasport_unit])!=''){
+	            $pasport_unit = trim($listRrow[$i_pasport_unit]);
+	        }
+
+	        $pasport_unit_number = '';
+	        if($i_pasport_unit_number>0 && trim($listRrow[$i_pasport_unit_number])!=''){
+	            $pasport_unit_number = trim($listRrow[$i_pasport_unit_number]);
+	        }
+
+	        $phone = '';
+	        if($i_phone>0 && trim($listRrow[$i_phone])!=''){
+	            $phone = trim($listRrow[$i_phone]);
+	        }
+
+	        $address  = '';
+	        if($i_address>0 && trim($listRrow[$i_address])!=''){
+	            $address = trim($listRrow[$i_address]);
+	        }
+
+                $user_counterparty_id = 0;
+	        $count_u = 0;
+	        $stmt = $dbh->prepare("SELECT `a_user_counterparty`.`user_id`, `user_counterparty_id` FROM  `a_users` LEFT JOIN `a_user_counterparty` USING(`user_id`)  WHERE `counterparty_id`=? AND   `lastname`=? AND  `firstname`=? AND  `middlename`=? AND `snils`=?  AND `date_of_birth`=? LIMIT 2");
+                $stmt->execute([$counterparty_id, trim($listRrow[0]), trim($listRrow[1]), trim($listRrow[2]),  $snils, $date_of_birth  ]);
+	        while($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	            $count_u =  $count_u +1;
+	            $id_user = $row->user_id; 
+	            $user_counterparty_id = $row->user_counterparty_id; 
+	        }
+                if($count_u == 0 ) {
+	            $stmt = $dbh->prepare("INSERT INTO `a_users`(`lastname`, `firstname`, `middlename`, `email`,   `snils`, `date_of_birth`,  `sex`, `pasport_series`, `pasport_number`, `pasport_unit`, `pasport_unit_number`, `phone`, `address` ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,? )");
+    	            $stmt->execute([trim($listRrow[0]), trim($listRrow[1]) ,trim($listRrow[2]), $email,   snils_format($snils), $date_of_birth, $sex, $pasport_series, $pasport_number, $pasport_unit, $pasport_unit_number, $phone, $address ]);
+	            $id_user = $dbh->lastInsertId(); 
+                }
+
+                $job_title_category = 1;
+		if($job_title_id>0){
+                    $stmt = $dbh->prepare('INSERT INTO  `a_user_counterparty`( `user_id`, `counterparty_id`,  `job_title_id`,  `job_title_category`, `subdivision`, `status` )   VALUES( ?, ?, ?, ?, ?,  0 )  ');
+                    $stmt->execute([ $id_user, $counterparty_id, $job_title_id, $job_title_category, $subdivision  ]);
+                    $user_counterparty_id = $dbh->lastInsertId(); 
+                }
+                else if($count_u == 0 ){
+                    $stmt = $dbh->prepare('INSERT INTO  `a_user_counterparty`( `user_id`, `counterparty_id`,  `job_title_id`,  `job_title_category`, `subdivision`, `status` )   VALUES( ?, ?, ?, ?, ?,  0 )  ');
+                    $stmt->execute([ $id_user, $counterparty_id, 1, $job_title_category, ''  ]);
+                    $user_counterparty_id = $dbh->lastInsertId(); 
+                }
+
+
+
+                if($order_id >0 && $id_user>0) {
+                    $num = 1; 
+                    $stmt = $dbh->prepare("SELECT  MAX(`a_order_users`.`certificate_num`) as `num` FROM  `a_order_users` LEFT JOIN `a_order_course` USING(`item_id`)   WHERE  `order_id`=?  ");
+                    $stmt->execute([$order_id] );
+                    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+                          $num =  intval($row->num) + 1;
+                    }
+
+    		    $stmt = $dbh->prepare('DELETE FROM `a_order_users`  WHERE `order_id`=? AND  `user_counterparty_id`=?  ');
+		    $stmt->execute([$order_id,  $user_counterparty_id]);
+
+                    $stmt = $dbh->prepare('INSERT INTO `a_order_users`(`order_id`, `user_counterparty_id`,   `certificate_num`  ) VALUES ( ?, ?, ? )');
+		    $stmt->execute([$order_id, $user_counterparty_id,  $num ]);
+                    $p_item_id = $dbh->lastInsertId(); 
+
+                    $rc = user_link_lib($order_id, $user_counterparty_id,  $id_user, $p_item_id );
+                }
+
+	    }
+	    $rows_count = $rows_count +1;
+    }
+
+    $result = ["status"=>0, "error"=>'',  "action"=>"user_import",   "result"=>["total"=>$rows_count,  "file"=>$_FILES["upload"]["name"],  "type"=>$_FILES["upload"]["type"]] ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+function snils_format($snils) {
+    $snils_a = str_split(str_replace(' ', '', str_replace('-', '',  trim($snils))), 1);
+    return $snils_a[0].$snils_a[1].$snils_a[2]. '-' . $snils_a[3].$snils_a[4].$snils_a[5]. '-' . $snils_a[6].$snils_a[7].$snils_a[8]. ' ' . $snils_a[9].$snils_a[10];
+}
+
+
+
+
+if($_POST["counterparty_id"]!='' &&  $_FILES){
+     user_import( intval($_POST["counterparty_id"]), intval($_POST["order_id"]), intval($_POST["item"]) ); 
+}
+
+else {
+    $result = array('POST'=>$_POST, 'GET'=>$_GET, 'FILES'=>$_FILES, 'SERVER'=>$_SERVER);
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+
+/*    $handle = @fopen($file, "r");
+    if($handle) {
+        while (($buffer = fgets($handle, 4096)) !== false) {
+	$buffer= trim($buffer);
+	$rec = explode(';', $buffer);
+	$organization_id = 0;
+
+
+	$count_p = 0;
+
+	$count_o = 0;
+	$stmt = $dbh->prepare("select `organization_id` FROM  `a_organizations`  WHERE `name`=?   ");
+        $stmt->execute([trim($rec[$i_organization])]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	    $count_o = 1;
+	    $organization_id = $row->organization_id;
+	}
+	if($count_o == 0 && trim($rec[$i_organization]) != '') {
+	    $stmt = $dbh->prepare("INSERT INTO `a_organizations`(`name`) VALUES(?)");
+    	    $stmt->execute([trim($rec[$i_organization])]);
+	    $organization_id = $dbh->lastInsertId(); 
+	}
+
+
+//	$stmt = $dbh->prepare("SELECT `user_id` FROM  `a_users`  WHERE `lastname`=? AND  `firstname`=? AND  `middlename`=? AND `organization_id`=?  ");
+//      $stmt->execute([trim($rec[0]), trim($rec[1]) ,trim($rec[2]), $organization_id ]);
+
+
+    	    if($group_id >0) {
+    		$stmt = $dbh->prepare('DELETE FROM `a_groups_users` WHERE `group_id`=? AND   `user_id`=? ');
+		$stmt->execute([$group_id,  $id_user]);
+
+    		$stmt = $dbh->prepare('INSERT INTO `a_groups_users`(`group_id`,  `user_id`) VALUES ( ?, ?)');
+		$stmt->execute([$group_id,  $id_user]);
+	    }
+	}
+
+
+	    if($id_user>0) {
+		$passwd_chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ23456789';
+		$login = $AccountPrefix . str_pad("$id_user", 5, '0', STR_PAD_LEFT); 
+		$email = $login . $EmailDomain;
+		$shfl = str_shuffle($passwd_chars);
+		$password = substr($shfl,0,8);
+ 
+    		$stmt2 = $dbh->prepare('UPDATE `a_users` SET `email`=?, `login`=?, `password`=?  WHERE `user_id`=?');
+    		$stmt2->execute([$email, $login, $password,  $id_user ]);
+	    }
+
+    	    if($group_id >0 && $id_user>0) {
+    		$stmt = $dbh->prepare('DELETE FROM `a_groups_users` WHERE `group_id`=? AND   `user_id`=? ');
+		$stmt->execute([$group_id,  $id_user]);
+
+    		$stmt = $dbh->prepare('INSERT INTO `a_groups_users`(`group_id`,  `user_id`) VALUES ( ?, ?)');
+		$stmt->execute([$group_id,  $id_user]);
+	    }
+	}
+
+        }
+        fclose($handle);
+    }
+    if($_FILES["csvfile"]['type'] == 'application/vnd.ms-excel' && $file!=''){
+        system( 'rm -f ' . $file  );
+    }
+*/
+
+?>

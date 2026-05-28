@@ -1,0 +1,18 @@
+
+
+.dropdown-item {
+color: #333;
+}
+
+.custom-btn {
+    background-color: #2d5da5;
+    color: #fff;
+}
+.custom-btn:hover {
+    background-color: #158cba;
+    color: #fff;
+}
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px white inset !important; /* Делает фон белым */
+    -webkit-text-fill-color: #333 !important; /* Цвет текста */
+}

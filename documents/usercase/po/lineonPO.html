@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p {  direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; line-height:1;}
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cmargin-top: 0.1cm; m; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+
+
+	<title>Направление</title>
+</head>
+
+<p class="western" style="text-align:left;  margin-bottom: 0; font-size: 8pt;">
+<b>Приложение № 1 к договору</b>
+
+</p>
+
+
+<table width="100%" cellpadding="7" cellspacing="0">
+    <tr>
+        <td >
+            <p class="western" style="text-align: left;">
+            Исх. №  {$lstream['name']} от {$order_data['date_order']|date_format:"%e.%m.%Y"} г.
+        </p>
+        </td>
+        <td>
+            <p class="western" style="text-align: right;">
+            Директору <br />
+             ______________<br />
+            ______________
+            <!--{$self_data['enterprise_manager3']}
+            {$order_data['date_order']|date_format:"%e.%m.%Y"} г.<br /> -->
+            </p>
+        </td>
+    </tr>
+    </table>
+
+<p class="western" ><span style="margin-right:25px;">&#8195;</span>{$self_data['name']} направляет для прохождения производственной практики в период с ____________ г. по ____________ г. {foreach from=$users item=cell name=users} {$cell['lastname']} {$cell['firstname']} {$cell['middlename']}, {/foreach} обучающихся по профессии «{$lstream['course_name']}» и мастера производственного обучения {$self_data['name']} Ханнанова Р.Р., в качестве руководителя практики. 
+</p>
+<p class="western" ><span style="margin-right:25px;">&#8195;</span>Просим оказать содействие в выполнении программы производственной практики и дать отзыв об уровне подготовки обучающихся {foreach from=$users item=cell name=users} {$cell['lastname']} {$cell['firstname']} {$cell['middlename']} {/foreach}.
+</p>
+
+
+
+<table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0" style="page-break-before: avoid; text-align: justify; line-height: 90%;">
+
+<tr>
+
+    <td>
+<p class="western">Директор {$self_data['shortname']}</p>
+    </td>
+    <td>
+<p class="western">{$self_data['enterprise_manager']}</p>
+    </td>
+</tr>
+</table>
+
+</body>
+</html>

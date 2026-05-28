@@ -1,0 +1,787 @@
+var CourseCalendarEdit  = {
+  data: function () {
+    return {
+      info: [],
+      info2: [],
+      info3: [],
+      info4: [],
+      info9: [],
+      message: '',
+      course_id: 0,
+      variation: 1,
+      variation_model: 1,
+
+      performer_id: 0,
+      name: '',
+      shortname: '',
+      rank_of_profession: 0,
+      description: '',
+      competence: '',
+      moodle_course_id: 0,
+      price: ' ',
+      price2: ' ',
+      hours: '',
+      hours_l: '',
+      hours_p: '',
+      hours_i: '',
+      hours_c: '',
+      price_multiplier: 1.0,
+      hours_add: '',
+      hours_l_add: '',
+      hours_p_add: '',
+      hours_i_add: '',
+      hours_c_add: '',
+      price_multiplier2: 1.0,
+      hours_add2: '',
+      hours_l_add2: '',
+      hours_p_add2: '',
+      hours_i_add2: '',
+      hours_c_add2: '',
+      hours_c_model: '',
+      is_main_module: 'false', 
+      is_modules: 'false',
+      is_rank_of_profession: 'false',
+      category: 0,
+      item_course: [],
+      item_deleted: [],
+      //item_split2: -1,
+      hours_summ: 0,
+      hours_course: 0,
+      is_edit_fl: false,
+      hours_n_summ: [],
+      
+      performer_name: '',
+
+      modal_index: 0,
+      modal_topic_id: 0,
+      modal_topic: '',
+      modal_topic_old: '',
+      modal_name_topic: '',
+      modal_hours_topic: '',
+      modal_type: 1,
+
+      importfile1: '',
+      importfile1_filename: '',
+      importfile1_file_type: '',
+
+      }
+   },
+
+   mounted() {
+    this.course_id = Number(this.$route.params.courseid)
+    this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+
+
+
+    if(this.course_id > 0 ){
+      axios
+      .post(JsonApiURL+'api/courses_json.php', {object: {objectId: this.course_id, sessionId: session_t.sessionId } })
+      .then(response => { 
+            var main_module=0
+            this.info = response.data
+            this.name = this.info.result.name
+            this.shortname = this.info.result.shortname
+            this.category = this.info.result.category_id
+            this.performer_id = this.info.result.performer_id
+            this.moodle_course_id = this.info.result.moodle_course_id
+            this.hours = this.info.result.hours
+            this.hours_l = this.info.result.hours_l
+            this.hours_p = this.info.result.hours_p
+            this.hours_i = this.info.result.hours_i
+            this.hours_c = this.info.result.hours_c
+            this.hours_add = this.info.result.hours_add
+            this.hours_l_add = this.info.result.hours_l_add
+            this.hours_p_add = this.info.result.hours_p_add
+            this.hours_i_add = this.info.result.hours_i_add
+            this.hours_c_add = this.info.result.hours_c_add
+            this.hours_add2 = this.info.result.hours_add2
+            this.hours_l_add2 = this.info.result.hours_l_add2
+            this.hours_p_add2 = this.info.result.hours_p_add2
+            this.hours_i_add2 = this.info.result.hours_i_add2
+            this.hours_c_add2 = this.info.result.hours_c_add2
+            this.form_id = this.info.result.form_of_study
+            main_module = this.info.result.main_module
+
+            this.hours_c_model = this.hours_c
+            this.hours_course = this.hours
+
+            if(main_module == 1)
+                this.is_main_module = 'true'
+                
+            if(this.performer_id>0){
+                axios
+                  .post(JsonApiURL+'api/counterparty_json.php', {object: {objectId: this.performer_id, sessionId: session_t.sessionId } })
+                  .then(response3 => { 
+                    this.info3 = response3.data
+                    this.performer_name = this.info3.result.shortname
+                  })
+                  .catch(error => {
+                        console.log(error.response)
+                  })
+            }
+
+       })
+      .catch(error => {
+              console.log(error.response)
+      }),
+
+
+      axios
+      .post(JsonApiURL+'api/course_calendar_json.php', {list: { conditions: {"course_id": this.course_id, "variation": 1},  sessionId: session_t.sessionId } })
+      .then(response => { 
+              //console.log(response)
+            this.info4 = response.data
+
+            //this.hours_summ = this.hours_summ + Number(this.hours_c)
+
+            var n = this.info4.list.length
+            //var l_prev = 1000
+            //var i_l = 0
+            //this.hours_n_summ[0] = 0
+            var item_course_0 = 0
+            for(var i=0; i<n; i++) {
+                this.item_course.push(this.info4.list[i])
+                //this.hours_summ = this.hours_summ + Number(this.info4.list[i].hours)
+                
+                //var prev_type = 1
+                var item_course_a =  this.item_course[i]['topic'].split('.')
+                var l = item_course_a.length
+                while( l>=0 && (item_course_a[l-1]=='' || item_course_a[l-1]== 0)){
+                      item_course_a.pop()
+                      l = l -1
+                }
+                //this.hours_n_summ[i] = 0
+                //if( l == l_prev && item_course_0 == item_course_a[0]){
+                //      this.hours_n_summ[i_l] += Number(this.item_course[i]['hours'])
+                //}
+                //else if(l > l_prev) {
+                //      this.hours_n_summ[i_l] += Number(this.item_course[i]['hours'])
+                //}
+                //else {
+                //     i_l = i
+                //}
+                //l_prev = l
+                item_course_0 = item_course_a[0]
+                this.item_course[i]['topic'] = ''
+                for(var j=0; j<l; j++){
+                      this.item_course[i]['topic'] = this.item_course[i]['topic'] + String(Number(item_course_a[j])).padStart(2, ' ') + '.'
+                }
+                //prev_type = this.item_course[i]['type']
+            }
+            this.summ_go(this.info4.list)
+       })
+      .catch(error => {
+              console.log(error.response)
+       })
+
+    }
+
+  },
+
+//    updated() {
+
+//  },
+
+
+  methods: {
+
+     summ_go(p_list) {
+            this.hours_summ =  Number(this.hours_c_model)
+
+            var n = p_list.length
+            var l_prev = 1000
+            var i_l = 0
+            this.hours_n_summ[0] = 0
+            var item_course_0 = 0
+            for(var i=0; i<n; i++) {
+                var prev_type = 1
+                var item_course_a =  this.item_course[i]['topic'].split('.')
+                var l = item_course_a.length
+                if( l == 2)
+                       this.hours_summ = this.hours_summ + Number(this.item_course[i]['hours'])
+
+                this.hours_n_summ[i] = 0
+                if( l == l_prev && item_course_0 == item_course_a[0]){
+                      this.hours_n_summ[i_l] += Number(this.item_course[i]['hours'])
+                }
+                else if(l > l_prev) {
+                      this.hours_n_summ[i_l] += Number(this.item_course[i]['hours'])
+                }
+                else {
+                     i_l = i
+                }
+                l_prev = l
+                item_course_0 = item_course_a[0]
+                prev_type = this.item_course[i]['type']
+            }
+
+     },
+
+     on_select_variation() {
+        if( this.is_edit_fl ){
+             var fl = confirm('Сохранить?');
+             if(fl){
+                this.objectSave(true )
+             }
+        }
+        this.variation = this.variation_model
+
+        this.item_course =[]
+        this.hours_summ = 0
+
+        if(this.variation == 1){
+              this.hours_c_model = this.hours_c
+              this.hours_course = this.hours
+        }
+        else if(this.variation == 2){
+              this.hours_c_model = this.hours_c_add
+              this.hours_course = this.hours_add
+        }
+        else if(this.variation == 3){
+              this.hours_c_model = this.hours_c_add2
+              this.hours_course = this.hours_add2
+        }
+        this.hours_summ = this.hours_summ + Number(this.hours_c_model)
+
+        axios
+        .post(JsonApiURL+'api/course_calendar_json.php', {list: { conditions: {"course_id": this.course_id, "variation": this.variation },  sessionId: session_t.sessionId } })
+        .then(response => { 
+              //console.log(response)
+            this.info4 = response.data
+            var n = this.info4.list.length
+            for(var i=0; i<n; i++) {
+                this.item_course.push(this.info4.list[i])
+                this.hours_summ = this.hours_summ + Number(this.info4.list[i].hours)
+
+                var prev_type = 1
+                var item_course_a =  this.item_course[i]['topic'].split('.')
+                var l = item_course_a.length
+                while( l>=0 && (item_course_a[l-1]=='' || item_course_a[l-1]== 0)){
+                      item_course_a.pop()
+                      l = l -1
+                }
+                this.item_course[i]['topic'] = ''
+                for(var j=0; j<l; j++){
+                      //item_course_a[j] = String(Number(item_course_a[j])).padStart(2, ' ')
+                      this.item_course[i]['topic'] = this.item_course[i]['topic'] + String(Number(item_course_a[j])).padStart(2, ' ') + '.'
+                }
+                //this.item_course[i]['topic'] = item_course_a.join('.') + '.'
+
+                //if(this.item_course[i]['type']== 3 && prev_type==1)
+                //      this.item_split2 = i -2 
+                      
+                prev_type = this.item_course[i]['type']
+             }
+             console.log(response)
+         })
+        .catch(error => {
+              console.log(error.response)
+         })
+
+     },
+
+
+     objectSave( noredirect ) {
+        if(this.course_id > 0){
+            this.is_edit_fl = false
+
+            var n0 = this.item_deleted.length
+            for(var i=0; i<n0; i++) {
+              axios
+               .post(JsonApiURL+'api/course_calendar_json.php', {delete: {objectId: this.item_deleted[i]['topic_id'],   sessionId: session_t.sessionId } })
+               .then(response => {
+                console.log(response)
+              })
+              .catch(error => {
+                   console.log(error.response)
+              })
+            }
+
+            var n = this.item_course.length
+            var old_type = 1
+            for(var i=0; i<n; i++) {
+              var item_course_a =  this.item_course[i]['topic'].split('.')
+              var l = item_course_a.length - 1
+              this.item_course[i]['topic'] = ''
+              for(var j=0; j<l; j++){
+                      this.item_course[i]['topic'] = this.item_course[i]['topic'] + String(Number(item_course_a[j])).padStart(2, ' ') + '.'
+              }
+
+
+              axios
+                .post(JsonApiURL+'api/course_calendar2_json.php', {save2: {objectId: this.item_course[i]['topic_id'], topic: this.item_course[i]['topic'], hours: this.item_course[i]['hours'], name_topic: this.item_course[i]['name_topic'], course_id: this.course_id, variation: this.variation, type: this.item_course[i]['type'], cohort_id: 0, num: i,  sessionId: session_t.sessionId } }) 
+                .then(response2 => {
+                  console.log(response2)
+                   //this.info9 = response2.data
+
+               })
+               .catch(error => {
+                    console.log(error.response)
+               })
+            }
+
+            if( this.variation == 1 )
+                  this.hours_c = this.hours_c_model
+            else if( this.variation == 2 )
+                  this.hours_c_add = this.hours_c_model
+            else if( this.variation == 3 )
+                  this.hours_c_add2 = this.hours_c_model
+
+            axios
+               .post(JsonApiURL+'api/courses_json.php', {update: {objectId: this.course_id,  hours_c: this.hours_c,   hours_c_add: this.hours_c_add,   hours_c_add2: this.hours_c_add2,   sessionId: session_t.sessionId } })
+               .then(response3 => {
+                  console.log(response3)
+                   //this.info9 = response2.data
+
+               })
+               .catch(error => {
+                    console.log(error.response)
+               })
+
+         }
+         if(!noredirect)
+              this.$router.push({ name: 'courses_list', params: { counterpartyid: this.counterparty_id }} ) 
+     },
+
+
+     objectRebuild() {
+        this.is_edit_fl = true
+
+        var topic_old = ''
+        var topic_old_1 = '' 
+
+        if(this.course_id > 0 &&  this.modal_topic!='' ){
+            var item_course_a =  this.modal_topic.split('.')
+            var l = item_course_a.length
+            while( l>=0 && (item_course_a[l-1]=='' || item_course_a[l-1]==0)){
+                  item_course_a.pop()
+                  l = l -1
+            }
+            this.modal_topic = ''
+            for(var j=0; j<l; j++){
+                  //item_course_a[j] = String(Number(item_course_a[j])).padStart(2, ' ')
+                  this.modal_topic = this.modal_topic + String(Number(item_course_a[j])).padStart(2, ' ').padStart(2, ' ') + '.'
+            }
+            //this.modal_topic = item_course_a.join('.') + '.'
+
+
+            if( this.modal_index>=0 && (this.item_course[this.modal_index]['topic'] == this.modal_topic || this.modal_index== 0  )){
+                 //this.item_course[this.modal_index]['topic'] = this.modal_topic
+                 this.item_course[this.modal_index]['name_topic'] = this.modal_name_topic
+                 this.item_course[this.modal_index]['hours'] = this.modal_hours_topic
+                 this.item_course[this.modal_index]['type'] = this.modal_type
+                 if(this.modal_index==0)
+                         this.item_course[this.modal_index]['topic'] = this.modal_topic
+            }
+            else {
+                   var k = -1
+                   var n = this.item_course.length
+                   for(var i=0; i<n; i++) {
+                        if(this.modal_topic <= this.item_course[i]['topic']){
+                            k = i
+                            break
+                        }
+                   }
+                   if(k < 0)
+                       k = n
+                   if(this.modal_topic_id == 0) {
+                        this.modal_index = this.item_course.length
+                        this.item_course.splice(k, 0, {"topic_id": 0,  "course_id": this.course_id, "variation": "1", "type": this.modal_type,   "topic": this.modal_topic, "name_topic": this.modal_name_topic, "hours": this.modal_hours_topic  })
+                            //this.item_course.push( {"topic_id": 0,  "course_id": this.course_id, "variation": "1", "type": "1",   "topic": this.modal_topic, "name_topic": this.modal_name_topic, "hours": this.modal_hours_topic  })
+                   }
+                   else if(this.modal_index > 0 ) {
+                        var a = this.item_course.splice(this.modal_index, 1 )
+                        this.item_course.splice(k, 0, {"topic_id": this.modal_topic_id,  "course_id": this.course_id, "variation": "1", "type": this.modal_type,   "topic": this.modal_topic, "name_topic": this.modal_name_topic, "hours": this.modal_hours_topic  })
+                   }
+            }
+
+            var n = this.item_course.length
+            var i_fl = false
+            var k = 0
+            this.hours_summ = 0
+            for(var i=0; i<n; i++) {
+                this.hours_summ = this.hours_summ + Number(this.item_course[i]['hours'])
+                var n_1 = topic_old_1.length
+                if(  i>0 && topic_old != '' && this.item_course[i]['topic'].substr(0, n_1)  == topic_old_1) {
+                        item_course_a =  topic_old.split('.')
+                        k = item_course_a.length - 2
+                        while( k>=0 && ( item_course_a[k-1]=='' || item_course_a[k-1]==0)){
+                              item_course_a.pop()
+                              k = k -1
+                        }
+                        /*if(k>0){
+                           var l = item_course_a.length - 1
+                           item_course_a[k] = String(Number(item_course_a[k])+1).padStart(2, ' ')
+                           this.item_course[i]['topic'] = ''
+                           for(var j=0; j<=k; j++){
+                                  this.item_course[i]['topic'] = this.item_course[i]['topic'] + String(Number(item_course_a[j])).padStart(2, ' ') + '.'
+                           }
+                           this.item_course[i]['topic'] = item_course_a.join('.') 
+                        }*/
+                 }
+                 if(this.item_course[i]['topic'].substr(0, n_1)  != topic_old_1)
+                      i_fl = false
+                 else
+                      i_fl = true
+
+                 topic_old = this.item_course[i]['topic']
+                 item_course_a2 =  this.item_course[i]['topic'].split('.')
+                 item_course_a2.pop()
+                 var l2 = item_course_a2.length
+                 if( item_course_a2[l2]==''){
+                        item_course_a2.pop()
+                        l2 = item_course_a2.length
+                 }
+                 topic_old_1  = ''
+                 for(var j=0; j<l2; j++){
+                      topic_old_1 =  topic_old_1 + String(Number(item_course_a2[j])).padStart(2, ' ') + '.'
+                 }
+                 //topic_old_1 = item_course_a2.join('.') + '.'
+             }
+        }
+        this.summ_go(this.info4.list)
+     },
+
+     pLoad(index, topic_id, topic,  name_topic, hours_topic, type) {
+        if(index >= 0 ){
+            this.modal_index = index
+            this.modal_topic_id = topic_id 
+            this.modal_topic = topic
+            this.modal_topic_old = topic
+            this.modal_name_topic = name_topic
+            this.modal_hours_topic = hours_topic
+            this.modal_type = type
+        }
+        else{
+            this.modal_index = -1
+            this.modal_topic_id = 0 
+            this.modal_topic = ''
+            this.modal_topic_old = ''
+            this.modal_name_topic = ''
+            this.modal_hours_topic = ''
+            this.modal_type = 1
+        }
+     },
+
+     objectUpload() {
+            this.is_edit_fl = true
+
+            this.wait = 1;
+            const formData = new FormData();
+            if(this.importfile1_file_type!=''){
+                formData.append('upload1', this.importfile1)
+                formData.append('name1', this.importfile1_filename)
+            }
+            formData.append('course_id', this.course_id); 
+            formData.append('cohort_id', this.cohort_id); 
+            formData.append('variation', this.variation); 
+            formData.append('sessionId', session_t.sessionId); 
+
+	        axios
+               .post(JsonApiURL+'api/course_calendar_import_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+               .then(response => {
+                    this.info9 = response.data
+                    this.wait = 0;
+                    console.log(response)
+
+                    axios
+                       .post(JsonApiURL+'api/course_calendar_json.php', {list: { conditions: {"course_id": this.course_id},  sessionId: session_t.sessionId } })
+                       .then(response => { 
+                            //console.log(response)
+                            this.info4 = response.data
+                            var n = this.info4.list.length
+                            for(var i=0; i<n; i++) {
+                                this.item_course.push(this.info4.list[i])
+                
+                                var item_course_a =  this.item_course[i]['topic'].split('.')
+                                var l = item_course_a.length
+                                while( l>=0 && ( item_course_a[l-1]=='' || item_course_a[l-1]==0)){
+                                     item_course_a.pop()
+                                     l = l -1
+                                }
+                                for(var j=0; j<l; j++){
+                                   item_course_a[j] = item_course_a[j].padStart(2, ' ')
+                                }
+                                this.item_course[i]['topic'] = item_course_a.join('.') + '.'
+                            }
+                       })
+                      .catch(error => {
+                             console.log(error.response)
+                      })
+
+                    /*if(this.order_id>0 && this.cohort_id>0)
+                            this.$router.push({ name: 'groups_list', params: {orderid: this.order_id, make: 0, counterpartyid: 0  }}) 
+                    else
+                            this.$router.push({ name: 'courses_list', params: { }}) */
+                })
+              .catch(error => {
+                    console.log(error.response)
+                })
+         },
+         
+
+         handleC1Upload() {
+            this.importfile1 = document.getElementById('input_calendar1').files[0];
+            this.importfile1_filename = this.importfile1.name;
+            this.importfile1_file_type = this.importfile1.type;
+        },
+
+    pDelete(i, topicId) {
+      this.is_edit_fl = true
+
+      var fl = confirm('Удалить: ' + this.item_course[i]['topic'] + '  '+ this.item_course[i]['name_topic'] + '?');
+      if(fl && topicId ==  this.item_course[i]['topic_id'] ){
+            this.item_course.splice(i, 1 )
+            this.item_deleted.push({'topic_id': topicId})
+
+            var n = this.item_course.length
+            this.hours_summ = 0
+            for(var i=0; i<n; i++) {
+                this.hours_summ = this.hours_summ + Number(this.item_course[i]['hours'])
+            }
+      }
+      this.summ_go(this.info4.list)
+    },
+
+    is_type() {
+       if(this.modal_type==3 && this.modal_name_topic=='')
+            this.modal_name_topic='Промежуточная аттестация'
+    },
+
+        put_int_val(a,i,hsm) {
+      this.item_course[i].type = a;
+      this.item_course[i].hours=hsm;
+    },
+
+    SetCookie() {
+      document.cookie="src=course_calendar_edit";
+//      var url = window.location.search;
+//      if(url.indexOf('?src=uni') !== -1)
+//        document.cookie="src=uni";
+//      window.location.href = "https://center.sedipo.ru/docs/instructions/text/video.html"
+        window.open("https://center.sedipo.ru/docs/instructions/text/video.html?uchplan");
+        },
+
+
+
+   },
+
+
+	template: `<div><navigation></navigation><h3>Учебный план  курса </h3> 
+
+  <div class="row">
+     <span class="col-10"></span>
+     <span class="col-2">
+        <a href="https://center.sedipo.ru/docs/instructions/text/uchplan.pdf" class="btn btn-secondary me-2" target="_blank" title="Посмотреть инструкцию"><img src="../images/textinfo2.png" style="width: 36px;" alt="Описание изображения"></a> 
+        <a @click.prevent="SetCookie()" href="https://center.sedipo.ru/docs/instructions/text/video.html" class="btn btn-secondary" data-video="uchplan" target="_blank" title="Посмотреть видеоинструкцию"><img src="../images/videoinfo.png" style="width: 38px;" alt="Описание изображения"></a>
+     </span>
+  </div>
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+<div align="left">
+<div class="container">
+
+ <div   class="mb-2 row">
+  <label for="input_type" class="form-label col-sm-3"><b>Учебный центр</b></label>
+  {{performer_name}}
+  </div>
+
+
+  <div class="mb-2 row">	
+  <label for="input_name"  class="form-label col-sm-3"   ><b>Название курса</b> </label>
+    {{name}}
+  </div>
+
+
+  <div class="mb-2 row">	
+  <label for="input_shortname"  class="form-label col-sm-3"   ><b>Краткое название</b> </label>
+    {{shortname}}
+  </div>
+  <hr />
+
+  <div class="row">
+    <div class="col-2">
+        <label for="input_variation"  class="form-label"   > Учебный план: </label>
+    </div>
+    <div class="col-3">
+        <select v-model="variation_model" class="form-select" id="input_category" @change="on_select_variation()" >
+          <option  value="1"> Основной - ({{hours}} ч.)  </option> 
+          <option  value="2"> Индивидуальный 1 - ({{hours_add}} ч.) </option> 
+          <option  value="3"> Индивидуальный 2 - ({{hours_add2}} ч.) </option> 
+       </select>
+    </div>
+    <div class="col-1">
+       <div  class="btn-group" >
+       <button title="Копировать" class="text-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"  style=" margin-top: 4px;" > <i class="fa-solid fa-clone"></i>&nbsp&nbsp </button>
+       <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 16rem; padding: 7px;">
+         <li v-if="variation!=1"> <a @click="calendar_clone(1)">в Основной - ({{hours}} ч.) </a></li>
+         <li v-if="variation!=2"> <a @click="calendar_clone(2)">в Индивидуальный 1 - ({{hours_add}} ч.) </a></li>
+         <li v-if="variation!=3"> <a @click="calendar_clone(3)">в Индивидуальный 2 - ({{hours_add2}} ч.)  </a></li>
+       </ul>
+       </div>
+    </div>
+    <div class="col">
+      <div align="right">
+        <sapn   class="nav-link" > <button  class="btn btn-primary btn-sm"  data-bs-toggle="modal" data-bs-target="#importModal"  > Импорт учебного плана </button></sapn>
+      </div>
+    </div>
+  </div>
+
+
+
+<hr />
+<table class="table table-striped table-hover">
+<thead>
+    <tr>
+        <th width="7%"  style="text-align: left"><b>№</th>
+        <th > <b>Раздел </b> </th>
+        <th width="7%"  style="text-align: center"><b>Количество часов</b></th>
+        <th width="7%"  style="text-align: center"><b>  </b></th>
+        <th width="7%"  style="text-align: center">  </th>
+        <th width="7%"  style="text-align: center">  </th>
+    </tr>
+</thead>
+<tbody>
+    <tr v-for="(item, index) in item_course" >
+        <!--<td  style="text-align: left; margin-top: 7px;">{{item.topic}} <div v-if="index == item_split2" style="background-color: #ffffff;"><hr/></div> </td>-->
+        <td  style="text-align: left; margin-top: 7px;">{{item.topic}}  </td>
+        <td  style="margin-top: 5px;  margin-bottom: 10px;">{{item.name_topic}} </td>
+        <td  style="text-align: center; margin-top: 7px;">  {{item.hours}} </td>
+        <td  style="text-align: center;" >
+              <button  @click="pLoad(index, item.topic_id, item.topic, item.name_topic, item.hours, item.type )"  data-bs-toggle="modal" data-bs-target="#pModal"   class="btn btn-link text-primary"  title="Редактирование раздела" > <i class="fa-solid fa-pencil"></i> </button>
+        </td>
+        <td  style="text-align: center; margin-top: 7px;"><nobr v-if="hours_n_summ[index]>0"> {{hours_n_summ[index]}} <a @click="put_int_val(7,index,hours_n_summ[index])"  class="btn btn-link text-primary"  title="Подставить часы" > <i class="fa-solid fa-wand-magic-sparkles"></i> </a> </nobr> </td>
+        <td  style="text-align: center;" >
+              <button  @click="pDelete(index, item.topic_id  )"    class="btn btn-link text-danger"  title="Удалить раздел" > <i class="fa-solid fa-trash-can"></i></nobr> </button>
+        </td>
+    </tr>
+    <tr >
+        <td style="text-align: center; margin-top: 10px;"></td>
+        <td style="margin-top: 16px;  margin-bottom: 10px;"><b> Итоговая аттестация  </b> </td>
+        <td style="text-align: center; margin-top: 10px; "><input type="text" v-model="hours_c_model" class="form-control"  style="margin-left: 16px;"  @change="this.is_edit_fl = true; this.summ_go(this.info4.list) "></td>
+        <td style="text-align: center;" ></td>
+    </tr>
+
+
+
+    <tr >
+        <td style="text-align: center; margin-top: 10px;"></td>
+        <td style="text-align: right; margin-top: 16px;  margin-bottom: 10px; ">Итого:  </td>
+        <td style="text-align: center; margin-top: 10px;">{{hours_summ}} ч.</td>
+        <td style="text-align: center;" >из {{hours_course}} ч.</td>
+    </tr>
+</tbody>
+    <tr >
+        <td style="text-align: center; margin-top: 10px;"><button class="btn btn-outline-primary btm-sm"   @click="pLoad(-1, 0, '', '', '' , 0 )"  data-bs-toggle="modal" data-bs-target="#pModal"   title="Добавить раздел">+</button></td>
+        <td style="margin-top: 10px;  margin-bottom: 10px;"> <i>- Новый раздел -</i>  </td>
+        <td style="text-align: center; margin-top: 10px;">   </td>
+        <td style="text-align: center;" ></td>
+    </tr>
+</table>
+<hr />
+
+
+  <div class="mb-2">	
+    <div align="right">
+    <button   class="btn btn-primary"    @click="objectSave(false)"> Сохранить </button>
+      &nbsp<router-link :to="{ name: 'courses_list', params: { counterpartyid: this.counterparty_id  }}" ><button  class="btn btn-outline-primary">Отмена</button></router-link>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade modal-xl" id="pModal" tabindex="-1" aria-labelledby="pModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 v-if="modal_topic_id>0" class="modal-title fs-5" id="ModalLabel">Редактирование раздела</h1>
+        <h1 v-else  class="modal-title fs-5" id="ModalLabel">Новый раздел</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" align="left" style="margin-right: 12px;">
+
+        <div class="mb-3 row">
+          <label for="input_topic_type" class="form-label col-sm-2"></label>
+          <select v-model="modal_type" class="form-select col" id="input_topic_type" @change="is_type()" >
+             <option  value="1"> Теоретический курс </option> 
+             <option  value="3"> Промежуточная аттестация </option> 
+             <option  value="4"> Производственная практика / Стажировка </option> 
+          </select>
+          <div class="col-sm-3"></div>
+        </div>
+
+        <div class="mb-3 row">
+          <label for="input_topic" class="form-label col-sm-2">№</label>
+          <input   v-model="modal_topic"   class="form-control col" id="input_name"   type="text"  >
+          <div class="col-sm-7"></div>
+        </div>
+
+
+        <div class="mb-3 row">
+          <label for="input_name_topic" class="form-label col-sm-2">Раздел</label>
+          <textarea v-model="modal_name_topic"    class="form-control col"  id="input_name_topic" ></textarea>
+        </div>
+
+        <div class="mb-3 row">
+          <label for="input_hours_topic" class="form-label col-sm-2">Количество часов</label>
+          <input   v-model="modal_hours_topic"   class="form-control col" id="input_hours_topic"   type="text"  >
+          <div class="col-sm-7"></div>
+        </div>
+        <br />
+
+      <div class="modal-footer">
+            <button  class="btn btn-primary"    @click="objectRebuild()"  data-bs-dismiss="modal"> Сохранить </button>
+            &nbsp<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"> Закрыть </button>
+      </div>
+    </div>
+   </div>
+ </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade modal-xl" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1  class="modal-title fs-5" id="ModalLabel">Импорт учебного плана</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" align="left" style="margin-right: 12px;">
+        <p v-if="variation==1">Учебный план: Основной</p>
+        <p v-if="variation==2">Учебный план: Индивидуальный 1</p>
+        <p v-if="variation==3">Учебный план: Индивидуальный 2</p>
+
+        <p> Шаблон файла: <a href="/docs/course-calendar.xlsx" target="_blank"> Учебный_план.xlsx</a> </p>
+        <div class="mb-2 row">	
+           <label for="input_calendar1"  class="form-label col-sm-3"   >Учебный план занятий</label>
+           <input name="importfile1"  class="form-control col" id="input_calendar1"    type="file"     @change="handleC1Upload()" >
+        </div>
+        <br />
+
+      <div class="modal-footer">
+            <button  class="btn btn-primary"    @click="objectUpload()"  data-bs-dismiss="modal"> Импорт </button>
+            &nbsp<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"> Закрыть </button>
+      </div>
+     </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+	</div>`
+
+};
+
+
+
+
+
+
+
+

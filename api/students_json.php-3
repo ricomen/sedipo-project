@@ -1,0 +1,769 @@
+<?php
+/**
+ * @copyright 2022
+ */
+
+
+require_once '../../config/config-auth.php';
+$dbhost = $cfg_auth->host;
+$dbuser = $cfg_auth->user;
+$dbpassword = $cfg_auth->password;
+$dbname = $cfg_auth->name;
+
+
+try {  
+    $dbh_a = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+require_once '../config.php';
+require_once 'lib.php';
+$dbhost = $cfg->host;
+$dbuser = $cfg->user;
+$dbpassword = $cfg->password;
+$dbname = $cfg->name;
+
+
+try {  
+    $dbh = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+//session_start();
+
+$_JSON =  json_decode(file_get_contents('php://input'), true);
+foreach ($_JSON as $key => $value) {
+    $api_function = $key;
+    $api_arg = $value;
+    break; 
+}
+
+
+require_once 'students_lib.php';
+
+/* USERS */
+
+function users_list($counterparty_id,  $lastname, $firstname, $middlename, $status,   $page) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $page_size;
+
+    $offset=0;
+    if( $page>1 ){
+	    $offset = intval($page-1)*$page_size;
+    }
+    $num_pages = 1;
+
+    $users_list = [];
+    $members = 0;
+    $addsearch = '';
+
+    if($lastname!='' || $firstname!='' ||  $middlename!='' ){
+	    if($counterparty_id>0){
+	        $stmt = $dbh->prepare('SELECT DISTINCT `user_id`, `login`, `lastname`, `firstname`, `middlename`  FROM `a_users`  LEFT JOIN `a_user_counterparty` USING (`user_id`) WHERE `lastname` LIKE ? AND `firstname` LIKE ? AND  `middlename` LIKE ? AND `counterparty_id`=? AND `a_users`.`status`=? AND `a_users`.`user_id`>1  ORDER BY `lastname` LIMIT '.$page_size.'  OFFSET  ' . "$offset");
+	        $stmt->execute(["$lastname%", "$firstname%", "$middlename%", $counterparty_id, $status]);
+	    }
+	    else {
+	        $stmt = $dbh->prepare('SELECT DISTINCT `user_id`, `lastname`, `firstname`, `middlename`   FROM `a_users` WHERE `lastname` LIKE ? AND `firstname` LIKE ? AND  `middlename` LIKE ? '. $addsearch .'  AND `a_users`.`status`=?  AND `a_users`.`user_id`>1   ORDER BY `lastname` LIMIT '.$page_size.'  OFFSET  ' . "$offset");
+    	        $stmt->execute(["$lastname%", "$firstname%", "$middlename%", $status]);
+	    }
+    }
+    else {
+	    if($counterparty_id>0){
+	        $stmt = $dbh->prepare('SELECT DISTINCT  `a_users`.`user_id`,  `lastname`, `firstname`, `middlename`  FROM `a_users` LEFT JOIN `a_user_counterparty` USING (`user_id`)  WHERE  `counterparty_id`=?   AND `a_users`.`status`=?  AND `a_users`.`user_id`>1    ORDER BY `lastname` LIMIT '.$page_size.'  OFFSET  ' . "$offset");
+    	        $stmt->execute([ $counterparty_id, $status]);
+	    }
+	    else {
+	        $stmt = $dbh->prepare('SELECT DISTINCT  `a_users`.`user_id`,  `lastname`, `firstname`, `middlename`  FROM `a_users`   WHERE `a_users`.`status`=?  AND `a_users`.`user_id`>1    ORDER BY `lastname`  LIMIT '.$page_size.'  OFFSET  ' . "$offset");
+    	        $stmt->execute([ $status]);
+	    }
+    }
+    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+         $jobs = [];
+         if($counterparty_id>0){
+             $stmt1 = $dbh->prepare('SELECT `user_counterparty_id`, `counterparty_id`,  `job_title_id`, `job_title_category`, `subdivision`  FROM `a_user_counterparty`  WHERE `user_id`=? AND `counterparty_id`=?  AND `status`=0  ');
+             $stmt1->execute([ $row->user_id, $counterparty_id ]);
+         }
+         else {
+             $stmt1 = $dbh->prepare('SELECT `user_counterparty_id`, `counterparty_id`,  `job_title_id`, `job_title_category`, `subdivision`  FROM `a_user_counterparty`  WHERE `user_id`=?  AND `status`=0  ');
+             $stmt1->execute([ $row->user_id ]);
+         }
+         while($row1 = $stmt1->fetch(PDO::FETCH_OBJ)) {
+            $job_title_name = '';
+            if($row1->job_title_id >0 ){
+                $stmt2 = $dbh->prepare('SELECT  `name`  FROM `a_job_title`  WHERE `job_title_id`=? ');
+                $stmt2->execute([$row1->job_title_id]);
+                if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+                    $job_title_name = $row2->name;
+                }
+            }
+
+            $counterparty_name = '';
+            if($row1->counterparty_id >0 ){
+                $stmt3 = $dbh->prepare('SELECT  `shortname`, `name`  FROM `a_counterparty`  WHERE `counterparty_id`=? ');
+                $stmt3->execute([$row1->counterparty_id]);
+                if($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {
+                    $counterparty_name = $row3->shortname;
+               }
+            }
+            $jobs[] = [  "user_counterparty_id"=>$row1->user_counterparty_id,  "counterparty_id"=>$row1->counterparty_id, "counterparty_name"=>$counterparty_name, "counterparty_fullname"=>$row3->name,  "job_title_id"=>$row1->job_title_id,  "job_title"=>$job_title_name,   "job_title_category"=>$row1->job_title_category,   "subdivision"=>$row1->subdivision ];
+        }
+
+        $users_list[] =  ["userId"=>$row->user_id,  "lastname"=>$row->lastname, "firstname"=>$row->firstname, "middlename"=>$row->middlename, "jobs"=>$jobs ];
+    }
+
+
+    if($lastname!='' || $firstname!='' ||  $middlename!='' ){
+	    if($counterparty_id>0){
+	        $stmt0 = $dbh->prepare('SELECT  count(DISTINCT `a_users`.`user_id` )  as `count`   FROM `a_users`  LEFT JOIN `a_user_counterparty` USING (`user_id`) WHERE  `lastname` LIKE ? AND `firstname` LIKE ? AND  `middlename` LIKE ? AND `counterparty_id`=? AND `a_users`.`status`=? AND `a_users`.`user_id`>1  ' );
+	        $stmt0->execute(["$lastname%", "$firstname%", "$middlename%", $counterparty_id, $status]);
+	    }
+	    else {
+	        $stmt0 = $dbh->prepare('SELECT  count(DISTINCT `a_users`.`user_id` )  as `count`    FROM `a_users` WHERE `lastname` LIKE ? AND `firstname` LIKE ? AND  `middlename` LIKE ? '. $addsearch .'  AND `a_users`.`status`=? AND `a_users`.`user_id`>1  ');
+    	        $stmt0->execute(["$lastname%", "$firstname%", "$middlename%", $status]);
+	    }
+    }
+    else {
+	    if($counterparty_id>0){
+	        $stmt0 = $dbh->prepare('SELECT  count(DISTINCT `a_users`.`user_id` )  as `count`   FROM `a_users` LEFT JOIN `a_user_counterparty` USING (`user_id`)  WHERE  `counterparty_id`=?   AND `a_users`.`status`=?  AND `a_users`.`user_id`>1  ');
+    	        $stmt0->execute([ $counterparty_id, $status]);
+	    }
+	    else {
+	        $stmt0 = $dbh->prepare('SELECT  count(DISTINCT `a_users`.`user_id` )  as `count`   FROM `a_users`   WHERE `a_users`.`status`=? AND `a_users`.`user_id`>1  ');
+    	        $stmt0->execute([ $status]);
+	    }
+    }
+    if($row0 = $stmt0->fetch(PDO::FETCH_OBJ)) {  
+	    $members = $row0->count;
+    }
+    $num_pages = intval(($members+0.5)/$page_size+1);
+    if( $page > $num_pages ){
+            $page = $num_pages;
+    }
+    if( $page == 0 ){
+            $page = 1;
+    }
+
+
+    $counterparty_list = [];
+    if(($lastname!='' || $firstname!='' ||  $middlename!='') && $counterparty_id==0 ){
+        $stmt3 = $dbh->prepare('SELECT DISTINCT `a_user_counterparty`.`counterparty_id`, `shortname`  FROM `a_users`  LEFT JOIN `a_user_counterparty` USING (`user_id`) LEFT JOIN `a_counterparty` USING (`counterparty_id`)  WHERE  `lastname` LIKE ? AND `firstname` LIKE ? AND  `middlename` LIKE ?  AND `a_users`.`status`=?  ORDER BY `shortname` LIMIT 100');
+        $stmt3->execute(["$lastname%", "$firstname%", "$middlename%", $status]);
+        while($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {
+            $counterparty_list[] = ["counterparty_id"=>$row3->counterparty_id, "counterparty_name"=>$row3->shortname];
+        }
+    }
+
+
+
+    $result = ["role"=>$session_role, "action"=>"list",  "list"=>$users_list, "counterparty_list"=>$counterparty_list,  "numPages"=>$num_pages, "page"=>$page];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function user_object($user_id, $counterparty_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    $rc =  ["user_id"=>0,  "lastname"=>'', "firstname"=>'', "middlename"=>'', "email"=>'', "login"=>'',  "password"=>'', "counterparty_id"=>0, "job_title_id"=>0,  "job_title"=>'', "subdivision"=>'', "date_of_birth"=>'', "snils"=>'', "inn"=>'', "phone"=>'', "address"=>'', "sex"=>''  ];
+    if($user_id >1 ) {
+            if($counterparty_id>0){
+	         $stmt = $dbh->prepare('SELECT  `a_users`.`user_id`,  `lastname`, `firstname`, `middlename`, `email`, `counterparty_id`,  `date_of_birth`, `snils`, `inn`,  `phone`, `address`,  `diplom_filename`, `diplomfile`, `photo_filename`, `sex`, `level_of_education`, `dplom_series`, `diplom_number`, `diplom_lastname`, `citizenship`, `pasport_series`, `pasport_number`, `pasport_unit_number`, `pasport_unit`, `comment`,  `photofile`, `a_users`.`status` FROM `a_users`   LEFT JOIN `a_user_counterparty` USING (`user_id`)   WHERE `a_users`.`user_id`=? AND `counterparty_id`=? ');
+                 $stmt->execute([$user_id, $counterparty_id]);
+            }
+            else{
+	         $stmt = $dbh->prepare('SELECT  `a_users`.`user_id`,  `lastname`, `firstname`, `middlename`, `email`, `counterparty_id`,  `date_of_birth`, `snils`, `inn`,  `phone`, `address`,  `diplom_filename`, `diplomfile`, `photo_filename`, `sex`, `level_of_education`, `dplom_series`, `diplom_number`, `diplom_lastname`, `citizenship`, `pasport_series`, `pasport_number`, `pasport_unit_number`, `pasport_unit`, `comment`,  `photofile`, `a_users`.`status` FROM `a_users`   LEFT JOIN `a_user_counterparty` USING (`user_id`)   WHERE `a_users`.`user_id`=?');
+                 $stmt->execute([$user_id]);
+            }
+	    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	        $rc =  ["user_id"=>$row->user_id, "lastname"=>$row->lastname, "firstname"=>$row->firstname, "middlename"=>$row->middlename, "email"=>$row->email,  "date_of_birth"=>$row->date_of_birth, "snils"=>$row->snils, "inn"=>$row->inn, "phone"=>$row->phone, "address"=>$row->address,  "status"=>$row->status,   "diplom_filename"=>$row->diplom_filename, "diplomfile"=>$row->diplomfile, "photo_filename"=>$row->photo_filename, "photofile"=>$row->photofile, "sex"=>$row->sex,  "level_of_education"=>$row->level_of_education,  "dplom_series"=>$row->dplom_series, "diplom_number"=>$row->diplom_number, "diplom_lastname"=>$row->diplom_lastname, "citizenship"=>$row->citizenship, "pasport_series"=>$row->pasport_series, "pasport_number"=>$row->pasport_number, "pasport_unit_number"=>$row->pasport_unit_number, "comment"=>$row->comment, "pasport_unit"=>$row->pasport_unit ];
+	    }
+    }
+    $result = ["role"=>$session_role, "action"=>"user",  "result"=>$rc ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function user_jobs($user_id, $counterparty_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    $jobs = [];
+    if($user_id >1 ) {
+        if($counterparty_id>0){
+             $stmt1 = $dbh->prepare('SELECT `user_counterparty_id`, `counterparty_id`,  `job_title_id`, `job_title_category`, `subdivision`  FROM `a_user_counterparty`  WHERE `user_id`=? AND `counterparty_id`=? AND `status`=0 ');
+             $stmt1->execute([ $user_id, $counterparty_id ]);
+        }
+        else {
+             $stmt1 = $dbh->prepare('SELECT `user_counterparty_id`, `counterparty_id`,  `job_title_id`, `job_title_category`, `subdivision`  FROM `a_user_counterparty`  WHERE `user_id`=?  AND `status`=0 ');
+             $stmt1->execute([ $user_id  ]);
+        }
+        while($row1 = $stmt1->fetch(PDO::FETCH_OBJ)) {
+            $job_title_name = '';
+            if($row1->job_title_id >0 ){
+                $stmt2 = $dbh->prepare('SELECT  `name`  FROM `a_job_title`  WHERE `job_title_id`=? ');
+                $stmt2->execute([$row1->job_title_id]);
+                if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+                      $job_title_name = $row2->name;
+                }
+            }
+
+            $counterparty_name = '';
+            if($row1->counterparty_id >0 ){
+                $stmt3 = $dbh->prepare('SELECT  `shortname`, `name`  FROM `a_counterparty`  WHERE `counterparty_id`=? ');
+                $stmt3->execute([$row1->counterparty_id]);
+                if($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {
+                    $counterparty_name = $row3->shortname;
+                }
+            }
+            $jobs[] = [ "user_counterparty_id"=>$row1->user_counterparty_id,   "counterparty_id"=>$row1->counterparty_id, "counterparty_name"=>$counterparty_name,   "job_title_id"=>$row1->job_title_id,  "job_title"=>$job_title_name,   "job_title_category"=>$row1->job_title_category,   "subdivision"=>$row1->subdivision ];
+        }
+    }
+    $result = ["role"=>$session_role, "action"=>"user_jobs",  "result"=>$jobs ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+function user_search( $order_id, $counterparty_id,  $lastname, $firstname, $middlename, $snils, $exclude_user_id ) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    if($lastname=='' ){
+         $result = ["status"=>0, "error"=>'',  "role"=>$session_role, "action"=>"serch1",   "result"=>["user_id"=>-2, "counterparty_id"=>$counterparty_id]];
+         echo json_encode($result, JSON_UNESCAPED_UNICODE);
+         return;
+    }
+
+    $search_filter = ''; 
+    if($order_id>0){
+        $counterparty_id = 0;
+        $stmt0 = $dbh->prepare('SELECT  `counterparty_id`  FROM `a_order`   WHERE `order_id`=?');
+        $stmt0->execute([$order_id]);
+        if($row0 = $stmt0->fetch(PDO::FETCH_OBJ)) {  
+                $counterparty_id =  $row0->counterparty_id;
+        }
+//        $order_filter = 'AND `user_id` NOT IN ( SELECT  DISTINCT  `a_users`.`user_id` FROM `a_order_users`  LEFT JOIN `a_user_counterparty` USING (`user_counterparty_id`) LEFT JOIN `a_users` USING(`user_id`) WHERE   `order_id` = ' .$order_id. ' AND `a_users`.`status`=0 ) '; 
+    }
+    if( $snils!='' ){ 
+        $search_filter = ' AND `a_users`.`snils` LIKE "' . $snils .'%"'; 
+    }
+    if( $exclude_user_id>0 ){ 
+        $search_filter = $search_filter . ' AND `a_users`.`user_id`<>' . $exclude_user_id ; 
+    }
+
+
+    $rc = ["user_id"=>-1, "counterparty_id"=>$counterparty_id];
+
+    if( $counterparty_id>0 || strlen(trim($snils))>=11 ){ 
+
+      if( $counterparty_id>0 ){ 
+        $stmt = $dbh->prepare('SELECT DISTINCT `a_users`.`user_id`,  `lastname`, `firstname`, `middlename`,  `snils`, `user_counterparty_id`    FROM `a_users`  LEFT JOIN `a_user_counterparty` USING (`user_id`)     WHERE  `counterparty_id`=? AND `lastname` LIKE ? AND `firstname` LIKE ? AND `middlename` LIKE ? AND `a_users`.`status`=0 '.$search_filter.' ORDER BY `user_id`  LIMIT 2');
+        $stmt->execute([ $counterparty_id,  "$lastname%", "$firstname%", "$middlename%"  ]);
+      }
+      else {
+        $stmt = $dbh->prepare('SELECT DISTINCT `a_users`.`user_id`,  `lastname`, `firstname`, `middlename`,  `snils`, `user_counterparty_id`    FROM `a_users`  LEFT JOIN `a_user_counterparty` USING (`user_id`)     WHERE  `lastname` LIKE ? AND `firstname` LIKE ? AND `middlename` LIKE ?  AND `a_users`.`status`=0 AND LENGTH(`snils`)>=11 '.$search_filter.' ORDER BY `user_id`  LIMIT 2');
+        $stmt->execute([  "$lastname%", "$firstname%", "$middlename%"  ]);
+      }
+      if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $jobs = [];
+        if($row->user_id >1 ) {
+            if($counterparty_id>0){
+                 $stmt1 = $dbh->prepare('SELECT DISTINCT `user_counterparty_id`, `counterparty_id`,  `job_title_id`, `job_title_category`, `subdivision`  FROM `a_user_counterparty`  WHERE `user_id`=? AND `counterparty_id`=? AND `status`=0 ');
+                 $stmt1->execute([ $row->user_id, $counterparty_id ]);
+            }
+            else {
+                 $stmt1 = $dbh->prepare('SELECT DISTINCT `user_counterparty_id`, `counterparty_id`,  `job_title_id`, `job_title_category`, `subdivision`  FROM `a_user_counterparty`  WHERE `user_id`=?  AND `status`=0 ');
+                 $stmt1->execute([ $row->user_id  ]);
+            }
+            while($row1 = $stmt1->fetch(PDO::FETCH_OBJ)) {
+                $job_title_name = '';
+                if($row1->job_title_id >0 ){
+                    $stmt2 = $dbh->prepare('SELECT  `name`  FROM `a_job_title`  WHERE `job_title_id`=? ');
+                    $stmt2->execute([$row1->job_title_id]);
+                    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+                          $job_title_name = $row2->name;
+                    }
+                }
+
+                $counterparty_name = '';
+                if($row1->counterparty_id >0 ){
+                    $stmt3 = $dbh->prepare('SELECT  `shortname`, `name`  FROM `a_counterparty`  WHERE `counterparty_id`=? ');
+                    $stmt3->execute([$row1->counterparty_id]);
+                    if($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {
+                        $counterparty_name = $row3->shortname;
+                    }
+                }
+                $jobs[] = [ "user_counterparty_id"=>$row1->user_counterparty_id,   "counterparty_id"=>$row1->counterparty_id, "counterparty_name"=>$counterparty_name, "counterparty_fullname"=>$row3->name,  "job_title_id"=>$row1->job_title_id,  "job_title"=>$job_title_name,   "job_title_category"=>$row1->job_title_category,   "subdivision"=>$row1->subdivision ];
+            }
+        }
+        $rc =  ["user_id"=>$row->user_id, "lastname"=>$row->lastname, "firstname"=>$row->firstname, "middlename"=>$row->middlename,   "date_of_birth"=>$row->date_of_birth, "snils"=>$row->snils,  "jobs"=>$jobs ];
+
+        $is_single = 1;
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	        if($row->user_id > 0)
+	            $is_single = 0;
+        }
+      }
+    }
+    $result = ["status"=>0, "error"=>'', "role"=>$session_role, "action"=>"search",  "result"=>$rc, "userSingle"=>$is_single  ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+function user_report($user_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    $rc =  [];
+    if($user_id >0 ) {
+	    $stmt = $dbh->prepare('SELECT `course`, `course_id`, `certificate`,  `a_date`, `date_finish`  FROM `a_reports`   WHERE `user_id`=?');
+	    $stmt->execute([$user_id]);
+	    while($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+	        $rc[] =  ["num"=>$row->num, "course"=>$row->course, "course_id"=>$row->course_id, "certificate"=>$row->certificate, "date"=>$row->a_date, "date_finish"=>$row->date_finish, "date_convert"=>formatDate($row->a_date), "date_finish_convert"=>formatDate($row->date_finish)   ];
+	    }
+    }
+    $result = ["role"=>$session_role, "action"=>"report", "userId"=>$user_id, "report"=>$rc ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+
+function formatDate($date_point) {
+    $datetemp = explode("-",$date_point);
+    $yearmy = $datetemp[0];
+    $mounthmy = $datetemp[1];
+    $daymy = $datetemp[2];
+    
+    return "$daymy.$mounthmy.$yearmy";
+}
+
+/*function mbucfirst($string ) {
+    $enc = 'UTF-8';
+    $string  = preg_replace(['~[^\s\d/A-Z_a-zЁА-яё-]+~ui', '# +#i', '#^(?:\h*\R)+|\s+$#is'], [null, ' ', null], mb_strtolower(trim($string), $enc));
+
+    return trim(mb_strtoupper(mb_substr($string, 0, 1, $enc), $enc).mb_substr($string, 1, mb_strlen($string, $enc), $enc), ' ');
+}*/
+
+
+function user_save($user_id, $email,  $lastname, $firstname, $middlename,   $date_of_birth, $snils, $inn, $phone, $address,  $diplom_filename,  $photo_filename, $sex, $dplom_series, $diplom_number, $diplom_lastname, $citizenship, $level_of_education, $pasport_series, $pasport_number, $pasport_unit_number, $pasport_unit, $comment, $order_id, $status ) {
+
+    global $api_arg, $user_id_session, $session_role, $EmailDomain, $AccountPrefix, $dbh;
+
+
+    if($lastname=='' ||  $firstname==''){
+	$result = ["status"=>1, "error"=>'Не все обязательные поля заполнены',  "role"=>$session_role, "action"=>"user_save",  "userId"=>$user_id_session, "userInfo"=>["userId"=>0]];
+	echo json_encode($result, JSON_UNESCAPED_UNICODE);
+        return;
+    }
+
+    if($user_id==1){
+	$result = ["status"=>2, "error"=>'Эту запись нельзя редактировать',  "role"=>$session_role, "action"=>"user_save",  "userId"=>$user_id_session, "userInfo"=>["userId"=>0]];
+	echo json_encode($result, JSON_UNESCAPED_UNICODE);
+        return;
+    }
+
+    if($date_of_birth == ''){
+            $date_of_birth = '1000-01-01';
+    }
+
+    $exist_user_id = 0;
+    $stmt = $dbh->prepare('SELECT  `user_id`  FROM `a_users` WHERE  `lastname`= ? AND `firstname`= ? AND `middlename`= ? AND `snils`= ?  LIMIT 2');
+    $stmt->execute(["$lastname", "$firstname", "$middlename", snils_format($snils)  ]);
+    if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $exist_user_id = $row->user_id;
+    }
+
+//file_put_contents("lst1.txt", print_r([trim($lastname), trim($firstname), trim($middlename),   $date_of_birth,  snils_format($snils), trim($inn),  trim($phone), trim($address),  $diplom_filename, $photo_filename, $sex, $level_of_education,  trim($dplom_series), trim($diplom_number), trim($diplom_lastname), $citizenship, $pasport_series, trim($pasport_number), trim($pasport_unit_number), trim($pasport_unit), $email,  $user_id  ], true) );
+//file_put_contents("lst2.txt", print_r([$exist_user_id, $date_of_birth  ], true) );
+
+    if($user_id>1 ){
+        if($user_id!=$exist_user_id && $exist_user_id>0  && snils_format($snils)!='-- ' && $snils!=''){
+        //if($user_id!=$exist_user_id && $exist_user_id>0 ){
+              $result = ["status"=>4, "error"=>'Вы создаете дубль учетной записи слушателя id:'.$exist_user_id,  "role"=>$session_role, "action"=>"user_save",   "userInfo"=>["userId"=>$exist_user_id]];
+              echo json_encode($result, JSON_UNESCAPED_UNICODE);
+              return;
+        }
+
+
+        $stmt = $dbh->prepare('UPDATE `a_users` SET `lastname`=?, `firstname`=?,  `middlename`=?,   `date_of_birth`=? ,  `snils`=?, `inn`=?,  `phone`=?, `address`=?,  `diplom_filename`=?,  `photo_filename`=?, `sex`=?, `level_of_education`=?,  `dplom_series`=?, `diplom_number`=?, `diplom_lastname`=?, `citizenship`=?, `pasport_series`=?, `pasport_number`=?, `pasport_unit_number`=?, `pasport_unit`=?, `comment`=?,   `email`=?   WHERE `user_id`=?');
+        $stmt->execute([trim($lastname), trim($firstname), trim($middlename),   $date_of_birth,  snils_format($snils), trim($inn),  trim($phone), trim($address),  $diplom_filename, $photo_filename, $sex, $level_of_education,  trim($dplom_series), trim($diplom_number), trim($diplom_lastname), $citizenship, $pasport_series, trim($pasport_number), trim($pasport_unit_number), trim($pasport_unit), trim($comment),  $email,  $user_id ]);
+        $p_user_id = $user_id; 
+    }
+    else {
+	    if( $exist_user_id < 1 ){
+                $stmt = $dbh->prepare('INSERT INTO `a_users`(`lastname`, `firstname`,  `middlename`,   `date_of_birth`, `snils`, `inn`,  `phone`, `address`,  `diplom_filename`, `photo_filename`, `sex`, `level_of_education`,  `dplom_series`, `diplom_number`, `diplom_lastname`, `citizenship`, `pasport_series`, `pasport_number`, `pasport_unit_number`, `pasport_unit`, `comment`, `email` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )');
+	        $stmt->execute([$lastname, $firstname, $middlename,   $date_of_birth, snils_format($snils), $inn,  $phone, $address,  $diplom_filename, $photo_filename, $sex, intval($level_of_education),  $dplom_series, $diplom_number, $diplom_lastname, $citizenship, $pasport_series, $pasport_number, $pasport_unit_number, $pasport_unit, $comment, $email]);
+	        $p_user_id = $dbh->lastInsertId(); 
+	        if($p_user_id<=0){
+	            $result = ["status"=>3, "error"=>'Ошибка DB',  "role"=>$session_role, "action"=>"user_save",  "userId"=>$user_id_session, "userInfo"=>["userId"=>0]];
+	            echo json_encode($result, JSON_UNESCAPED_UNICODE);
+    	            return;
+	        }
+            }
+            else{
+	        $p_user_id = $exist_user_id ;
+            }
+            /*
+	    $passwd_chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ23456789';
+	    $login = $AccountPrefix . str_pad("$p_user_id", 5, '0', STR_PAD_LEFT); 
+	    $email_lms = $login . $EmailDomain;
+	    $shfl = str_shuffle($passwd_chars);
+	    $password = substr($shfl,0,8);
+            */
+        //$stmt2 = $dbh->prepare('UPDATE `a_users` SET `email`=?, `login`=?, `password`=?  WHERE `user_id`=?');
+        //$stmt2->execute([$email_lms, $login, $password,  $p_user_id ]);
+
+
+        $num = 0;
+        $stmt = $dbh->prepare("SELECT  count(*) as `count` FROM  `a_order_users`  WHERE  `order_id`=?");
+        $stmt->execute([$order_id] );
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	        $num =  intval($row->count) + 1;
+        }
+
+        if($order_id >0) {
+//            $stmt = $dbh->prepare('INSERT INTO `a_order_users`(`order_id`,  `user_id`,  `certificate_num`) VALUES ( ?, ?, ?)');
+//            $stmt->execute([$order_id,  $p_user_id, $num]);
+        }
+    }
+
+    //$stmt = $dbh->prepare('REPLACE INTO `users`(`user_id`, `name`, `fullname`) VALUES ( ?, ?, ?)');
+        //$stmt = $dbh->prepare('INSERT INTO `users`(`user_id`,`name`, `fullname`) VALUES ( ?, ?)  ON DUPLICATE KEY UPDATE `fullname` = VALUES(`fullname`), `name` = VALUES(`name`)');
+
+
+
+    
+    /* if($p_user_id>0 && $passwd1!='' && $passwd2!=''){
+    $rc2=1;
+    if($passwd1 == $passwd2){
+        $stmt2 = $dbh->prepare('UPDATE `users` SET `password`=?  WHERE `user_id`=?');
+        $stmt2->execute( [md5($passwd1), $p_user_id ]);
+        if($stmt2) 
+	$rc2=0;
+    else if($rc2) {
+            $rc_list = [ "status"=>"7", "error"=>'error Не совпадает Пароль и Пароль повторно ' ];
+    }
+    }*/ 
+
+
+    /*if(!$stmt) {
+            $rc_list = [ "status"=>"4", "error"=>'error 2: '. $dbh->errorInfo()[2] ];
+    }
+    }
+    else {
+            $rc_list = [ "status"=>"0", "error"=> '' ];
+    }*/
+
+    $result = ["status"=>0, "error"=>'',  "role"=>$session_role, "action"=>"user_save",  "result"=>["user_id"=>$p_user_id] ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function user_save_counterparty($user_id,  $counterparty_id, $job_title_name, $job_title_category,  $subdivision, $order_id, $user_counterparty_id  ) {
+    global $api_arg, $user_id_session, $session_role, $EmailDomain, $AccountPrefix, $dbh;
+
+    $job_title_name = trim($job_title_name);
+    
+    $job_title_id = 0;
+    if(trim($job_title_name) != '' && $user_id>1){
+	$count_p = 0;
+	$stmt = $dbh->prepare("select `job_title_id` FROM  `a_job_title`  WHERE `name`=?   ");
+        $stmt->execute([trim($job_title_name)]);
+	if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+	    $count_p = 1;
+	    $job_title_id = intval($row->job_title_id);
+	}
+	if($count_p == 0 && trim($job_title_name) != '' ) {
+	    $stmt = $dbh->prepare("INSERT INTO `a_job_title`(`name`) VALUES(?)");
+    	    $stmt->execute([trim($job_title_name)]);
+	    $job_title_id = intval($dbh->lastInsertId() ); 
+	}
+    }
+
+    if($job_title_id<=0)
+            $job_title_id = 1;
+
+    if($user_counterparty_id==0 && $counterparty_id>0 ){
+        $stmt = $dbh->prepare('SELECT `user_counterparty_id` FROM  `a_user_counterparty` WHERE  `user_id`=? AND  `counterparty_id`=? AND  `job_title_id`=?  ');
+        $stmt->execute([ $user_id, $counterparty_id, $job_title_id   ]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+             $user_counterparty_id = $row->user_counterparty_id;
+        }
+
+    }
+    else if($user_counterparty_id==0){
+        $stmt = $dbh->prepare('SELECT `user_counterparty_id` FROM  `a_user_counterparty` WHERE  `user_id`=?  AND  `job_title_id`=?  ');
+        $stmt->execute([ $user_id,  $job_title_id   ]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+             $user_counterparty_id = $row->user_counterparty_id;
+        }
+    }
+
+    if($user_counterparty_id==0){
+        $p_user_counterparty_id = 0;
+        if($user_id>1 && $job_title_id>0){
+            $stmt = $dbh->prepare('INSERT INTO  `a_user_counterparty`( `user_id`, `counterparty_id`,  `job_title_id`,  `job_title_category`, `subdivision`, `status` )   VALUES( ?, ?, ?, ?, ?,  0 )  ');
+            $stmt->execute([ $user_id, $counterparty_id, $job_title_id, $job_title_category,   trim($subdivision)   ]);
+            $p_user_counterparty_id = $dbh->lastInsertId(); 
+        }
+    }
+    else {
+        $p_user_counterparty_id = $user_counterparty_id;
+    }
+
+    $result = ["status"=>0, "error"=>'',  "role"=>$session_role, "action"=>"user_counterparty_save",   "result"=>["user_counterparty_id"=>$p_user_counterparty_id] ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function user_delete_counterparty($user_counterparty_id  ) {
+    global $api_arg, $user_id_session, $session_role, $EmailDomain, $AccountPrefix, $dbh;
+
+    $stmt = $dbh->prepare('UPDATE  `a_user_counterparty` SET `status`=1  WHERE  `user_counterparty_id`=?   ');
+    $stmt->execute([ $user_counterparty_id   ]);
+
+
+    $result = ["status"=>0, "error"=>'',  "role"=>$session_role, "action"=>"user_delete_user_counterparty",   "result"=>["user_counterparty_id"=>$user_counterparty_id] ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function user_change( $user_id,  $to_user_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    if($user_id>0 &&  $to_user_id>0) {
+        $stmt = $dbh->prepare('UPDATE `a_user_counterparty` SET `user_id`=?   WHERE  `user_id`=? ');
+        $stmt->execute([$to_user_id,  $user_id]);
+
+        $stmt = $dbh->prepare('UPDATE `a_users` SET `status`=1   WHERE  `user_id`=? ');
+        $stmt->execute([ $user_id]);
+    }
+/*        $job_title_id = 0;
+        $counterparty_id = 0; 
+        $stmt = $dbh->prepare('SELECT  `counterparty_id`, `job_title_id`,  `job_title_category`, `subdivision`  FROM  `a_user_counterparty` WHERE  `user_id`=? ');
+        $stmt->execute([ $user_id   ]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+             $job_title_id = $row->job_title_id;
+             $counterparty_id = $row->counterparty_id;
+        }
+
+        $stmt = $dbh->prepare('SELECT count() as `count`  FROM  `a_user_counterparty` WHERE  `user_id`=? AND `job_title_id`=? ');
+        $stmt->execute([ $to_user_id,  $job_title_id   ]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+             $job_title_id = $row->job_title_id;
+        }
+*/
+
+    $result = ["status"=>0, "error"=>'',  "role"=>$session_role, "action"=>"user_change",   ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+function user_change_order( $item_id,  $to_user_id,  $to_user_counterparty_id  ) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+//file_put_contents("lst1.txt", print_r([$to_user_counterparty_id, $item_id,  $to_user_id ], true) );
+    if($item_id>0 && ( $to_user_id>0 || $to_user_counterparty_id>0)  ) {
+ 
+        if($to_user_counterparty_id<=0 ){
+            $stmt = $dbh->prepare('SELECT  `counterparty_id`, `job_title_id`,  `job_title_category`, `subdivision`  FROM  `a_order_users` LEFT JOIN  `a_user_counterparty` USING(`user_counterparty_id`)  WHERE  `item_id`=?  ');
+            $stmt->execute([ $item_id  ]);
+            if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                 $to_user_counterparty_id  = 0;
+                 $stmt2 = $dbh->prepare('SELECT `user_counterparty_id`  FROM  `a_user_counterparty` WHERE `counterparty_id`=? AND `user_id`=? AND `job_title_id`=? AND `status`=0 ');
+                 $stmt2->execute([$row->counterparty_id,  $to_user_id,  $row->job_title_id ]);
+                 if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+                        $to_user_counterparty_id  = $row2->counterparty_id;
+                 }
+                 if( $to_user_counterparty_id == 0){
+                       $stmt3 = $dbh->prepare('INSERT INTO  `a_user_counterparty`( `user_id`, `counterparty_id`,  `job_title_id`,  `job_title_category`, `subdivision`, `status` )   VALUES( ?, ?, ?, ?, ?,  0 )  ');
+                       $stmt3->execute([ $to_user_id, $row->counterparty_id, $row->job_title_id, $row->job_title_category,   $row->subdivision  ]);
+                       $to_user_counterparty_id = $dbh->lastInsertId(); 
+                 }
+            }
+        }
+        if( $to_user_counterparty_id > 0){
+           $stmt3 = $dbh->prepare('UPDATE `a_order_users` SET `user_counterparty_id`=?   WHERE   `item_id`=?  ');
+           $stmt3->execute([$to_user_counterparty_id, $item_id ]);
+        }
+
+    }
+    $result = ["status"=>0, "error"=>'',  "role"=>$session_role, "action"=>"user_change_order",   ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+
+function user_archive($user_id, $user_status) {
+    global $api_arg, $user_id_session, $session_role, $customer, $dbh;
+
+    $status = "0";
+    $error = '';
+
+    if($user_id >0) {
+        if($status==1) {
+            $stmt = $dbh->prepare('DELETE FROM `a_order_users` WHERE  `user_id`=? ');
+            $stmt->execute([$user_id ]);
+        }
+
+	$stmt = $dbh->prepare('UPDATE `a_users` SET `status`=?  WHERE `user_id`=?');
+	$stmt->execute([$user_status, $user_id]);
+	if(!$stmt) {
+            $status = "4";
+            $error = 'error 2: '. $dbh->errorInfo()[2];
+	}
+    }
+
+    $result = ["status"=>$status, "error"=>$error, "role"=>$session_role, "action"=>"user_del", "customerId"=>$customer, "userId"=>$user_id_session];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function user_del($user_id) {
+    global $api_arg, $user_id_session, $session_role, $customer, $dbh;
+
+    $status = "0";
+    $error = '';
+
+    if($user_id >0) {
+            $stmt = $dbh->prepare('SELECT `user_counterparty_id`   FROM `a_user_counterparty`  WHERE `user_id`=?  ');
+            $stmt->execute([ $user_id  ]);
+            while($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+                $stmt2 = $dbh->prepare('DELETE FROM `a_order_users` WHERE  `user_counterparty_id`=? ');
+                $stmt2->execute([ $row->user_counterparty_id ]);
+            }
+
+
+            $stmt = $dbh->prepare('DELETE FROM `a_user_counterparty` WHERE  `user_id`=? ');
+	    $stmt->execute([$user_id ]);
+
+	    $stmt = $dbh->prepare('DELETE FROM `a_users`  WHERE `user_id`=?');
+	    $stmt->execute([$user_id]);
+
+	    if(!$stmt) {
+            $status = "4";
+	           $error = 'error 2: '. $dbh->errorInfo()[2];
+	    }
+    }
+
+    $result = ["status"=>$status, "error"=>$error, "role"=>$session_role, "action"=>"user_del", "customerId"=>$customer, "userId"=>$user_id_session];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function user_link($order_id, $user_counterparty_id,  $user_id,  $item_id) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+    global $AccountPrefix, $EmailDomain;
+
+    $rc = user_link_lib($order_id, $user_counterparty_id,  $user_id, $item_id);
+    echo json_encode($rc, JSON_UNESCAPED_UNICODE);
+}
+
+
+function mb_ucfirst($arg_w, $charset = "utf-8") {
+    $word = trim(htmlspecialchars($arg_w, ENT_QUOTES));
+	return mb_strtoupper(mb_substr($word, 0, 1, $charset), $charset).mb_substr($word, 1, mb_strlen($word, $charset)-1, $charset);
+}
+
+
+function snils_format($snils) {
+    //$snils_a = preg_split('/[ ,]+/', trim($snils), -1);
+    //return $snils_a[0]. '-' . $snils_a[1]. '-' . $snils_a[2]. ' ' . $snils_a[3];
+
+    $snils_a = str_split(str_replace(' ', '', str_replace('-', '',  trim($snils))), 1);
+    return $snils_a[0].$snils_a[1].$snils_a[2]. '-' . $snils_a[3].$snils_a[4].$snils_a[5]. '-' . $snils_a[6].$snils_a[7].$snils_a[8]. ' ' . $snils_a[9].$snils_a[10];
+}
+
+
+$session_counterparty_id = -1;
+$session_account_id = -1;
+$session_role = '';
+$stmt = $dbh_a->prepare('SELECT `login`, `role`, `a_account`.`account_id`, `counterparty_id`  FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`)  WHERE `token`=? ');
+//$stmt = $dbh->prepare('SELECT `account_id`, `counterparty_id`  FROM `a_session`  WHERE `token`=? ');
+$stmt->execute([ $api_arg['sessionId'] ]);
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+     $session_counterparty_id = $row->counterparty_id;
+     $session_account_id = $row->account_id;
+     $session_role = $row->role;
+     $session_login = $row->login;
+}
+
+
+
+api_journal('students', $api_function, $api_arg, $session_login);
+if($api_function=='list'){
+    $counterparty_id = intval($api_arg["counterparty_id"]);
+    if($counterparty_id == 0 && intval($session_counterparty_id) > 0)
+            $counterparty_id = intval($session_counterparty_id);
+        
+    if(isset($api_arg["lastname"]))
+	    $lastname = htmlspecialchars($api_arg["lastname"], ENT_QUOTES);
+    else
+	    $lastname = '';
+    if(isset($api_arg["firstname"]))
+	    $firstname = htmlspecialchars($api_arg["firstname"], ENT_QUOTES);
+    else
+	    $firstname = '';
+    if(isset($api_arg["middlename"]))
+	    $middlename = htmlspecialchars($api_arg["middlename"], ENT_QUOTES);
+    else
+	    $middlename = '';
+
+//    users_list($api_arg["search"], $api_arg["lastname"], $api_arg["firstname"], $api_arg["middlename"], intval($api_arg["facultetId"]),  intval($api_arg["formId"]),  intval($api_arg["groupId"]), intval($api_arg["organization"]), $api_arg["page"] );
+    users_list($counterparty_id, $lastname, $firstname, $middlename,  intval($api_arg["status"]),   intval($api_arg["page"]) );
+}
+else if($api_function=='object'  ){
+    user_object(intval($api_arg["objectId"]), intval($api_arg["counterparty_id"]));
+}
+else if($api_function=='user_jobs'  ){
+    user_jobs(intval($api_arg["objectId"]), intval($api_arg["counterparty_id"]));
+}
+else if($api_function=='user_view'  ){
+    user_detalies(intval($api_arg["cartId"]));
+}
+else if($api_function=='save' ){
+    user_save(intval($api_arg["objectId"]), htmlspecialchars($api_arg["email"], ENT_QUOTES),   mb_ucfirst($api_arg["lastname"]), mb_ucfirst($api_arg["firstname"]), mb_ucfirst($api_arg["middlename"]),  htmlspecialchars($api_arg["date_of_birth"], ENT_QUOTES),  htmlspecialchars($api_arg["snils"], ENT_QUOTES),  htmlspecialchars($api_arg["inn"], ENT_QUOTES), htmlspecialchars($api_arg["phone"], ENT_QUOTES), htmlspecialchars($api_arg["address"], ENT_QUOTES),  htmlspecialchars($api_arg["diplom_filename"], ENT_QUOTES), htmlspecialchars($api_arg["photo_filename"], ENT_QUOTES), htmlspecialchars($api_arg["sex"], ENT_QUOTES),  htmlspecialchars($api_arg["dplom_series"], ENT_QUOTES), htmlspecialchars($api_arg["diplom_number"], ENT_QUOTES), htmlspecialchars($api_arg["diplom_lastname"], ENT_QUOTES), htmlspecialchars($api_arg["citizenship"], ENT_QUOTES), intval($api_arg["level_of_education"]), htmlspecialchars($api_arg["pasport_series"], ENT_QUOTES), htmlspecialchars($api_arg["pasport_number"], ENT_QUOTES), htmlspecialchars($api_arg["pasport_unit_number"], ENT_QUOTES), htmlspecialchars($api_arg["pasport_unit"], ENT_QUOTES), htmlspecialchars($api_arg["comment"], ENT_QUOTES),  intval($api_arg["order_id"]), intval($api_arg["status"]) );
+
+}
+else if($api_function=='save_user_counterparty' ){
+    user_save_counterparty(intval($api_arg["objectId"]),  intval($api_arg["counterparty_id"]),  mb_ucfirst($api_arg["job_title_name"]), intval($api_arg["job_title_category"]), mb_ucfirst($api_arg["subdivision"]), intval($api_arg["order_id"]),  intval($api_arg["user_counterparty_id"])  );
+
+}
+else if($api_function=='delete_user_counterparty' ){
+    user_delete_counterparty(intval($api_arg["userCounterpartyId"])    );
+
+}
+else if($api_function=='archive' ){
+    user_archive( intval($api_arg["userId"]), intval($api_arg["status"]) );
+}
+else if($api_function=='delete' ){
+    user_del( intval($api_arg["userId"]) );
+}
+else if($api_function=='search' ){
+    //user_search( intval($api_arg["order_id"]),  intval($api_arg["counterparty_id"]),  $api_arg["lastname"], $api_arg["firstname"], $api_arg["middlename"],  $api_arg["subdivision"], $api_arg["$position"], $api_arg["date_of_birth"],  $api_arg["email"],  $api_arg["snils"] );
+    user_search( intval($api_arg["order_id"]), intval($api_arg["counterparty_id"]),  htmlspecialchars($api_arg["lastname"], ENT_QUOTES), htmlspecialchars($api_arg["firstname"], ENT_QUOTES), htmlspecialchars($api_arg["middlename"], ENT_QUOTES), htmlspecialchars($api_arg["snils"], ENT_QUOTES),   intval($api_arg["exclude_user_id"]) );
+}
+else if($api_function=='link' ){
+    user_link(intval($api_arg["order_id"]), intval($api_arg["user_counterparty_id"]), intval($api_arg["objectId"]),  intval($api_arg["item_id"]));
+}
+else if($api_function=='change' ){
+    user_change(intval($api_arg["objectId"]), intval($api_arg["to_user_id"]));
+}
+else if($api_function=='change_order' ){
+    user_change_order(intval($api_arg["item_id"]),  intval($api_arg["to_user_id"]),  intval($api_arg["to_user_counterparty_id"]) );
+}
+else if($api_function=='report'){
+    user_report( intval($api_arg["objectId"]) );
+}
+
+else {
+    $result = array('POST'=>$_POST, 'GET'=>$_GET, 'SERVER'=>$_SERVER, 'JSON'=>$_JSON);
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+?>

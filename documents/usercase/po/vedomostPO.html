@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.0cm; margin-right: 1.0cm; margin-top: 1.0cm; margin-bottom: 1.0cm; size: A5 portrait;  }
+	p { margin-bottom: 0.25cm; font-family: "DejaVu Serif";  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 9pt; line-height: 99%; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.right { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: right; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: center; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 14pt; text-align: center; margin-top: 4cm; margin-bottom: 4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.2cm; margin-bottom: 0.2cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	td, th { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+    </style>
+	<title>Ведомость промежуточной аттестации </title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+
+
+
+
+    <h2 class="western" >Ведомость промежуточной аттестации</h1>
+
+     
+<p class="western"><b>Наименование программы - {$lstream['course_name']}</b><br \>
+</p>
+<br \>     
+<p class="western"><b>№ группы - {$lstream['name']}</b><br \><br \>
+</p>
+<br \>     
+<p class="western" style="text-align:right;">Дата промежуточной аттестации - ______________<br \><br \>
+</p>
+<br \>     
+<p class="western"><b>Ф.И.О. преподавателя – {$lstream['main_teacher']}</b><br \><br \>
+</p>
+
+
+
+<br />
+            <br />
+            <table width="100%" cellpadding="2" cellspacing="0">
+            <tr><th  width="5%" style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; font-style: italic;" >№ <br /><nobr>п/п</nobr></th>
+                <th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; font-style: italic;" > Фамилия, имя, отчество </th>
+                <th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; font-style: italic;" > Результат промежуточной аттестации </th>
+                <th style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center; font-style: italic;" > Подписи преподавателя
+                </th>
+            </tr>
+            {foreach from=$users item=cell name=users}
+            <tr>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$smarty.foreach.users.iteration}.</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" >{$cell['lastname']} {$cell['firstname']} {$cell['middlename']}</td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" ></td>
+		    <td style="border: 1px solid #00000a; padding-left: 8px;  padding-right: 8px; text-align: center;" ></td>
+            </tr>
+            {/foreach}
+            </table>
+            
+<br \> 
+<br \>             
+<br \> 
+<p class="western">Число обучающихся, не явившихся на промежуточную аттестацию _____<br \><br \>
+</p>
+<p class="western">Число обучающихся, не допущенных на промежуточную аттестацию _____<br \><br \>
+</p>
+
+<p class="western">Специалист учебной части  __________________ <br \><br \>
+</p>
+
+
+
+
+
+</body>
+</html>

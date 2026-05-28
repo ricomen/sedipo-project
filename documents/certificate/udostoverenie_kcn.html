@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<style type="text/css">
+		@page { size: 210.01mm 297mm; style="padding-left: 0; margin-left: 4.01mm; margin-right: 2.01mm; margin-top: 2.01mm; margin-bottom: 2.01mm }
+	p {  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: justify;  margin-bottom: 4px;  margin-top: 4px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: center;  margin-bottom: 4px;  margin-top: 4px; }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	td { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; line-height: 96%;  }
+	</style>
+</head>
+<body lang="ru-RU" text="#000000" link="#0066cc" vlink="#800000" >
+
+<p></p>
+	<table   width="100%"  cellpadding="14" cellspacing="0" border="1" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: none; border-right: none;" >
+		<tr valign="top">
+
+
+			<td   width="46%"   style="text-align: left; border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: none; border-right: none;">
+<table width="100%" border="1" cellspacing="0" >
+<tr>
+    <td  width="25%" style="text-align: center; font-size: smaller;"> Дата </td><td  width="25%"  style="text-align: center; font-size: smaller;"> № протокола проверки знаний </td><td  width="25%"  style="text-align: center; font-size: smaller;"> Подпись председателя комиссии </td><td  width="25%"  style="text-align: center; font-size: smaller;"> Подпись работника </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+</table>
+
+			</td>
+
+            <td  width="8%"  style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: none; border-right: none;"> <br /> </td>
+
+			<td  width="46%" style="border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-left: none; border-right: none" >
+
+<table width="100%" border="0" cellpadding="3" cellspacing="3" >
+<tr  >
+    <td width="25%" valign="top" >
+        ФИО:
+    </td>
+    <td>
+        <b>{$user['lastname']}<br />
+        {$user['firstname']}<br />
+        {$user['middlename']}</b>
+    </td>
+</tr>    
+
+<tr >
+    <td  colspan="2" style="padding-bottom: 0;  padding-top: 10px;">
+        <span style=" margin-bottom: 4px;  margin-top: 4px; font-size: 8pt;" >Прошел (ла) обучение в ООО «ИПО»</span>
+    </td>
+</tr>  
+
+<tr>
+    <td colspan="2" >
+        <span style=" margin-bottom: 4px;  margin-top: 4px; font-size: 8pt;" >По программе:</span>
+    </td>
+</tr>  
+
+
+<tr>
+    <td colspan="2"  height="50" valign="top">
+        <b>{$cert['name']} {if $user['rank_of_profession']!=0} {$user['rank_of_profession']} {/if}</b>
+    </td>
+</tr>  
+
+<tr>
+    <td  colspan="2" style="padding-bottom: 10px;  padding-top: 0;">
+        <span  class="left" style="font-size: smaller;"><nobr>Протокол: № {$cert['protocol_num']} от {$cert['date_protocol']|date_format:"%02e.%m.%Y"}</nobr></span>
+    </td>
+</tr>    
+<tr>
+    <td  colspan="2" style="padding-bottom: 0;  padding-top: 10px;">
+        <span  class="left" style="font-size: smaller;"><nobr><b>Регистрационный № {$user['certificate_num']}</b></nobr></span>
+    </td>
+</tr>    
+</table>
+ 
+			</td >
+
+
+		</tr>
+	</table>
+
+
+
+
+
+
+
+
+
+
+
+<p style="page-break-before: always;" ></p>
+
+	<table  border="0"  width="100%"  cellpadding="7" cellspacing="0" style="padding-top:7px;">
+
+		<tr valign="top">
+
+			<td   width="46%" >
+<table width="100%" border="0" >
+<tr>
+    <td colspan="2" height="90" valign="top">
+        <p class="western" style=" margin-bottom: 4px;  margin-top: 4px; font-size: 8pt;" >Предоставляется право:</p>
+        <p class="western" style=" margin-bottom: 4px;  margin-top: 4px;  font-size: 8pt;" > <b><i>{$cert['competence']}</i></b> </p> 
+    </td>
+</tr>    
+
+<tr valign="bottom">
+    <td  valign="top">
+        <p class="western" style="margin-bottom: 5x;  margin-top: 35px;  font-size: 8pt;" >Председатель <br/>комиссии:</p>
+    </td>
+    <td>
+        <p class="western" style="margin-bottom: 5x;  margin-top: 5px;  font-size: 8pt;" ><nobr>____________{$cert['chairman']}</nobr></p>
+    </td>
+</tr>    
+<tr>
+    <td  valign="top">
+        <p class="western" >М.П.</p>
+    </td>
+    <td>
+
+{if $print_v=="false"} 
+<div style="position: relative; top: 0px; right: 0px;">        
+<!--<div style="position: absolute; top: -80px; right: 150px; "><img src="https://center.sedipo.ru/documents/signs/podpis.png" width="70px" align="top" ></div>-->
+<div style="position: absolute; top: -80px; right: 130px; "><img src="https://center.sedipo.ru/documents/signs/Stamp.png" width="150px" align="top" ></div>
+</div>
+{/if}
+
+    </td>
+</tr>
+</table>
+<br>
+
+			</td>
+
+            <td  width="8%" > <br /> </td>
+
+			<td  width="46%" >
+<table width="100%" border="1" cellspacing="0" >
+<tr>
+    <td  width="25%" style="text-align: center; font-size: smaller;"> Дата </td><td  width="25%"  style="text-align: center; font-size: smaller;"> № протокола проверки знаний </td><td  width="25%"  style="text-align: center; font-size: smaller;"> Подпись председателя комиссии </td><td  width="25%"  style="text-align: center; font-size: smaller;"> Подпись работника </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+<tr>
+    <td><p> </p></td><td> </td><td> </td><td> </td>
+</tr>
+</table>
+
+			</td>
+
+		</tr>
+	</table>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+
+  $prefix = 'СЭД-';
+  $stmt = $dbh->prepare("SELECT CURDATE() as `current_date`, `prefix`, `name`, `longtime_contract` FROM `a_contract` WHERE `contract_id`=?  ");
+  $stmt->execute( [ intval($_GET['contract_id']) ] );
+  if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $current_date = $row['current_date'];
+    $prefix = $row['prefix'];
+    if( intval($row['longtime_contract']) >0 && $longtime_contract_c == 'true' && intval($_GET['counterparty_id'])>1) {
+            $stmt3 = $dbh->prepare("SELECT `legacy`, `date_contract`, `order_id`   FROM `a_counterparty_contract`  WHERE `contract_id`=? AND  `counterparty_id`=? ");
+            $stmt3->execute( [ intval($_GET['contract_id']), intval($_GET['counterparty_id']) ] );
+            if($row3 = $stmt3->fetch(PDO::FETCH_ASSOC)) {
+                if($row3['legacy'] != ''){
+                    $contract_number_s =  $row3['legacy'];
+                }
+                $date_contract =  $row3['date_contract'];  
+                $contract_order_id =  $row3['order_id'];  
+            }
+            if( $contract_number_s == '') {
+                    $contract_number_s =   $row['prefix'] . intval($_GET['counterparty_id']);
+            }
+            $longtime_contract0 = intval($row['longtime_contract']);
+    }
+    else {
+         $stmt4 = $dbh->prepare("SELECT  `date_order`    FROM `a_order`  WHERE `order_id`=? ");
+         $stmt4->execute( [ intval($order_id) ] );
+         if($row4 = $stmt4->fetch(PDO::FETCH_ASSOC)) {
+             $date_contract = $row4["date_order"];
+         }
+    }
+  }
+
+  if( $date_contract == '' || $date_contract == '0000-00-00' || $date_contract == '1000-01-01' ){
+       $date_contract = $current_date ;
+    //     $stmt4 = $dbh->prepare("SELECT  `date_order`    FROM `a_order`  WHERE `order_id`=? ");
+    //     $stmt4->execute( [ intval($order_id) ] );
+    //     if($row4 = $stmt4->fetch(PDO::FETCH_ASSOC)) {
+    //         $date_contract = $row4["date_order"];
+    //     }
+  }
+
+if ($contract_number_s == ''){
+  $date_contract = '';
+  $contract_order_id = 0;
+  $longtime_contract0 = 0; 
+  $contract_number_s =  $prefix  . intval($_GET['id']);
+
+}
+
+$date_contract_finish = explode('-', $date_contract)[0] . '-12-31';
+$data3 =  ['contract_number'=>$contract_number_s, 'date_contract'=>$date_contract,  'date_contract_finish'=>$date_contract_finish, 'contr_id'=>$contr_id ];
+$smarty->assign('contract_data', $data3);
+

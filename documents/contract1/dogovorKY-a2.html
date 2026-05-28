@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+	@page { margin-left: 1.6cm; margin-right: 0.9cm; margin-top: 0.5cm; margin-bottom: 0.5cm; size: A4 portrait;  }
+	p { margin-bottom: 0.25cm; direction: ltr; line-height: 120%; text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: justify; margin-top: 0.4cm; margin-bottom: 0.4cm;  }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 12pt; text-align: center; margin-top: 0.4cm; margin-bottom: 0.4cm; margin-left: 1cm; margin-right: 1cm   }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	p.table { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-top: 0.4cm; margin-bottom: 0.4cm  }
+	li { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: left; margin-bottom: 0.1cm;  }
+	th { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: center; margin-top: 0.1cm; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+	td { font-family: "DejaVu Serif", serif; font-size: 8pt; text-align: left; margin-top: 0.1cm; margin-bottom: 0.1cm;  }
+
+	p.cjk { font-family: "DejaVu Sans"; font-size: 12pt }
+	p.ctl { font-size: 12pt }
+	a:link { color: #0000ff }
+	a.ctl:link { font-family: "DejaVu Sans" }
+    </style>
+	<title>АКТ</title>
+</head>
+<body lang="ru-RU" link="#0000ff" vlink="#800000" dir="ltr">
+    
+    <table width="100%" cellpadding="7" cellspacing="0">
+    <tr>
+        <td width="40%">
+            
+        </td>
+        <td>
+            <p class="western" style="text-align: right;">
+            <b>Приложение № 2</b> <br />
+            к договору № {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%e.%m.%Y"} г.<br />
+            на оказание консультационных услуг
+            </p>
+        </td>
+    </tr>
+    </table>
+
+
+
+
+<p class="western"  style="margin-top: 0.3cm; margin-bottom: 0.3cm; text-align: center;">
+    <b>ФОРМА <br>
+    АКТ ОКАЗАНИЯ КОНСУЛЬТАЦИОННЫХ УСЛУГ </b>   
+</p>
+<p class="western"  style="margin-top: 0.3cm; margin-bottom: 0.3cm; text-align: center;">
+    По договору № {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%e.%m.%Y"} г.  
+    на оказание консультационных услуг
+</p>
+
+
+<p class="western" > <b>{$self_data['name']} ({$self_data['shortname']}),</b>
+    именуемое в дальнейшем «Исполнитель», в лице директора {$self_data['enterprise_manager2']},
+    действующего на основании Устава, с одной стороны и 
+    <b>{$order_data['shortname']}</b>, именуемое в дальнейшем «Заказчик»,  
+    в лице {$order_data['position_head2']}  
+    {$order_data['enterprise_manager2']},
+    действующего на основании Устава, с другой стороны,
+    именуемые в дальнейшем «Стороны», составили настоящий Акт оказанных услуг (далее – Акт) по Договору № {$contract_data['contract_number']} от {$contract_data['date_contract']|date_format:"%e.%m.%Y"} г.  
+    на оказание консультационных услуг (далее – Договор):
+    </p>
+
+
+    
+<p class="western"  style="margin-top: 0.3cm; margin-bottom: 0.3cm;"> 
+
+<span style="margin-right:5px;">1.</span>Исполнитель оказал консультационные услуги, указанные в Приложении № 1 к Договору.<br />
+<span style="margin-right:5px;">2.</span>Результат оказанных услуг Исполнителя был оформлен в виде ____________ (письменного заключения/устного консультирования).<br />
+<span style="margin-right:5px;">3.</span>Услуги оказаны своевременно, в необходимом объеме и в соответствии с требованиями, установленными Договором, Приложением №1 к Договору.<br />
+<span style="margin-right:5px;">4.</span>Заказчик претензий по объему, качеству и срокам оказания Услуг не имеет.<br />
+<span style="margin-right:5px;">5.</span>Стоимость оказанных Услуг составила {$order_data['price_sum']} рублей ({$order_data['price_sum_str']}. НДС не облагается (в связи с применением Исполнителем упрощенной системы налогообложения).<br />
+<span style="margin-right:5px;">6.</span>Настоящий Акт составлен в двух экземплярах, по одному для Исполнителя и Заказчика.<br /> 
+<br />
+<br />
+Форма согласована.
+</p>
+
+
+<table style="page-break-before: avoid;" width="100%" cellpadding="7" cellspacing="0">
+    <tr valign="top">
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            <b>Заказчик: <br />
+            {$order_data['shortname']}
+            <br />
+            <br />
+            <br />
+            </b>
+            </p>
+
+        </td>
+        <td style="vertical-align:top" style="text-align: left;">
+            <p class="western">
+            <b>
+            Исполнитель:<br />
+            {$self_data['shortname']}<br />
+            <br />
+            <br />
+            </b>
+            </p>
+        </td>
+
+    </tr>
+    <tr>
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            {$order_data['position_head']} ________________/<u>{$order_data['enterprise_manager3']}</u>/ <br />
+            М.П.
+            </p>
+            </td>
+        <td width="50%">
+            <p class="western" style="text-align: left;">
+            {$self_data['position_head']}_______________ /<u>{$self_data['enterprise_manager3']}</u>/<br />
+            М.П.
+            </p>
+			{if $print_v=="false"} 
+			<div style="position: relative; top: 0px; left: 0px;">        
+			<div style="position: absolute; top: -110px; right: 200px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/{$self_data['enterprise_manager_signs']}" width="150px" align="top" ></div>
+			<div style="position: absolute; top: -60px; right: 110px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+			</div>
+			{/if}
+        </td>
+    </tr>
+    </table>
+</body>
+</html>

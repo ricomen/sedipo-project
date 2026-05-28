@@ -1,0 +1,51 @@
+
+.container {
+    width: 100%;
+    background: gray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+    padding: 5px;
+}
+.page {
+    padding: 1cm 1.7cm;
+    width: 290mm;
+    height: 200mm;
+    background: white;
+}
+.members tr:first-child th {
+    resize: horizontal;
+    overflow: auto;
+}
+.members tr:first-child th:last-child {
+    resize: vertical;
+    overflow: auto;
+}
+.members tr td:last-child {
+    resize: vertical;
+    overflow: auto;
+}
+.resize {
+    resize: vertical;
+    overflow: auto;
+    height: 5px;
+    width: 100%;
+    border: 1px solid lightgrey;
+}
+@media print {
+    .resize {
+        resize: none;
+        max-height: none;
+        overflow: visible;
+        border: none;
+    }
+    header, footer,
+    [role="banner"], [role="contentinfo"],
+    .site-header, .site-footer,
+    .main-header, .main-footer {
+        display: none;
+    }
+}
+

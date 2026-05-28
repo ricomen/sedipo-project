@@ -1,0 +1,164 @@
+<?php
+/**
+ * @copyright 2022
+ */
+
+
+require_once '../config.php';
+require_once 'lib.php';
+$dbhost = $cfg->host;
+$dbuser = $cfg->user;
+$dbpassword = $cfg->password;
+$dbname = $cfg->name;
+
+
+try {  
+    $dbh = new PDO("mysql:host=$dbhost;dbname=$dbname;charset=utf8", $dbuser, $dbpassword);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+session_start();
+
+
+
+function contract_upload( $counterparty_id, $contract_id, $order_id, $addition, $arg_date_contract ) {
+    global $api_arg, $user_id_session,   $dbh;
+    
+    $rc=0;
+    $status=1;
+    if($_FILES['upload1']['tmp_name'] != '' )
+    {
+
+        $longtime_contract_is_signed = 0;
+        $longtime_contract = 0;
+        $longtime_contract_c = '';
+
+        $stmt = $dbh->prepare("SELECT  `longtime_contract`  FROM `a_counterparty`  WHERE  `counterparty_id`=? ");
+        $stmt->execute([$row->counterparty_id]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+            $longtime_contract_c =  $row->longtime_contract;
+        }
+
+        $stmt = $dbh->prepare('SELECT DISTINCT   `a_contract`.`name`, `template_id`, `template1_id`, `template2_id`,`template3_id`, `longtime_contract`  FROM   `a_contract`   WHERE `contract_id`=?   ');
+        $stmt->execute([ $contract_id ]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+    	            if($row->template3_id > 0 )
+	                    $additions_count = 3;
+    	            else if($row->template2_id > 0 )
+	                    $additions_count = 2;
+	            else if($row->template1_id > 0 )
+	                    $additions_count = 1;
+	            else if($row->template_id > 0 )
+	                    $additions_count = 0;
+    	            else
+	                    $additions_count = -1;
+
+	            if( $longtime_contract_c =='true' && $row->longtime_contract>0  ){
+                              $longtime_contract = 1;
+                    }
+        }
+
+        $current_y = date('Y', time() );
+        if($contract_id == 0) {
+            $path = "../uploads/completed/". $current_y ."/";
+            $upload_dir = "/uploads/completed/". $current_y ."/";
+            mkdir($path);
+            if($longtime_contract == 0)
+                 $file_name = $counterparty_id. '_' .$order_id;
+            else
+                 $file_name = $counterparty_id;
+
+            $date_completed_exist = '';
+            $date_sign = date('Y-m-d');
+            completed_sign_to_1c($order_id, $date_sign);
+            $stmt = $dbh->prepare('SELECT `date_completed`  FROM `a_order`  WHERE `order_id`=? ');
+            $stmt->execute([$order_id]);
+            if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+                 $date_completed_exist = $row->date_completed;
+            }
+            if( $date_completed_exist == '' || $date_completed_exist=='1000-01-01' ) {
+                 $stmt = $dbh->prepare('UPDATE `a_order` SET  `date_completed`=?    WHERE `order_id`=? ');
+                 $stmt->execute([ $date_sign, $order_id]);
+            }
+        }
+        else {
+            if($addition < 0){
+                $path = "../uploads/contracts/";
+                $file_name = $counterparty_id. '_' .$contract_id;
+                $upload_dir = "/uploads/contracts/";
+            }
+            else {
+                $path = "../uploads/contracts_additions/". $current_y ."/";
+                mkdir($path);
+                $file_name = $counterparty_id. '_' .$contract_id. '_' .$addition. '_' .$order_id;
+                $upload_dir = "/uploads/contracts_additions/". $current_y ."/";
+            }
+        }
+//file_put_contents("lst.txt", print_r($file_name, true) );
+        $stmt = $dbh->prepare('SELECT `upload_file`, `upload_dir`  FROM `a_counterparty_contract`  WHERE `counterparty_id`=? AND `contract_id`=?  AND `addition`=?');
+        $stmt->execute([$counterparty_id, $contract_id, $addition ]);
+        if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+            if($row->upload_file != '') {
+                     unlink($path . $row->upload_dir . $row->upload_file);
+            }
+        }
+        $date_contract = '0000-00-00';
+        //$stmt2 = $dbh->prepare("SELECT  `date_order`, `enterprise_manager`, `enterprise_manager2`, `enterprise_manager_signs`  FROM  `a_order`  WHERE `order_id`=?    ");
+        $stmt2 = $dbh->prepare("SELECT  `date_order`  FROM  `a_order`  WHERE `order_id`=?    ");
+        $stmt2->execute([$order_id]);
+        if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+                if($addition == 0)
+                    $date_contract = $row2->date_order;
+                else
+                    $date_contract = $arg_date_contract;
+        }
+        if( $longtime_contract>0 && $addition==0 ){
+             $stmt = $dbh->prepare('DELETE FROM `a_counterparty_contract`  WHERE  `counterparty_id`=? AND `contract_id`=? AND `addition`=0 ');
+             $stmt->execute([$counterparty_id, $contract_id  ]);
+        }
+        else {
+             $stmt = $dbh->prepare('DELETE FROM `a_counterparty_contract`  WHERE `order_id`=? AND  `counterparty_id`=? AND `contract_id`=? AND `addition`=? ');
+             $stmt->execute([$order_id, $counterparty_id, $contract_id, $addition  ]);
+        }
+        if(move_uploaded_file($_FILES['upload1']['tmp_name'], $path. $file_name .'.pdf')) {
+            $rc=1;
+            $status=0;
+            $insert_order_id = $order_id;
+            if($longtime_contract>0  && $addition==0 )
+                     $insert_order_id  = 0;
+
+            $stmt2 = $dbh->prepare("INSERT INTO `a_counterparty_contract`( `counterparty_id`, `contract_id`, `addition`, `date_contract`, `order_id`, `upload_file`, `upload_dir`, `legacy`, `contract_html` ) VALUES(?, ?, ?, ?, ?, ?, ?, '', '')   ");
+            $stmt2->execute([$counterparty_id, $contract_id, $addition, $date_contract, $insert_order_id , $file_name.'.pdf', $upload_dir  ]);
+        }
+    }    
+    //$result = ["status"=>0, "error"=>'',  "action"=>"user_import",   "result"=>["total"=>[$rows_count, $rows_count2],  "file1"=>$_FILES["upload1"]["name"],  "type1"=>$_FILES["upload1"]["type"],  "file2"=>$_FILES["upload2"]["name"],  "type2"=>$_FILES["upload2"]["type"] ]];
+    $result = ["status"=>$status, "error"=>'',  "action"=>"upload",   "result"=>["upload"=>$rc, "file"=>$_FILES["upload1"]["name"],  "type"=>$_FILES["upload1"]["type"]  ], 'd'=>$_FILES['upload1']['tmp_name'] ];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+
+function completed_sign_to_1c($order_id, $date_sign) {
+    global $api_arg, $user_id_session, $session_role,  $dbh;
+
+    $completed = ["id"=>$order_id,  "date"=>$date_sign ]; 
+
+    file_put_contents( "../../1c/CED/completed_sign".$order_id.".json", json_encode($completed, JSON_UNESCAPED_UNICODE));
+    chmod("../../1c/CED/completed_sign".$order_id.".json",  0666);
+
+file_put_contents( "../../1c/tmp/completed_sign".$order_id.".json", json_encode($completed, JSON_UNESCAPED_UNICODE));
+}
+
+
+
+if(intval($_POST["counterparty_id"])!=0 ){
+     contract_upload( intval($_POST["counterparty_id"]), intval($_POST["contract_id"]), intval($_POST["order_id"]),  intval($_POST["addition"]),  htmlspecialchars($_POST["date_contract"], ENT_QUOTES) ); 
+}
+
+else {
+    $result = array('POST'=>$_POST, 'GET'=>$_GET, 'FILES'=>$_FILES, 'SERVER'=>$_SERVER);
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+}
+
+?>

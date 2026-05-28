@@ -1,0 +1,119 @@
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<style type="text/css">
+		@page { size: 210.01mm 297mm; style="padding-left: 0; margin-left: 5.01mm; margin-right: 5.01mm; margin-top: 5.01mm; margin-bottom: 5.01mm" }
+	p {  text-align: left; orphans: 2; widows: 2 }
+	p.western { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: justify;  margin-bottom: 4px;  margin-top: 4px; }
+	p.center { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: center;  margin-bottom: 4px;  margin-top: 4px; }
+	p.left { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; }
+	h1.western { font-family: "DejaVu Serif", serif; font-size: 11pt; text-align: center }
+	h2.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	h3.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	h4.western { font-family: "DejaVu Serif", serif; font-size: 10pt; text-align: center }
+	td { font-family: "DejaVu Serif", serif; font-size: 9pt; text-align: left; line-height: 96%;  }
+	</style>
+</head>
+<body lang="ru-RU" text="#000000" link="#0066cc" vlink="#800000" dir="ltr">
+
+	<table dir="ltr" align="left" width="100%"  cellpadding="7" cellspacing="0" border="1">
+
+		<tr valign="top">
+			<td  width="49%"  >
+                <p class="center"  style="margin-bottom: 5px;  margin-top: 1px; text-transform: uppercase; font-size: 9pt;" ><b>ООО «ИНЖЕНЕРНО-ТЕХНИЧЕСКИЙ ЦЕНТР <br />«БЕЗОПАСНОСТЬ»</b></p>
+                <h2 class="western"  style="margin-bottom: 5px;  margin-top: 5px;" ><b>УДОСТОВЕРЕНИЕ № {$user['certificate_num']}</b></h2>
+
+<table width="100%" border="0" cellpadding="3" cellspacing="3">
+<tr  >
+    <td  valign="top" width="30%" height="30px">
+        ФИО:
+    </td>
+    <td height="30px">
+        <b>{$user['lastname']}<br />
+        {$user['firstname']}<br />
+        {$user['middlename']}</b>
+    </td>
+</tr>    
+
+<tr>
+    <td  width="30%" height="30px">
+        Должность:
+    </td>
+    <td>
+        <b>{$user['position_name']}</b>
+    </td>
+</tr>  
+<tr>
+    <td  height="30px">
+        <p class="western" style="margin-right: 4px; margin-top: 0px; margin-bottom: 0px;" >Организация:</p>
+    </td>
+    <td  height="30px"  >
+        <p class="left" style=" margin-top: 0px; margin-bottom: 0px;"><b>{$user['counterparty_shortname']}</b></p>
+    </td>
+</tr>  
+
+<tr>
+    <td height="30px">
+        Протокол:
+    </td>
+    <td>
+        <span class="left" style="font-size: smaller;">№ {$cert['protocol_num']} от {$cert['date_protocol']|date_format:"%02e.%m.%Y"}</span>
+    </td>
+</tr>    
+
+<tr>
+    <td colspan="2" class="left" style="margin-right: 4px; margin-bottom: 2px;  margin-top: 10px; font-size: 4.9pt; line-height: 96%;" >
+         Лицензия на осуществление образовательной деятельности Управления по контролю и наджзору в сфере образования Республики Башкортостан серия ЛО35-01198-02/01307799 от 23.07.2024
+    </td>
+</tr>    
+</table>
+
+			</td>
+
+<!--<td  width="2%"> <br /> </td>-->
+
+			<td   width="49%">
+<table width="100%" border="0">
+<tr>
+    <td colspan="2" height="70" valign="top">
+        <p class="western" style=" margin-bottom: 4px;  margin-top: 4px; font-size: 8pt;" >В том что он(а) обучался(лась) в <b><i>ООО «ИНЖЕНЕРНО-ТЕХНИЧЕСКИЙ ЦЕНТР «БЕЗОПАСНОСТЬ»</i></b> по программе:</p>
+        <p class="western" style=" margin-bottom: 4px;  margin-top: 4px;  font-size: 8pt;" > <b><i>«{$cert['name']}» в объёме {$cert['hours']} ч.</i></b></p>
+        <p class="western" style=" margin-bottom: 4px;  margin-top: 14px;  font-size: 8pt;" > Повышение водительского мастерства:<br /> <b>(Зимнее вождение. Защитное вождение. Вождение спецтехники)</b></p>
+    </td>
+</tr>    
+
+<tr valign="bottom">
+    <td  valign="top">
+        <p class="western" style="margin-bottom: 5x;  margin-top: 35px;  font-size: 8pt;" >Председатель <br/>комиссии:</p>
+    </td>
+    <td>
+        <p class="western" style="margin-bottom: 5x;  margin-top: 5px;  font-size: 8pt;" ><nobr>{$teachers_commission['chairman_short_b']}</nobr></p>
+    </td>
+</tr>    
+<tr>
+    <td  valign="top">
+        <p class="western" >М.П.</p>
+    </td>
+    <td>
+
+{if $print_v=="false"} 
+<div style="position: relative; top: 0px; right: 0px;">        
+<!--<div style="position: absolute; top: -80px; right: 150px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/podpis.png" width="70px" align="top" ></div>-->
+<div style="position: absolute; top: -130px; right: 190px; "><img src="https://{$smarty.server.SERVER_NAME}/documents/signs/Stamp.png" width="150px" align="top" ></div>
+</div>
+{/if}
+
+    </td>
+</tr>
+
+</table>
+
+
+			</td>
+		</tr>
+	</table><br/>
+
+
+
+</body>

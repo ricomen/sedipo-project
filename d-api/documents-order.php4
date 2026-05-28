@@ -1,0 +1,1108 @@
+<?php
+
+require_once '../config.php';
+require_once 'd-api_lib.php';
+$dbhost_a = $cfg->host;
+$dbuser_a = $cfg->user;
+$dbpassword_a = $cfg->password;
+$dbname_a = $cfg->name;
+try {  
+    $dbh = new PDO("mysql:host=$dbhost_a;dbname=$dbname_a;charset=utf8", $dbuser_a, $dbpassword_a);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+session_start();
+$sessionid = session_id();
+$auth_session = 0;
+$stmt = $dbh->prepare('SELECT `login`, `role`, `a_account`.`account_id`, `counterparty_id`  FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`)  WHERE `token`=? ');
+$stmt->execute([$sessionid]);
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $auth_session = 1;
+}
+if($auth_session == 0){
+    exit();
+}
+
+require '../smarty/libs/Smarty.class.php';
+$smarty = new Smarty();
+$smarty->setTemplateDir('../documents/');
+$smarty->setCompileDir('../tmp/');
+$smarty->setConfigDir('../config/');
+$smarty->setCacheDir('../cache/');
+
+require_once '../dompdf/autoload.inc.php';
+use Dompdf\Dompdf;
+
+require_once  '../PhpWord/vendor/autoload.php';
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\Shared\Html;
+
+
+$form_of_study =  ['',  'Очная', 'Очная с применением дистанционных технологий',  'Заочная',  'Заочная с применением дистанционных технологий', 'Очно-заочная',  'Очно-заочная с применением дистанционных технологий' ];
+$education_levels = [1=>'среднее профессиональное', 2=>'высшее', 3=>'Учащийся (СПО)', 4=>'Студент (ВО)'];
+
+
+
+$lock_str = '';
+if(intval($_GET['enable_lock']==1) ){
+    $lock_str = ' AND `user_lock`=0 ';
+} 
+
+$order_id = intval($_GET['id']);
+$secondary_order = 0;
+$stmt = $dbh->prepare('SELECT count(*) as `count` FROM `a_order_cash`  WHERE `secondary_order_id`=?');
+$stmt->execute([ $order_id ]);
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+    $secondary_order = $row->secondary_order_id;
+}
+
+if( isset($_GET['addition']) )
+      $addition = intval($_GET['addition']);
+else
+      $addition = -1;
+
+$temlate_flter = '';
+if(intval($_GET['contract_id']) > 0 && $addition >= 0) {
+    $temlate_flter = ' AND (( `contract_id`='. intval($_GET['contract_id']) .' AND `performer_id`=0) OR (`contract2_id`='. intval($_GET['contract_id']) . ' AND `performer_id`>0))';
+}    
+
+
+
+
+
+
+$filename = '';
+$template = '';
+$output_format = '';
+if(intval($_GET['contract_id']) == 0) {
+    //$template = 'dogovor1.html';
+    $report_filename = 'Договор';
+}
+else {
+    if($addition >= 0) {
+        $report_filename = 'Приложение';
+    }
+
+    $stmt2 = $dbh->prepare("SELECT  `type`, `name`, `longtime_contract`, `prefix`, `template_id`, `template0_id`, `template1_id`, `template2_id`, `template3_id` FROM `a_contract`   WHERE `contract_id`=? ");
+    $stmt2->execute( [intval($_GET['contract_id']) ] );
+    if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+            if( $addition == 1 )
+                $template_id = $row2['template1_id'];
+            else if( $addition == 2 )
+                $template_id = $row2['template2_id'];
+            else if( $addition == 3 )
+                $template_id = $row2['template3_id'];
+            else if( $addition == 0 )
+                $template_id = $row2['template0_id'];
+            else
+                $template_id = $row2['template_id'];
+
+            $report_filename = '';
+            $template = '';
+            $stmt3 = $dbh->prepare("SELECT  `type`, `name` as `template_name`, `file`, `file_php`, `output_format`  FROM `a_template`   WHERE `template_id`=? ");
+            $stmt3->execute( [$template_id] );
+            if($row3 = $stmt3->fetch(PDO::FETCH_ASSOC)) {  
+                if($row3['type']<10)    
+                    $report_filename = $filename . $contract_number_s .'-'. $row2['name'];
+                else
+                    $report_filename =  $row2['name'] .'-'. $order_id;
+
+                $template = $row3['file'];
+                $output_format = $row3['output_format'];
+            }
+    }
+}
+if($output_format=="word") {
+    $phpWord = new \PhpOffice\PhpWord\TemplateProcessor('../documents/'.$template);
+}
+else {
+    $phpWord = null;
+}
+$block_number = 1;
+
+
+$row_count = 0;
+$is_students = 1;
+if($output_format=="word") {
+      $stmt = $dbh->prepare("SELECT count(*) as `count`   FROM `a_order_users`  LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)   LEFT JOIN `a_users` ON `a_user_counterparty`.`user_id`=`a_users`.`user_id`   LEFT JOIN `a_job_title` USING(`job_title_id`)   WHERE `order_id`=? AND `a_user_counterparty`.`user_id`!='1'".$lock_str );
+      $stmt->execute( [$order_id ] );
+      if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+          $row_count = $row->count;
+      }
+      try  {
+          $phpWord->cloneRow('students-number', $row_count);
+      }
+      catch(Throwable $s) {
+         $is_students = 0;
+      }
+}
+
+$data = [];
+$data2 = [];
+$courses = [];
+$users = [];
+$price_sum = 0;
+$price_nds = 1;
+$price_sum_nds = 0;
+$contract_sum = [ '1' => 0, '2' => 0, '3' => 0, '4' => 0, '8' => 0, '9' => 0, '10' => 0, '11' => 0 ];
+$row_number= 1;
+$date_of_birtf = '1000-01-01';
+$date_order = date("Y-m-d");
+$contr_id= intval($_GET['contract_id']);
+$stmt = $dbh->prepare("SELECT DISTINCT `lastname`, `firstname`, `middlename`, `date_of_birth`, `snils`, `address`, `email`, `pasport_series`, `pasport_number`, `pasport_unit`, `pasport_unit_number`, `phone`,  `a_job_title`.`name` as `position_name`   FROM `a_order_users`  LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)   LEFT JOIN `a_users` ON `a_user_counterparty`.`user_id`=`a_users`.`user_id`   LEFT JOIN `a_job_title` USING(`job_title_id`)   WHERE `order_id`=? AND `a_user_counterparty`.`user_id`!='1'".$lock_str." ORDER BY `lastname`,`firstname` ");
+$stmt->execute( [$order_id ] );
+while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $user_age = $date_order - $row['date_of_birth'];
+    $users[] =  ['lastname'=>$row['lastname'], 'firstname'=>$row['firstname'], 'middlename'=>$row['middlename'], 'position_name'=>$row['position_name'], 'date_of_birth'=>$row['date_of_birth'], 'user_age'=>$user_age, 'snils'=>$row['snils'], 'address'=>$row['address'], 'pasport_series'=>$row['pasport_series'], 'pasport_number'=>$row['pasport_number'], 'pasport_unit'=>$row['pasport_unit'], 'pasport_unit_number'=>$row['pasport_unit_number'], 'email'=>$row['email'], 'phone'=>$row['phone'], 'contr_id'=>$contr_id, 'fullname3'=>formatFio($row['lastname'].' '.$row['firstname'].' '.$row['middlename'])  ];
+    
+    
+    
+    $date_of_birtf = date('d.m.Y',strtotime($row['date_of_birth']));
+    
+    if($output_format=="word" && $is_students) {
+          $phpWord->setValue('students-number'.'#'.$row_number, $row_number);
+          $phpWord->setValue('students-lastname'.'#'.$row_number, $row['lastname']);
+          $phpWord->setValue('students-firstname'.'#'.$row_number, $row['firstname']);
+          $phpWord->setValue('students-middlename'.'#'.$row_number, $row['middlename']);
+          $phpWord->setValue('students-job_of_title'.'#'.$row_number, $row['job_of_title']);
+          $phpWord->setValue('students-date_of_birth'.'#'.$row_number, $date_of_birtf);
+          $phpWord->setValue('students-user_age'.'#'.$row_number, $user_age);
+          $phpWord->setValue('students-snils'.'#'.$row_number, $row['snils']);
+          $phpWord->setValue('students-address'.'#'.$row_number, $row['address']);
+          $phpWord->setValue('students-pasport_series'.'#'.$row_number, $row['pasport_series']);
+          $phpWord->setValue('students-pasport_number'.'#'.$row_number, $row['pasport_number']);
+          $phpWord->setValue('students-pasport_unit'.'#'.$row_number, $row['pasport_unit']);
+          $phpWord->setValue('students-pasport_unit_number'.'#'.$row_number, $row['pasport_unit_number']);
+          $phpWord->setValue('students-email'.'#'.$row_number, $row['email']);
+          $phpWord->setValue('students-phone'.'#'.$row_number, $row['phone']);
+          $phpWord->setValue('students-contr_id'.'#'.$row_number, $contr_id);
+          $phpWord->setValue('students-fullname3'.'#'.$row_number, formatFio($row['lastname'].' '.$row['firstname'].' '.$row['middlename']) );
+    }
+    $row_number = $row_number +1;
+} 
+if($output_format==""){
+   $smarty->assign('users', $users);
+}
+//print_r($users);
+
+
+$order_date_order = '1000-01-01';
+$order_date_begin = '';
+$order_date_end = '';
+$stmt = $dbh->prepare('SELECT  `date_order`,  `date_begin`,`date_end`  FROM  `a_order`   WHERE `order_id`=? ');
+$stmt->execute( [$order_id ] );
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $order_date_begin = $row->date_begin;
+        $order_date_end = $row->date_end;
+        $order_date_order = $row->date_order;
+}
+
+//file_put_contents("lst1.txt", print_r($lock_str, true) );
+//file_put_contents("lst2.txt", print_r($temlate_flter, true) );
+
+$row_count = 0;
+$is_courses = 1;
+if($output_format=="word") {
+      $stmt = $dbh->prepare("SELECT count(DISTINCT `a_course`.`course_id`) as `count` FROM  `a_order_course` LEFT JOIN  `a_order_users` USING(`item_id`)  LEFT JOIN  `a_course` USING(`course_id`)  LEFT JOIN `a_course_category` USING(`category_id`)     WHERE  `order_id`=? AND `a_course`.`course_id`>0 ".$lock_str . $temlate_flter);
+      $stmt->execute( [$order_id ] );
+      if($row = $stmt->fetch(PDO::FETCH_OBJ)) {
+          $row_count = $row->count;
+      }
+      try  {
+          $phpWord->cloneRow('courses-number', $row_count);
+      }
+      catch(Throwable $s) {
+         $is_courses = 0;
+      }
+}
+
+$a_contract_id = [];
+$performer_id = 0;
+$row_number = 1;
+$stmt = $dbh->prepare("SELECT DISTINCT `a_course`.`course_id`, `a_course`.`name`, `a_course`.`shortname`, `a_course`.`price`, `a_course`.`hours`, `a_order_course`.`form_of_study`, `a_course_category`.`category_id`, `type_of_education`, `subtype_of_education`, `type_of_program`, `qualification`, `certificate1_name`,  `certificate2_name`, `performer_id`, `consulting`, `quantum`, `contract_id`, `contract2_id`  FROM `a_order_course` LEFT JOIN  `a_order_users` USING(`item_id`)  LEFT JOIN  `a_course` USING(`course_id`) LEFT JOIN `a_course_category` USING(`category_id`)    WHERE  `order_id`=? AND `a_course`.`course_id`>0 ". $lock_str . $temlate_flter . " ORDER BY `course_id`");
+$stmt->execute( [$order_id ] );
+//file_put_contents("lst1.txt", print_r($stmt, true) );
+//file_put_contents("lst2.txt", print_r([$lock_str, $temlate_flter], true) );
+while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $addres = '';
+    $performer_id = $row['performer_id'];
+    if($row['performer_id'] >0 ) {
+            $order_service = 'Организация обучения по программе: ';
+            $stmt2 = $dbh->prepare("SELECT `addres1`  FROM `a_counterparty`  WHERE `counterparty_id`=?  ");
+            $stmt2->execute( [ $row['performer_id'] ] );
+            if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+                $addres = $row2['addres1'];
+            }
+    }
+    else {
+            $order_service = 'Обучение по программе: ';
+            $stmt2 = $dbh->prepare("SELECT `addres1`  FROM `a_self` ORDER BY `edition` DESC  LIMIT 1   ");
+            $stmt2->execute( [  ] );
+            if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+                $addres = $row2['addres1'];
+            }
+    }
+    
+    
+    $units = 'чел.';
+    $price = 0;
+    $stmt2 = $dbh->prepare("SELECT  `price` FROM `a_order_price` WHERE `order_id`=?  AND `course_id`=? ");
+    $stmt2->execute([$order_id, $row['course_id']]);
+    if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+          $price =  intval($row2->price);
+    }
+            
+    if($price == 0) {
+        $stmt2 = $dbh->prepare("SELECT  `price` FROM `a_order_discounts` WHERE `order_id`=?   AND `course_id`=? ");
+        $stmt2->execute([$order_id, $row['course_id'] ]);
+        if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {  
+              $price =  intval($row2->price);
+        }
+    }
+            
+    if($price == 0) {
+        $stmt2 = $dbh->prepare("SELECT `price`  FROM `a_order` LEFT JOIN `a_price` USING(`counterparty_id`)  WHERE `a_order`.`order_id`=?  AND `course_id`=?  ");
+        $stmt2->execute( [$order_id , $row['course_id'] ] );
+        if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+            $price = intval($row2['price']);
+        }
+    }
+    if($price == 0)
+          $price =  $row['price'];
+
+    if($secondary_order > 0 &&  intval($_GET['enable_lock']==0))          
+            $price = 0;
+
+
+    $count = 0;
+    $users2 = [];
+    $cohort_id = 0;
+    $courses_students = '';
+    $stmt2 = $dbh->prepare("SELECT  DISTINCT  `lastname`, `firstname`, `middlename`, `date_of_birth`, `snils`, `address`, `level_of_education`, `pasport_series`, `pasport_number`, `pasport_unit`, `pasport_unit_number`, `phone`, `a_job_title`.`name` as `job_of_title`, `a_user_counterparty`.`user_id`, `number_of_people`    FROM `a_order_users`  LEFT JOIN `a_user_counterparty` USING(`user_counterparty_id`)   LEFT JOIN `a_users` ON `a_user_counterparty`.`user_id`=`a_users`.`user_id`    LEFT JOIN `a_job_title` USING(`job_title_id`)  LEFT JOIN `a_order_course` USING(`item_id`)    WHERE `a_user_counterparty`.`user_id`>0  AND `order_id`=? AND `course_id`=? AND `a_users`.status=0 ".$lock_str." ORDER BY `lastname`,`firstname` ");
+    $stmt2->execute( [$order_id , $row['course_id'] ] );
+    while($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+        $users2[] = ['lastname'=>$row2['lastname'], 'firstname'=>$row2['firstname'], 'middlename'=>$row2['middlename'], 'level_of_education'=>$education_levels[$row2['level_of_education']], 'job_title'=>$row2['job_of_title'], 'position_name'=>$row2['job_of_title'], 'date_of_birth'=>$row2['date_of_birth'], 'snils'=>$row2['snils'], 'address'=>$row2['address'], 'pasport_series'=>$row2['pasport_series'], 'pasport_number'=>$row2['pasport_number'], 'pasport_unit'=>$row2['pasport_unit'], 'pasport_unit_number'=>$row2['pasport_unit_number'],  'phone'=>$row2['phone'], 'fullname3'=>formatFio($row2['lastname'].' '.$row2['firstname'].' '.$row2['middlename'])  ];
+        $courses_students = $courses_students . $row2['lastname'] .' '. $row2['firstname'] .' '. $row2['middlename'];
+        if($row2['date_of_birth']!= '' )
+                     $courses_students = $courses_students .' Дата рождения:'. $row2['date_of_birth'];
+        if($row2['snils']!= '' )
+                     $courses_students = $courses_students .' СНИЛС:'. $row2['snils'];
+        if($row2['address']!= '' )
+                     $courses_students = $courses_students .' адрес:'. $row2['address'];
+
+        $courses_students = $courses_students . "\n";
+
+        //$cohort_id = $row2['cohort_id'];
+        if($row2['user_id'] > 1 ) {
+                $count = $count +1;
+         }
+         else {
+                $count = $count + $row2['number_of_people'];
+         }
+    }
+    if( $count == 0)
+           continue;
+    
+    if($row['consulting'] > 0) {
+        $count = $row['quantum'];
+        $order_service = 'Консультационные услуги: ';
+        $units = 'у.е.';
+    }    
+
+
+
+    $date_beginf = '1000-01-01';
+    $date_endf = '1000-01-01';
+    $date_protocolf = '1000-01-01';
+    $date_begin = '';
+    $date_end = '';
+    $date_protocol = '';
+    $date_completed = '1000-01-01';
+    $stmt3 = $dbh->prepare("SELECT  DISTINCT  `date_begin`,`date_end`, `date_protocol` FROM `a_order_users`   LEFT JOIN `a_order_course` USING(`item_id`)   LEFT JOIN `a_cohort` USING(`cohort_id`)   LEFT JOIN `a_lstream` USING(`lstream_id`)    WHERE  `a_order_course`.`cohort_id`>0 AND `order_id`=? AND `a_order_course`.`course_id`=? ".$lock_str );
+    $stmt3->execute( [$order_id , $row['course_id'] ] );
+    //$stmt3 = $dbh->prepare('SELECT  `date_begin`,`date_end`  FROM  `a_cohort`   WHERE `cohort_id`=? ');
+    //$stmt3->execute( [$cohort_id ] );
+    if($row3 = $stmt3->fetch(PDO::FETCH_OBJ)) {  
+            $date_begin = $row3->date_begin;
+            $date_end = $row3->date_end;
+            $date_protocol = $row3->date_protocol;
+    }
+    if( $date_begin == ''  ||  $date_begin == '0001-01-01'  ||  $date_end == '0001-01-01'){
+            $date_begin = $order_date_begin;
+            $date_end = $order_date_end;
+            $date_protocol = $order_date_end;
+    }
+    if( strcmp( $date_protocol, $date_completed ) > 0 )
+              $date_completed = $date_protocol;
+
+    $price_prog_sum = $price*$count; 
+    $price_sum = $price_sum + $price*$count; 
+
+    $price_nds = $price_sum * $is_NDS; //0.2;
+    $price_sum_nds = $price_sum + $price_nds;
+
+    $contract_sum[$row['contract_id']] = $contract_sum[$row['contract_id']] + $price*$count;
+    
+    if( $row['performer_id'] ==0 && $row['contract_id']!='' && $row['contract_id']!= NULL  && array_search(intval($row['contract_id']), $a_contract_id) === false  ) {
+        $a_contract_id[] =  intval($row['contract_id']);
+    }
+    if(  $row['performer_id'] >0 && $row['contract2_id']!='' && $row['contract2_id']!= NULL  && array_search(intval($row['contract2_id']), $a_contract_id) === false   ) {
+        $a_contract_id[] = intval($row['contract2_id']);
+    }
+        
+    $courses[] =  [ 'name'=>$row['name'], 'shortname'=>$row['shortname'],  "price"=>$price, 'count'=>$count,  'hours'=>intval($row['hours']), 'form_of_study'=>$form_of_study[ $row['form_of_study'] ],  'category_id'=>intval($row['category_id']), 'type_of_education'=>$row['type_of_education'], 'subtype_of_education'=>$row['subtype_of_education'], 'type_of_program'=>$row['type_of_program'],  'certificate_name'=>$row['certificate1_name'], 'qualification'=>$row['qualification'], 'certificate2_name'=>$row['certificate2_name'], 'order_service'=>$order_service, 'units'=>$units,  'addres'=>$addres, 'date_begin'=>$date_begin, 'date_end'=>$date_end, 'date_protocol'=>$date_protocol,  'users'=>$users2 ];
+    
+    
+          $date_protocolf = date('d.m.Y',strtotime($date_protocol));
+
+          $date_beginf = date('d.m.Y',strtotime($date_begin));
+
+          $date_endf = date('d.m.Y',strtotime($date_end));
+    
+    
+    if($output_format=="word" && $is_courses) {
+          $phpWord->setValue('courses-number'.'#'.$row_number, $row_number);
+          $phpWord->setValue('courses-name'.'#'.$row_number, $row['name']);
+          $phpWord->setValue('courses-shortname'.'#'.$row_number, $row['shortname']);
+          $phpWord->setValue('courses-price'.'#'.$row_number, $price);
+          $phpWord->setValue('courses-count'.'#'.$row_number, $count);
+          $phpWord->setValue('courses-prog_sum'.'#'.$row_number, $price_prog_sum);
+          $phpWord->setValue('courses-sum'.'#'.$row_number, $price_sum);
+          $phpWord->setValue('courses-hours'.'#'.$row_number, intval($row['hours']));
+          $phpWord->setValue('courses-form_of_study'.'#'.$row_number, $form_of_study[ $row['form_of_study'] ]);
+          $phpWord->setValue('courses-category_id'.'#'.$row_number, intval($row['category_id']));
+          $phpWord->setValue('courses-type_of_education'.'#'.$row_number, $row['type_of_education']);
+          $phpWord->setValue('courses-subtype_of_education'.'#'.$row_number, $row['subtype_of_education']);
+          $phpWord->setValue('courses-type_of_program'.'#'.$row_number, $row['type_of_program']);
+          $phpWord->setValue('courses-certificate_name'.'#'.$row_number, $row['certificate1_name']);
+          $phpWord->setValue('courses-qualification'.'#'.$row_number, $row['qualification']);
+          $phpWord->setValue('courses-certificate2_name'.'#'.$row_number, $row['certificate2_name']);
+          $phpWord->setValue('courses-order_service'.'#'.$row_number, $order_service);
+          $phpWord->setValue('courses-units'.'#'.$row_number, $units);
+          $phpWord->setValue('courses-addres'.'#'.$row_number, $addres);
+          $phpWord->setValue('courses-date_begin'.'#'.$row_number, $date_beginf);
+          $phpWord->setValue('courses-date_end'.'#'.$row_number, $date_endf);
+          $phpWord->setValue('courses-date_protocol'.'#'.$row_number, $date_protocolf);
+          $phpWord->setValue('courses-date_protocol_rus', formatRussianDate($row['date_protocol']));
+          $phpWord->setValue('courses-competence', $row['competence']);
+          $phpWord->setValue('courses-area', $row['area']);
+          $phpWord->setValue('courses-students', $courses_students);
+
+//      $phpWord->setValue('  'users'=>$users2 ];
+
+    }
+    $row_number = $row_number +1;
+}
+if($output_format=="") {
+    $smarty->assign('courses', $courses);
+    $smarty->assign('contract_sum', $contract_sum);
+}
+//file_put_contents("lst.txt", print_r($courses, true) );
+//print_r($courses);
+//print_r($a_contract_id);
+
+
+
+
+
+
+
+if( intval(count($courses)) >0 ){    
+   //$customer = $courses[0]['users'][0];
+   $customer = $users[0];
+}
+else {
+   $customer =  [ "lastname" => "",  "firstname" => "",  "middlename" => "" ,  "position_name" => "",  "date_of_birth" => "",  "snils" => "", "address" => "",  "phone" =>"" ];
+}
+$smarty->assign('customer', $customer);
+//print_r($customer);
+
+/*
+$date_protocol = '';
+$stmt = $dbh->prepare('SELECT DISTINCT `a_lstream`.`date_protocol`  FROM `a_order_course` LEFT JOIN  `a_order_users` USING(`item_id`)  LEFT JOIN `a_cohort` USING(`cohort_id`) LEFT JOIN `a_lstream`  USING(`lstream_id`)  WHERE `order_id`=? AND `a_order_course`.`cohort_id`>0 ORDER BY `a_lstream`.`date_protocol` DESC');
+$stmt->execute( [$order_id ] );
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+      if( strcmp($row->date_protocol, $date_protocol) > 0 )
+              $date_protocol =  $row->date_protocol;
+}
+*/
+
+
+$price_sum_str = num2str($price_sum);
+//$price_sum_str = mb_ucfirst($price_sum_str);
+$price_nds_str = num2str($price_nds);
+//$price_nds_str = mb_ucfirst($price_nds_str);
+$price_sum_nds_str = num2str($price_sum_nds);
+//$price_sum_nds_str = mb_ucfirst($price_sum_nds_str);
+$payer_id = 0;
+$counterparty_id = 0;
+
+$contract_sum_str = [];
+foreach($contract_sum as $contract => $sum) {
+   $contract_sum_str[$contract] = num2str($sum);
+   $contract_sum_str[$contract] = mb_ucfirst($contract_sum_str[$contract]);
+}
+$smarty->assign('contract_sum_str', $contract_sum_str);
+
+
+if( $order_id >0 ) {
+    $stmt = $dbh->prepare("SELECT *, DATE_FORMAT(`date_order`, '%d.%m.%Y') as `date_order_ru`, `invoice`, `longtime_contract`  FROM `a_order`    LEFT JOIN `a_counterparty` USING(`counterparty_id`) WHERE `order_id`=?");
+    $stmt->execute( [$order_id ] );
+}
+else {
+    $stmt = $dbh->prepare("SELECT *, DATE_FORMAT(`date_order`, '%d.%m.%Y') as `date_order_ru`, `invoice`, `longtime_contract`  FROM `a_order` LEFT JOIN `a_counterparty` USING(`counterparty_id`) WHERE `a_order`.`counterparty_id`=?  ORDER BY `order_id` LIMIT 1");
+    $stmt->execute( [ $counterparty_id ] );
+}
+if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $counterparty_id = $row['counterparty_id'];
+    
+    if( $order_id == 0 )
+            $order_id = $row['order_id'];
+            
+    $payer_id = $row['payer_id'];
+    
+    $enterprise_manager_a = explode(" ", $row['enterprise_manager']);
+    //$longtime_contract_c =  $row['longtime_contract'];
+    /*if($row['longtime_contract_c'] == 'true') {
+            $contract_number = $row['counterparty_id'];
+    }
+    else {
+            //$contract_number = $row['counterparty_id'] . '/' . $row['order_id'];
+            $contract_number = $row['counterparty_id'];
+    }*/
+    $contract_number_nodate = '';
+    $contract_number = '';
+    $legacy_count  = 0;
+    foreach($a_contract_id as $v_contract) {
+        $stmt2 = $dbh->prepare("SELECT `prefix`, `name`, `longtime_contract` FROM `a_contract` WHERE `contract_id`=? AND  `type`=0 ");
+        $stmt2->execute( [ intval($v_contract) ] );
+        if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+            if( intval($row2['longtime_contract']) >0 && $row['longtime_contract'] == 'true') {
+                $stmt3 = $dbh->prepare("SELECT `legacy`, DATE_FORMAT(`date_contract`, '%d.%m.%Y') as `date_contract`  FROM `a_counterparty_contract`  WHERE `contract_id`=? AND  `counterparty_id`=? ");
+                $stmt3->execute( [ intval($v_contract), $counterparty_id ] );
+                if($row3 = $stmt3->fetch(PDO::FETCH_ASSOC)) { 
+                    if($row3['legacy'] != '') {
+                        if($legacy_count == 0)
+                                $contract_number = $contract_number  . $row3['legacy'] . ' от ' . $row3['date_contract'] . ', ';
+                                $contract_number_nodate = $contract_number_nodate  . $row3['legacy'] . ', ';  
+                        $legacy_count  = 1;
+                    }
+                    else {
+                        $contract_number = $contract_number  . $row2['prefix'] . $row['counterparty_id'] . ' от ' . $row3['date_contract'] . ', ';
+                        $contract_number_nodate = $row2['prefix'] . $row['counterparty_id'] . ', ';
+                    }    
+                } 
+                else
+                    $contract_number = $contract_number  .  $row2['prefix'] . $row['counterparty_id'] . ', ';
+                    $contract_number_nodate = $row2['prefix'] . $row['counterparty_id'] . ', ';
+            }
+            else
+                $contract_number = $contract_number  .  $row2['prefix'] . $row['counterparty_id']. '-' . $row['order_id'] . ' от ' . $row['date_order_ru'] . ', ';
+                $contract_number_nodate = $row2['prefix'] . $row['counterparty_id'];
+        }    
+    }
+    
+    
+
+    if( strcmp( $row['date_completed'], $date_completed ) > 0 )
+              $date_completed = $row['date_completed'];
+
+    $contract_number = mb_substr($contract_number, 0, -2);
+    //$contract_number_nodate = mb_substr($contract_number_nodate, 0, -2);
+    //$contract_number_nodate = mb_substr($contract_number, 0, -13);
+
+    $longtime_contract_c = $row['longtime_contract'];
+    $date_order_finish = explode('-', $row['date_order'])[0] . '-12-31';
+    if($row['invoice']=='')
+         $invoice = 'CED-' . $row['order_id'];
+    else
+         $invoice = $row['invoice'];
+
+    if($counterparty_id>1){
+        //$enterprise_manager_a = explode(" ", $row['enterprise_manager']);
+        $enterprise_manager1 = $row['enterprise_manager'];
+        $enterprise_manager3 = $enterprise_manager_a[0]. ' ' .mb_substr($enterprise_manager_a[1], 0, 1). '.' .mb_substr($enterprise_manager_a[2], 0, 1). '.';
+        $enterprise_manager2 = $row['enterprise_manager2'];
+    }
+    else {
+        $enterprise_manager1 = $customer["lastname"]. ' ' . $customer["firstname"]. ' ' . $customer["middlename"];
+        $enterprise_manager2 = $enterprise_manager1;
+        $enterprise_manager3 = $customer["lastname"]. ' ' . mb_substr($customer["firstname"], 0, 1). '.' . mb_substr($customer["middlename"], 0, 1). '.';
+    }
+    $data =  [ 'order_num'=>$row['order_id'], 'name'=>$row['name'], 'shortname'=>$row['shortname'], 'counterparty_id'=>$row['counterparty_id'],   'inn'=>$row['inn'], 'kpp'=>$row['kpp'], 'ogrn'=>$row['ogrn'],  'addres1'=>$row['addres1'],  'addres2'=>$row['addres2'], 'phone'=>$row['phone'],
+      'position_head'=>$row['position_head'], 'position_head2'=>$row['position_head2'],
+      'enterprise_manager'=>$enterprise_manager1, 'enterprise_manager2'=>$enterprise_manager2, 'enterprise_manager3'=>$enterprise_manager3, 
+      'bank'=>$row['bank'], 'checking_account'=>$row['checking_account'], 'correspondent_account'=>$row['correspondent_account'], 'bik'=>$row['bik'], 
+      'date_order'=>$order_date_order, 'number'=>$row['number'], 'date_begin'=>$order_date_begin, 'date_end'=>$order_date_end,  'date_completed'=>$date_completed,  
+      'price_sum'=>$price_sum,  'price_sum_str'=>$price_sum_str, 'price_nds'=>$price_nds, 'price_nds_str'=>$price_nds_str, 'price_sum_nds'=> $price_sum_nds, 'price_sum_nds_str'=> $price_sum_nds_str, 'contract_number'=>$contract_number, 'date_order_finish'=>$date_order_finish, 'longtime_contract'=>$row['longtime_contract'], 'payer_id'=>$row['payer_id'], 'invoice'=>$invoice ];
+
+//echo $contract_number;
+}
+else {
+    $invoice = 'CED-' . $order_id;
+    $stmt2 = $dbh->prepare("SELECT * FROM  `a_counterparty`  WHERE `counterparty_id`=?  ");
+    $stmt2->execute( [ $counterparty_id ] );
+    if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+        $longtime_contract_c = $row2['longtime_contract'];
+        $contract_number = '';
+        $contract_number_nodate = '';
+        if($counterparty_id>1){
+            $enterprise_manager1 = $row2['enterprise_manager'];
+            $enterprise_manager2 = $row2['enterprise_manager2'];
+            $enterprise_manager_a = explode(" ", $row2['enterprise_manager']);
+            $enterprise_manager3 = $enterprise_manager_a[0]. ' ' .mb_substr($enterprise_manager_a[1], 0, 1). '.' .mb_substr($enterprise_manager_a[2], 0, 1). '.';
+        }
+        else{
+            $enterprise_manager1 = $customer["lastname"]. ' ' . $customer["firstname"]. ' ' . $customer["middlename"];
+            $enterprise_manager2 = $enterprise_manager1;
+            $enterprise_manager3 = $customer["lastname"]. ' ' . mb_substr($customer["firstname"], 0, 1). '.' . mb_substr($customer["middlename"], 0, 1). '.';
+        }
+        $date_order = date("Y-m-d"); 
+        $date_order_finish = explode('-', $date_order)[0] . '-12-31';
+        $data =  [ 'order_num'=>0, 'name'=>$row2['name'], 'shortname'=>$row2['shortname'], 'counterparty_id'=>$row2['counterparty_id'],   'inn'=>$row2['inn'], 'kpp'=>$row2['kpp'], 'ogrn'=>$row2['ogrn'],  'addres1'=>$row2['addres1'],  'addres2'=>$row2['addres2'], 'phone'=>$row2['phone'],
+      'position_head'=>$row2['position_head'], 'enterprise_manager'=>$enterprise_manager1, 'position_head2'=>$row2['position_head2'], 'enterprise_manager2'=>$enterprise_manager2, 'enterprise_manager3'=>$enterprise_manager3, 
+      'bank'=>$row2['bank'], 'checking_account'=>$row2['checking_account'], 'correspondent_account'=>$row2['correspondent_account'], 'bik'=>$row2['bik'],
+      'date_order'=>$date_order, 'number'=>'', 'date_begin'=>'', 'date_end'=>'', 'date_protocol'=>'', 'date_completed'=>'',
+      'price_sum'=>$price_sum,  'price_sum_str'=>$price_sum_str, 'contract_number'=>$contract_number, 'date_order_finish'=>$date_order_finish, 'longtime_contract'=>$row2['longtime_contract'], 'payer_id'=>$row2['payer_id'], 'invoice'=>$invoice  ];
+    }
+}
+
+$date_contractf = '1000-01-01';
+$date_contract_finishf = '1000-01-01';
+$order_date_orderf = '1000-01-01';
+$order_date_beginf = '1000-01-01';
+$order_date_endf = '1000-01-01';
+$date_completedf = '1000-01-01';
+$date_order_finishf = '1000-01-01';
+$contract_number_s ='';
+$date_contract = '';
+$contract_order_id = 0;
+$prefix = 'CED-';
+$data3 = [];
+if( intval($_GET['contract_id']) >0 ) {
+    $stmt0 = $dbh->prepare("SELECT `prefix`, `name`, `longtime_contract` FROM `a_contract` WHERE `contract_id`=? AND  `type`=0 ");
+    $stmt0->execute( [ intval($_GET['contract_id']) ] );
+    if($row0 = $stmt0->fetch(PDO::FETCH_ASSOC)) {
+        if( intval($row0['longtime_contract']) >0 && $longtime_contract_c == true  && intval($_GET['counterparty_id'])>1) {
+            $stmt3 = $dbh->prepare("SELECT `legacy`, `date_contract`, `order_id`  FROM `a_counterparty_contract`  WHERE `contract_id`=? AND  `counterparty_id`=? AND `addition`= -1 AND `order_id`=0 ");
+            $stmt3->execute( [ intval($_GET['contract_id']), intval($_GET['counterparty_id']) ] );
+            if($row3 = $stmt3->fetch(PDO::FETCH_ASSOC)) {
+                 if($row3['legacy'] != ''){
+//file_put_contents("lst.txt", print_r($row3, true) );
+                      $contract_number_s =  $row3['legacy'];  
+                 }
+                 $date_contract =  $row3['date_contract'];  
+                 $contract_order_id =  $row3['order_id'];  
+            }
+            if( $contract_number_s == '')
+                    $contract_number_s =   $row0['prefix'] . $counterparty_id;
+         }
+        else
+            $contract_number_s =   $row0['prefix'] . intval($_GET['counterparty_id']). '-' . intval($_GET['id']);
+        
+    }
+}
+if( ($date_contract == '' || $date_contract == '0000-00-00' || $date_contract == '1000-01-01') && $order_id>0 ) {
+    $stmt4 = $dbh->prepare("SELECT  `date_order`    FROM `a_order`  WHERE `order_id`=? ");
+    $stmt4->execute( [ intval($order_id) ] );
+    if($row4 = $stmt4->fetch(PDO::FETCH_ASSOC)) {
+        $date_contract = $row4['date_order'];
+    }
+}
+if ($contract_number_s == ''){
+  $contract_number_s =  $prefix  . intval($_GET['id']);
+}
+$date_contract_finish = explode('-', $date_contract)[0] . '-12-31';
+$data3 =  ['contract_number'=>$contract_number_s, 'date_contract'=>$date_contract,  'date_contract_finish'=>$date_contract_finish  ];
+
+
+
+//print_r($data3);
+
+
+          $order_date_orderf = date('d.m.Y',strtotime($order_date_order));
+
+          $order_date_beginf = date('d.m.Y',strtotime($order_date_begin));
+
+          $order_date_endf = date('d.m.Y',strtotime($order_date_end));
+        
+          $date_completedf = date('d.m.Y',strtotime($date_completed));
+          
+          $date_order_finishf = date('d.m.Y',strtotime($date_order_finish));
+
+          $date_contractf = date('d.m.Y',strtotime($date_contract));
+
+          $date_contract_finishf = date('d.m.Y',strtotime($date_contract_finish));
+
+if($output_format=="word") {
+      $phpWord->setValue('order_num', $row['order_id']);
+      $phpWord->setValue('name', $row['name']);
+      $phpWord->setValue('shortname', $row['shortname']);
+      $phpWord->setValue('counterparty_id', $row['counterparty_id']);
+      $phpWord->setValue('inn', $row['inn']);
+      $phpWord->setValue('kpp', $row['kpp']);
+      $phpWord->setValue('ogrn', $row['ogrn']);
+      $phpWord->setValue('addres1', $row['addres1']);
+      $phpWord->setValue('addres2', $row['addres2']);
+      $phpWord->setValue('phone', $row['phone']);
+      $phpWord->setValue('position_head', $row['position_head']);
+      $phpWord->setValue('position_head2', $row['position_head2']);
+      $phpWord->setValue('enterprise_manager', $enterprise_manager1);
+      $phpWord->setValue('enterprise_manager2', $enterprise_manager2);
+      $phpWord->setValue('enterprise_manager3', $enterprise_manager3); 
+      $phpWord->setValue('bank', $row['bank']);
+      $phpWord->setValue('checking_account', $row['checking_account']);
+      $phpWord->setValue('correspondent_account', $row['correspondent_account']);
+      $phpWord->setValue('bik', $row['bik']);
+      $phpWord->setValue('date_order', $order_date_orderf);
+      $phpWord->setValue('number', $row['number']);
+      $phpWord->setValue('order_date_begin', $order_date_beginf);
+      $phpWord->setValue('order_date_end', $order_date_endf);
+      $phpWord->setValue('order_date_completed',  $date_completedf);
+      $phpWord->setValue('price_sum',  $price_sum);
+      $phpWord->setValue('price_sum_str', $price_sum_str);
+      $phpWord->setValue('price_nds', $price_nds);
+      $phpWord->setValue('price_nds_str', $price_nds_str);
+      $phpWord->setValue('price_sum_nds',  $price_sum_nds);
+      $phpWord->setValue('price_sum_nds_str',  $price_sum_nds_str);
+      $phpWord->setValue('contract_number_date', $contract_number);
+      $phpWord->setValue('date_order_finish', $date_order_finishf);
+      $phpWord->setValue('longtime_contract', $row['longtime_contract']);
+      $phpWord->setValue('payer_id', $row['payer_id']);
+      $phpWord->setValue('invoice', $invoice );
+
+
+      $phpWord->setValue('contract_number', $contract_number_nodate);
+      $phpWord->setValue('date_contract', $date_contractf);
+      $phpWord->setValue('date_contract_finish', $date_contract_finishf);
+}
+else {
+   $smarty->assign('order_data', $data);
+   $smarty->assign('contract_data', $data3);
+}
+//print_r($data);
+
+$data_payer =  [];
+if( $payer_id>1 ) {
+    $stmt = $dbh->prepare("SELECT * FROM `a_counterparty`  WHERE `counterparty_id`=?");
+    $stmt->execute( [ $payer_id ] );
+    if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $data_payer =  [  'name'=>$row['name'], 'shortname'=>$row['shortname'], 'counterparty_id'=>$row['counterparty_id'],  'inn'=>$row['inn'], 'kpp'=>$row['kpp'], 'ogrn'=>$row['ogrn'], 'addres1'=>$row['addres1'],  'addres2'=>$row['addres2'], 'phone'=>$row['phone'],
+      'position_head'=>$row['position_head'], 'enterprise_manager'=>$row['enterprise_manager'], 'position_head2'=>$row['position_head2'], 'enterprise_manager2'=>$row['enterprise_manager2'], 'enterprise_manager3'=>$enterprise_manager3, 
+      'bank'=>$row['bank'], 'checking_account'=>$row['checking_account'], 'correspondent_account'=>$row['correspondent_account'], 'bik'=>$row['bik'], 'longtime_contract'=>$row['longtime_contract'] ];    
+    }
+    if($output_format=="word") {
+         $phpWord->setValue('payer-name', $row['name']);
+         $phpWord->setValue('payer-shortname', $row['shortname']);
+         $phpWord->setValue('payer-inn', $row['inn']);
+         $phpWord->setValue('payer-kpp', $row['kpp']);
+         $phpWord->setValue('payer-ogrn', $row['ogrn']);
+         $phpWord->setValue('payer-addres1', $row['addres1']);
+         $phpWord->setValue('payer-addres2', $row['addres2']);
+         $phpWord->setValue('payer-city', $row['city']);
+         $phpWord->setValue('payer-email', $row['email']);
+         $phpWord->setValue('payer-phone', $row['phone']);
+         $phpWord->setValue('payer-position_head', $row['position_head']);
+         $phpWord->setValue('payer-enterprise_manager', $row['enterprise_manager']);
+         $phpWord->setValue('payer-position_head2', $row['position_head2']);
+         $phpWord->setValue('payer-enterprise_manager2', $row2['enterprise_manager2']);
+         $phpWord->setValue('payer-enterprise_manager3', $enterprise_manager3);
+         $phpWord->setValue('payer-enterprise_manager_signs', $row['enterprise_manager_signs']);
+         $phpWord->setValue('payer-bank', $row['bank']);
+         $phpWord->setValue('payer-checking_account', $row['checking_account']);
+         $phpWord->setValue('payer-correspondent_account', $row['correspondent_account']);
+         $phpWord->setValue('payer-bik', $row['bik']);
+         $phpWord->setValue('payer-license', $row['license']);
+         $phpWord->setValue('payer-accreditation', $row['accreditation']);
+    }
+    else {
+       $smarty->assign('payer', $data_payer);
+    }
+}
+if( $payer_id==1 ) {
+    $stmt = $dbh->prepare("SELECT * FROM `a_order_payer`  WHERE `order_id`=?");
+    $stmt->execute( [ $order_id ] );
+    if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $data_payer = ['lastname'=>$row['lastname'], 'firstname'=>$row['firstname'], 'middlename'=>$row['middlename'],  'snils'=>$row['snils']];
+    }
+    if($output_format=="word") {
+         $phpWord->setValue('payer-lastname', $row['lastname']);
+         $phpWord->setValue('payer-firstname', $row['firstname']);
+         $phpWord->setValue('payer-middlename', $row['middlename']);
+         $phpWord->setValue('payer-snils', $row['snils']);
+    }
+    else {
+       $smarty->assign('payer', $data_payer);
+    }
+}
+
+
+//if( $date_contract == '' || $date_contract == '0000-00-00' || $date_contract == '1000-01-01' )
+//            $date_contract = $current_date;
+
+//echo $contract_number_s;
+/*$data3 =  ['contract_number'=>$contract_number_s, 'date_contract'=>$date_contract,  'date_contract_finish'=>$date_contract_finish ];
+$date_contract_finish = explode('-', $row['date_order'])[0] . '-12-31';
+$smarty->assign('contract_data', $data3);*/
+//print_r( $data3);
+
+$stmt2 = $dbh->prepare("SELECT  *  FROM `a_self` WHERE `edition`<=?  ORDER BY `edition` DESC  LIMIT 1   ");
+$stmt2->execute( [ $order_date_order ] );
+if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+    $enterprise_manager_a = explode(" ", $row2['enterprise_manager']);
+    $enterprise_manager3 = $enterprise_manager_a[0]. ' ' .mb_substr($enterprise_manager_a[1], 0, 1). '.' .mb_substr($enterprise_manager_a[2], 0, 1). '.';
+
+    $self_data =  [  'name'=>$row2['name'], 'shortname'=>$row2['shortname'],    'inn'=>$row2['inn'], 'kpp'=>$row2['kpp'], 'ogrn'=>$row2['ogrn'], 'addres1'=>$row2['addres1'],  'addres2'=>$row2['addres2'], 'city'=>$row2['city'], 'email'=>$row2['email'], 'phone'=>$row2['phone'],
+      'position_head'=>$row2['position_head'], 'enterprise_manager'=>$row2['enterprise_manager'], 'position_head2'=>$row2['position_head2'], 'enterprise_manager2'=>$row2['enterprise_manager2'], 'enterprise_manager3'=>$enterprise_manager3,  'enterprise_manager_signs'=>$row2['enterprise_manager_signs'], 
+      'bank'=>$row2['bank'], 'checking_account'=>$row2['checking_account'], 'correspondent_account'=>$row2['correspondent_account'], 'bik'=>$row2['bik'], 'license'=>$row2['license'], 'accreditation'=>$row2['accreditation'] ];
+
+    //$data2 =  ['enterprise_manager'=>$row['enterprise_manager'],  'enterprise_manager2'=>$row['enterprise_manager2'], 'enterprise_manager3'=>$enterprise_manager3, 'enterprise_manager_signs'=>$row['enterprise_manager_signs']  ];
+}
+if($output_format=="word") {
+      $phpWord->setValue('self-name', $row2['name']);
+      $phpWord->setValue('self-shortname', $row2['shortname']);
+      $phpWord->setValue('self-inn', $row2['inn']);
+      $phpWord->setValue('self-kpp', $row2['kpp']);
+      $phpWord->setValue('self-ogrn', $row2['ogrn']);
+      $phpWord->setValue('self-addres1', $row2['addres1']);
+      $phpWord->setValue('self-addres2', $row2['addres2']);
+      $phpWord->setValue('self-city', $row2['city']);
+      $phpWord->setValue('self-email', $row2['email']);
+      $phpWord->setValue('self-phone', $row2['phone']);
+      $phpWord->setValue('self-position_head', $row2['position_head']);
+      $phpWord->setValue('self-enterprise_manager', $row2['enterprise_manager']);
+      $phpWord->setValue('self-position_head2', $row2['position_head2']);
+      $phpWord->setValue('self-enterprise_manager2', $row2['enterprise_manager2']);
+      $phpWord->setValue('self-enterprise_manager3', $enterprise_manager3);
+      $phpWord->setValue('self-enterprise_manager_signs', $row2['enterprise_manager_signs']);
+      $phpWord->setValue('self-bank', $row2['bank']);
+      $phpWord->setValue('self-checking_account', $row2['checking_account']);
+      $phpWord->setValue('self-correspondent_account', $row2['correspondent_account']);
+      $phpWord->setValue('self-bik', $row2['bik']);
+      $phpWord->setValue('self-license', $row2['license']);
+      $phpWord->setValue('self-accreditation', $row2['accreditation']);
+}
+else {
+   $smarty->assign('self_data', $self_data);
+}
+//print_r($self_data);
+
+if($performer_id == 0){
+    if($output_format=="word") {
+        $phpWord->setValue('performer-name', $row2['name']);
+        $phpWord->setValue('performer-shortname', $row2['shortname']);
+        $phpWord->setValue('performer-inn', $row2['inn']);
+        $phpWord->setValue('performer-kpp', $row2['kpp']);
+        $phpWord->setValue('performer-ogrn', $row2['ogrn']);
+        $phpWord->setValue('performer-addres1', $row2['addres1']);
+        $phpWord->setValue('performer-addres2', $row2['addres2']);
+        $phpWord->setValue('performer-city', $row2['city']);
+        $phpWord->setValue('performer-email', $row2['email']);
+        $phpWord->setValue('performer-phone', $row2['phone']);
+        $phpWord->setValue('performer-position_head', $row2['position_head']);
+        $phpWord->setValue('performer-enterprise_manager', $row2['enterprise_manager']);
+        $phpWord->setValue('performer-position_head2', $row2['position_head2']);
+        $phpWord->setValue('performer-enterprise_manager2', $row2['enterprise_manager2']);
+        $phpWord->setValue('performer-enterprise_manager3', $enterprise_manager3);
+        $phpWord->setValue('performer-enterprise_manager_signs', $row2['enterprise_manager_signs']);
+        $phpWord->setValue('performer-bank', $row2['bank']);
+        $phpWord->setValue('performer-checking_account', $row2['checking_account']);
+        $phpWord->setValue('performer-correspondent_account', $row2['correspondent_account']);
+        $phpWord->setValue('performer-bik', $row2['bik']);
+        $phpWord->setValue('performer-license', $row2['license']);
+        $phpWord->setValue('performer-accreditation', $row2['accreditation']);
+    }
+    else {
+        $smarty->assign('center_data', $self_data);
+    }
+} 
+else {
+    $stmt2 = $dbh->prepare("SELECT * FROM  `a_counterparty`  WHERE `counterparty_id`=?  ");
+    $stmt2->execute( [ $performer_id ] );
+    if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+        $enterprise_manager_a = explode(" ", $row2['enterprise_manager']);
+        $enterprise_manager3 = $enterprise_manager_a[0]. ' ' .mb_substr($enterprise_manager_a[1], 0, 1). '.' .mb_substr($enterprise_manager_a[2], 0, 1). '.';
+        $center_data =  [ 'name'=>$row2['name'], 'shortname'=>$row2['shortname'],   'inn'=>$row2['inn'], 'kpp'=>$row2['kpp'], 'ogrn'=>$row2['ogrn'],  'addres1'=>$row2['addres1'],  'addres2'=>$row2['addres2'], 'phone'=>$row2['phone'],
+      'position_head'=>$row2['position_head'], 'enterprise_manager'=>$row2['enterprise_manager'], 'position_head2'=>$row2['position_head2'], 'enterprise_manager2'=>$row2['enterprise_manager2'], 'enterprise_manager3'=>$enterprise_manager3, 
+      'bank'=>$row2['bank'], 'checking_account'=>$row2['checking_account'], 'correspondent_account'=>$row2['correspondent_account'], 'bik'=>$row2['bik']  ];
+    }
+    if($output_format=="word") {
+        $phpWord->setValue('performer-name', $row2['name']);
+        $phpWord->setValue('performer-shortname', $row2['shortname']);
+        $phpWord->setValue('performer-inn', $row2['inn']);
+        $phpWord->setValue('performer-kpp', $row2['kpp']);
+        $phpWord->setValue('performer-ogrn', $row2['ogrn']);
+        $phpWord->setValue('performer-addres1', $row2['addres1']);
+        $phpWord->setValue('performer-addres2', $row2['addres2']);
+        $phpWord->setValue('performer-city', $row2['city']);
+        $phpWord->setValue('performer-email', $row2['email']);
+        $phpWord->setValue('performer-phone', $row2['phone']);
+        $phpWord->setValue('performer-position_head', $row2['position_head']);
+        $phpWord->setValue('performer-enterprise_manager', $row2['enterprise_manager']);
+        $phpWord->setValue('performer-position_head2', $row2['position_head2']);
+        $phpWord->setValue('performer-enterprise_manager2', $row2['enterprise_manager2']);
+        $phpWord->setValue('performer-enterprise_manager3', $enterprise_manager3);
+        $phpWord->setValue('performer-enterprise_manager_signs', $row2['enterprise_manager_signs']);
+        $phpWord->setValue('performer-bank', $row2['bank']);
+        $phpWord->setValue('performer-checking_account', $row2['checking_account']);
+        $phpWord->setValue('performer-correspondent_account', $row2['correspondent_account']);
+        $phpWord->setValue('performer-bik', $row2['bik']);
+        $phpWord->setValue('performer-license', $row2['license']);
+        $phpWord->setValue('performer-accreditation', $row2['accreditation']);
+    }
+    else {
+       $smarty->assign('center_data', $center_data);
+    }
+}
+
+/*if ($contract_number_s == ''){
+$date_contract = '';
+$contract_order_id = 0;
+$longtime_contract0 = 0; 
+$stmt = $dbh->prepare("SELECT CURDATE() as `current_date`, `prefix`, `name`, `longtime_contract` FROM `a_contract` WHERE `contract_id`=?  ");
+$stmt->execute( [ intval($_GET['contract_id']) ] );
+if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $current_date = $row['current_date'];
+    if( intval($row['longtime_contract']) >0 && $longtime_contract_c == 'true' && intval($_GET['counterparty_id'])>1) {
+            $stmt3 = $dbh->prepare("SELECT `legacy`, `date_contract`, `order_id`   FROM `a_counterparty_contract`  WHERE `contract_id`=? AND  `counterparty_id`=? ");
+            $stmt3->execute( [ intval($_GET['contract_id']), intval($_GET['counterparty_id']) ] );
+            if($row3 = $stmt3->fetch(PDO::FETCH_ASSOC)) {
+                if($row3['legacy'] != ''){
+                    $contract_number_s =  $row3['legacy'];
+                }
+                $date_contract =  $row3['date_contract'];  
+                $contract_order_id =  $row3['order_id'];  
+            }
+            if( $contract_number_s == '') {
+                    $contract_number_s =   $row['prefix'] . intval($_GET['counterparty_id']);
+            }
+            $longtime_contract0 = intval($row['longtime_contract']);
+    }
+    else {
+        $contract_number_s =   $row['prefix']  . intval($_GET['id']);
+        $date_contract =  date("Y-m-d", time() );
+    }
+}
+else {
+    $contract_number_s =  'СЭД-' . intval($_GET['id']);
+    $date_contract =  date("Y-m-d", time() );
+}
+
+if( ($date_contract == '' || $date_contract == '0000-00-00' || $date_contract == '1000-01-01') && $order_id>0 ) {
+    $stmt4 = $dbh->prepare("SELECT  `date_order`    FROM `a_order`  WHERE `order_id`? ");
+    $stmt4->execute( [ intval($order_id) ] );
+    if($row4 = $stmt4->fetch(PDO::FETCH_ASSOC)) {
+        $date_contract = $row4->date_order;
+    }
+}*/            
+
+
+
+
+
+  //$date_contract = '';
+/*  $prefix = 'СЭД-';
+  $contract_order_id = 0;
+  $stmt = $dbh->prepare("SELECT  `prefix`, `name`, `longtime_contract` FROM `a_contract` WHERE `contract_id`=?  ");
+  $stmt->execute( [ intval($_GET['contract_id']) ] );
+  if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $prefix = $row['prefix'];
+    if( intval($row['longtime_contract']) >0 && $longtime_contract_c == 'true' && intval($_GET['counterparty_id'])>1) {
+            $stmt3 = $dbh->prepare("SELECT `legacy`, `date_contract`, `order_id`   FROM `a_counterparty_contract`  WHERE `contract_id`=? AND  `counterparty_id`=? ");
+            $stmt3->execute( [ intval($_GET['contract_id']), intval($_GET['counterparty_id']) ] );
+            if($row3 = $stmt3->fetch(PDO::FETCH_ASSOC)) {
+                if($row3['legacy'] != ''){
+                    $contract_number_s =  $row3['legacy'];
+                }
+                $date_contract =  $row3['date_contract'];  
+                $contract_order_id =  $row3['order_id'];  
+            }
+            if( $contract_number_s == '') {
+                    $contract_number_s =   $row['prefix'] . intval($_GET['counterparty_id']);
+            }
+    }
+    else {
+         $stmt4 = $dbh->prepare("SELECT  `date_order`    FROM `a_order`  WHERE `order_id`=? ");
+         $stmt4->execute( [ intval($order_id) ] );
+         if($row4 = $stmt4->fetch(PDO::FETCH_ASSOC)) {
+             $date_contract = $row4["date_order"];
+         }
+    }
+  }
+
+if ($contract_number_s == ''){
+  $contract_number_s =  $prefix  . intval($_GET['id']);
+}
+
+
+$date_contract_finish = explode('-', $date_contract)[0] . '-12-31';
+$data3 =  ['contract_number'=>$contract_number_s, 'date_contract'=>$date_contract,  'date_contract_finish'=>$date_contract_finish, 'contr_id'=>$contr_id ];
+$smarty->assign('contract_data', $data3);
+*/
+//print_r($data3);
+
+
+
+/*
+$stmt2 = $dbh->prepare("SELECT * FROM `a_order_users` LEFT JOIN `a_users` USING(`user_id`)  WHERE `order_id`=?");
+$stmt2->execute( [$order_id ] );
+while($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+    $users[] = ['lastname'=>$row2['lastname'], 'firstname'=>$row2['firstname'], 'middlename'=>$row2['middlename'] ];
+}
+$smarty->assign('users', $users );
+*/
+
+
+
+if(isset($_GET['print_v']))
+    $smarty->assign('print_v', $_GET['print_v']);
+else
+    $smarty->assign('print_v', 'false');
+
+if($output_format=="") {
+  $html_str = $smarty->fetch('../documents/'.$template);
+  //echo $html_str;
+}
+//$paper = 'portrait';
+//if($_GET['paper'] == 'l')
+//       $paper = 'landscape';
+
+
+/*if($_GET['print_v'] && $_GET['print_v']=='office')
+{
+header('Content-Type: application/vnd.oasis.opendocument.text');
+header('Content-Disposition: attachment; filename="'.rus2translit($report_file).'.odt"');
+header('Cache-Control: max-age=0');
+
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+header('Pragma: public'); // HTTP/1.0
+
+$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+$objWriter->save('php://output');
+echo $html_str;
+}*/
+
+if($_GET['print_v'] && $_GET['print_v']=='edit' && $output_format=="")
+{
+header('Cache-Control: max-age=0');
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+header('Pragma: public'); // HTTP/1.0
+
+$header = file_get_contents('documents-editor_protocol.header.html');
+
+$bottom = file_get_contents('documents-editor.bottom.html');
+echo $header;
+echo $html_str;
+echo $bottom;
+}
+else if($_GET['print_v'] && $_GET['print_v']!='edit' && $output_format=="word" && $_GET['print_switch']!='false' && 0 )
+{
+header('Cache-Control: max-age=0');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+header('Pragma: public'); // HTTP/1.0
+header('Content-Disposition: attachment; filename="'.rus2translit($report_filename).'.pdf"');
+
+PhpOffice\PhpWord\Settings::setPdfRendererPath('vendor/Dompdf/Dompdf');
+PhpOffice\PhpWord\Settings::setPdfRendererName('DomPDF');
+
+$location = '../tmp/' . $sessionid .'-cert.docx';
+$phpWord->saveAs($location);
+$phpWord_raw = IOFactory::load($location);
+$xmlWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord_raw , 'PDF');
+$xmlWriter->save('php://output');  
+}
+
+else if($output_format=="word") {
+header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml');
+//header('Content-Type: application/vnd.oasis.opendocument.text');
+header('Content-Disposition: attachment; filename="'.rus2translit($report_filename).'.docx"');
+header('Cache-Control: max-age=0');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+header('Pragma: public'); // HTTP/1.0
+
+$phpWord->saveAs('php://output');
+}
+
+else {
+    $dompdf = new Dompdf();
+    $dompdf->setPaper('A4', $paper);
+    $dompdf->set_option('defaultFont', 'DejaVu Sans');
+    $dompdf->set_option('isRemoteEnabled', true);
+
+    $dompdf->loadHtml($html_str, 'UTF-8');
+    $dompdf->render();
+    //$dompdf->stream();
+    $dompdf->stream(str_replace('JUL', '', rus2translit($report_filename)) . ".pdf", array("Attachment" => 0));
+}
+
+
+
+function mb_ucfirst($arg_w, $charset = "utf-8") {
+    $word = htmlspecialchars($arg_w, ENT_QUOTES);
+	return mb_strtoupper(mb_substr($word, 0, 1, $charset), $charset).mb_substr($word, 1, mb_strlen($word, $charset)-1, $charset);
+}
+
+
+
+ /* Возвращает сумму прописью */
+function num2str($num) {
+	$nul='ноль';
+	$ten=array(
+		array('','один','два','три','четыре','пять','шесть','семь', 'восемь','девять'),
+		array('','одна','две','три','четыре','пять','шесть','семь', 'восемь','девять'),
+	);
+	$a20=array('десять','одиннадцать','двенадцать','тринадцать','четырнадцать' ,'пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать');
+	$tens=array(2=>'двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят' ,'восемьдесят','девяносто');
+	$hundred=array('','сто','двести','триста','четыреста','пятьсот','шестьсот', 'семьсот','восемьсот','девятьсот');
+	$unit=array( // Units
+		array('копейка' ,'копейки' ,'копеек',	 1),
+		array('рубль'   ,'рубля'   ,'рублей'    ,0),
+		array('тысяча'  ,'тысячи'  ,'тысяч'     ,1),
+		array('миллион' ,'миллиона','миллионов' ,0),
+		array('миллиард','милиарда','миллиардов',0),
+	);
+	//
+	list($rub,$kop) = explode('.',sprintf("%015.2f", floatval($num)));
+	$out = array();
+	if (intval($rub)>0) {
+		foreach(str_split($rub,3) as $uk=>$v) { // by 3 symbols
+			if (!intval($v)) continue;
+			$uk = sizeof($unit)-$uk-1; // unit key
+			$gender = $unit[$uk][3];
+			list($i1,$i2,$i3) = array_map('intval',str_split($v,1));
+			// mega-logic
+			$out[] = $hundred[$i1]; # 1xx-9xx
+			if ($i2>1) $out[]= $tens[$i2].' '.$ten[$gender][$i3]; # 20-99
+			else $out[]= $i2>0 ? $a20[$i3] : $ten[$gender][$i3]; # 10-19 | 1-9
+			// units without rub & kop
+			if ($uk>1) $out[]= morph($v,$unit[$uk][0],$unit[$uk][1],$unit[$uk][2]);
+		} //foreach
+	}
+	else $out[] = $nul;
+	$out[] = morph(intval($rub), $unit[1][0],$unit[1][1],$unit[1][2]); // rub
+	$out[] = $kop.' '.morph($kop,$unit[0][0],$unit[0][1],$unit[0][2]); // kop
+	return trim(preg_replace('/ {2,}/', ' ', join(' ',$out)));
+}
+
+function morph($n, $f1, $f2, $f5) {
+	$n = abs(intval($n)) % 100;
+	if ($n>10 && $n<20) return $f5;
+	$n = $n % 10;
+	if ($n>1 && $n<5) return $f2;
+	if ($n==1) return $f1;
+	return $f5;
+}
+
+
+
+?>

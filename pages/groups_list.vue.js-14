@@ -1,0 +1,906 @@
+var GroupsList = {
+  data: function () {
+    return {
+      role: '',
+      is_LMS: IS_LMS,
+      is_DEVELOPMENT: IS_DEVELOPMENT,
+      IS_SECR: IS_SECR,
+      moodle_path: '',
+      info: [],
+      info2: [],
+      info3: [],
+      info9: [],
+      order_id: 0,
+      make: 0,
+      //a_counterparty_id: 0,
+      status: 0,
+      status_array:  [], 
+      message: '',
+      datesearch: '',
+      datesearch2: '',
+      namesearch: '',
+      counterpartysearch: 0,
+      numPages: 0,
+      page: 1,
+      date_begin: 0,
+      date_end: 0,
+      date_protocol: 0,
+      modal_objectId: 0,
+      modal_date_begin: '',
+      modal_date_begin2: '',
+      modal_date_end: '',
+      modal_date_protocol: '',
+      modal_days: '',
+      mon_arr: [{name: 'Январь', t_class: 'nav-link'}, {name: 'Февраль', t_class: 'nav-link'}, {name: 'Март', t_class: 'nav-link'}, {name: 'Апрель', t_class: 'nav-link'}, {name: 'Май', t_class: 'nav-link'}, {name: 'Июнь', t_class: 'nav-link'}, {name: 'Июль', t_class: 'nav-link'}, {name: 'Август', t_class: 'nav-link'}, {name: 'Сентябрь', t_class: 'nav-link'}, {name: 'Октябрь', t_class: 'nav-link'}, {name: 'Ноябрь', t_class: 'nav-link'}, {name: 'Декабрь', t_class: 'nav-link'} ],
+      year_arr: [],
+      year_tab: new Date().getFullYear(),
+      mon_tab: 0,
+      upload_index: 0,
+      upload_cohort_id: 0,
+      upload_m1c: [],
+      uploadfile1c: '',
+      file1c_name: '',
+      file1c_type: '',
+      upload_m2c: [],
+      uploadfile2c: '',
+      file2c_name: '',
+      file2c_type: '',
+      upload_m1p: [],
+      uploadfile1p: '',
+      file1p_name: '',
+      file1p_type: '',
+      uploadfile1pe: '',
+      file1pe_name: '',
+      file1pe_type: '',
+      divs: [],
+      is_number_saved:  true,
+      print_v: 'true',
+      print_switch: false,
+      wait: 0,
+      import_total: 0,
+      helpers: {},
+      normative: {},
+     }
+   },
+
+
+   mounted() {
+      if(Number(this.$route.params.orderid)>0 )
+             this.order_id = Number(this.$route.params.orderid)
+
+      this.make = Number(this.$route.params.make)
+      /*if( Number(this.$route.params.counterpartyid)>0 ) 
+             this.a_counterparty_id = Number(this.$route.params.counterpartyid)
+      else          
+             this.a_counterparty_id = 0*/
+
+      if(this.order_id==0)
+                this.make = 0
+      
+      for (var i=-1; i<4; i++){
+        this.year_arr.push({name: this.year_tab-i})
+      }    
+
+      this.moodle_url = MoodleApiURL
+      
+      this.datesearch = session_var.group_datesearch
+      this.datesearch2 = session_var.group_datesearch2
+      this.namesearch = session_var.group_namesearch
+      this.groupsearch = session_var.group_groupsearch
+      this.counterpartysearch = session_var.group_counterpartysearch
+
+    axios
+      .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: this.make,  page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.role = this.info.role
+            this.numPages = this.info.numPages
+            this.page = this.info.page
+ 
+           console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+        }),
+
+    axios
+      .post(JsonApiURL+'api/status_json.php', {list: { where: "learn=1", sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.status_array = response.data.list
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+
+    if(this.order_id == 0) {
+	    axios
+                .post(JsonApiURL+'api/counterparty_json.php', {list: { sessionId: session_t.sessionId }})
+    		.then(response2 => { 
+        	    this.info2 = response2.data
+		    //this.numPages = this.info2.numPages
+		    //this.page = this.info2.page
+        	    console.log(response2)
+    		})
+    		.catch(error => {
+            	    console.log(error.response)
+        	})
+     }
+
+
+
+    axios
+      .post(JsonApiURL+'api/helpers_json.php', {table: 'a_groups_list',  sessionId: session_t.sessionId })
+      .then(response => {
+            const data = response.data;
+
+            if(Object.keys(data).length) {
+
+                const values = Object.values(data);
+                for (const value of values) {
+                    if(value['description']) this.helpers[value['name']] = value['description'];
+                    if(value['normative']) this.normative[value['name']] = value['normative'];
+                }
+
+                const labels = document.querySelectorAll('label');
+                labels.forEach(label => {
+                    const getFor = label.htmlFor;
+                    if(getFor in this.helpers) {
+                        const help_block = ` <a title='${this.helpers[getFor]}'><span class="text-primary"><i class="fa-regular fa-circle-question"></i></span></a>`;
+                        label.innerHTML = label.innerHTML + (help_block);
+                    }
+                    if(getFor in this.normative) {
+                        const help_block = ` <a title='${this.normative[getFor]}'><span class="text-primary"><i class="fa-solid fa-book"></i></span></a>`;
+                        label.innerHTML = label.innerHTML + (help_block);
+                    }
+
+                })
+
+            } else {
+                console.log('NO DATA')
+            }
+
+       })
+      .catch(error => {
+              console.log(error.response)
+      })
+
+
+
+  },
+
+
+  
+
+  methods: {
+    search_go(clean) {
+    if(clean){
+        this.namesearch = ''
+        this.groupsearch = ''
+        this.datesearch = ''
+        this.datesearch2 = ''
+        this.counterpartysearch = this.a_counterparty_id
+        this.status = 0
+    }
+
+    session_var.group_datesearch = this.datesearch
+    session_var.group_datesearch2 = this.datesearch2
+    session_var.group_namesearch = this.namesearch 
+    session_var.group_groupsearch = this.groupsearch 
+    session_var.group_counterpartysearch = this.counterpartysearch
+
+    for (var i=0; i<12; i++){
+        this.mon_arr[i].t_class =  'nav-link'
+    }    
+    /*var counterparty_id = this.counterpartysearch
+    if(this.a_counterparty_id>0)
+          counterparty_id = this.a_counterparty_id*/
+
+    axios
+      .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, group: this.groupsearch, status: this.status,  counterparty_id: this.counterpartysearch,   page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+	        this.page = this.info.page
+              console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+      })
+    },
+
+    page_go(page) {
+    this.page = page
+
+    axios
+      .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, status: this.status,  counterparty_id: this.counterpartysearch,   page: this.page,  sessionId: session_t.sessionId }})
+      //.post(JsonApiURL+'api/groups_json.php', {list: {   page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+	        this.page = this.info.page
+       })
+      .catch(error => {
+              console.log(error.response)
+      })
+    },
+
+    tab_go(month) {
+     if(this.year_tab>0) {    
+        var date_t1 = new Date(this.year_tab, month, 1, 0, 0, 0, 0).toLocaleDateString('en-CA')
+        var date_t2 = new Date(this.year_tab, month+1, 0, 0, 0, 0, 0).toLocaleDateString('en-CA')
+        this.datesearch = date_t1
+        this.datesearch2 = date_t2
+        for (var i=0; i<12; i++){
+            this.mon_arr[i].t_class =  'nav-link'
+        }    
+        this.mon_arr[month].t_class =  'nav-link active'
+
+    session_var.group_datesearch = this.datesearch
+    session_var.group_datesearch2 = this.datesearch2
+    session_var.group_namesearch = this.namesearch 
+    session_var.group_groupsearch = this.groupsearch 
+    session_var.group_counterpartysearch = this.counterpartysearch
+
+
+        axios
+        .post(JsonApiURL+'api/groups_json.php', {list: {date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, group: this.groupsearch, status: this.status,  counterparty_id: this.counterpartysearch, a_counterparty_id: this.a_counterparty_id,  page: this.page,  sessionId: session_t.sessionId }})
+        //.post(JsonApiURL+'api/groups_json.php', {list: {date1: date_t1, date2: date_t2, course: this.namesearch,    page: this.page,  sessionId: session_t.sessionId }})
+        .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+	        this.page = this.info.page
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+     }    
+    },
+
+    lstream_create_set(cohort_id){
+        this.modal_objectId = cohort_id
+        var i = this.info.list.findIndex(item => item.cohort_id == this.modal_objectId)
+        this.modal_date_begin  = this.info.list[i].date_begin
+        this.modal_date_begin2 = this.info.list[i].date_begin2
+        this.modal_date_end =  this.info.list[i].date_end
+        this.modal_date_protocol = this.info.list[i].date_protocol
+        this.date_begin = ''
+        this.date_end = ''
+        this.date_protocol = this.info.list[i].date_protocol
+        this.modal_days =  this.info.list[i].days
+    },
+
+    lstream_create_go(){
+
+        axios
+        .post(JsonApiURL+'api/groups_json.php', {lstream_create: {objectId: this.modal_objectId, date_begin: this.date_begin, date_end: this.date_end, date_protocol: this.date_protocol,   sessionId: session_t.sessionId }})
+        .then(response => { 
+            this.info9 = response.data
+
+            axios
+            .post(JsonApiURL+'api/groups_json.php', {list: {date1: this.datesearch, date2: this.datesearch2, course: this.namesearch, status: this.status,  counterparty_id: this.counterpartysearch, a_counterparty_id: this.a_counterparty_id,  page: this.page,  sessionId: session_t.sessionId }})
+            .then(response2 => { 
+                this.info = response2.data
+                this.numPages = this.info.numPages
+	            this.page = this.info.page
+            })
+            .catch(error => {
+                  console.log(error.response)
+            })
+        console.log(response)
+
+
+        })
+        .catch(error => {
+              console.log(error.response)
+        })
+    },
+    
+    onChangeDateBegin(){
+	  if( this.date_begin!='' ){
+          if(this.date_begin < this.modal_date_begin)
+                this.date_begin = this.modal_date_begin
+
+          if(this.date_begin > this.modal_date_begin2)
+                this.date_begin = this.modal_date_begin2
+
+	      var currentDate = new Date(this.date_begin)
+	      currentDate.setDate(currentDate.getDate() + this.modal_days )
+	      this.date_end = currentDate.toLocaleDateString('en-CA')
+	  }
+     },
+     
+    onChangeDateEnd(){
+	  if( this.date_end!='' ){
+          if(this.date_end > this.modal_date_end)
+                this.date_end = this.modal_date_end
+
+          if(this.date_end < date_begin)
+                this.date_end = this.date_begin
+	  }
+     },
+     
+     
+    cohortDelete(groupId, name ){
+	var fl = confirm('Удалить  группу: ' + name + '?');
+	if(fl) {
+	axios
+          .post(JsonApiURL+'api/groups_json.php', {delete: {objectId: groupId}})
+          .then(response => { 
+            //this.info9 = response.data
+         axios
+           .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0, page: this.page, sessionId: session_t.sessionId }})
+           .then(response => { 
+              this.info = response.data
+              this.numPages = this.info.numPages
+	          this.page = this.info.page
+            })
+           .catch(error => {
+              console.log(error.response)
+            })
+
+        })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+       }
+   },
+
+    lstream_unlink(cohort_id, name ){
+	var fl = confirm('Убрать группу:' + name + ' из  учебого потока ?');
+	if(fl) {
+	axios
+          .post(JsonApiURL+'api/lstream_json.php', {lstream_unlink: { cohort_id: cohort_id}})
+          .then(response => { 
+            this.info9 = response.data
+            axios
+           .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0, page: this.page, sessionId: session_t.sessionId }})
+            .then(response => { 
+              this.info = response.data
+              this.numPages = this.info.numPages
+	          this.page = this.info.page
+             })
+            .catch(error => {
+              console.log(error.response)
+             })
+
+           })
+          .catch(error => {
+              console.log(error.response)
+            })
+
+       }
+    },
+
+
+
+     uploadGoC(index, cohortId) {
+        this.wait = 1
+        if( this.upload_cohort_id==cohortId  && cohortId>0 ){
+          if(this.file1ce_type == 'application/pdf' || this.file1ce_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || this.file1ce_type == 'image/png'){
+                const formData = new FormData();
+                formData.append('upload1ce', this.uploadfile1ce)
+                formData.append('file1ce_name', this.file1ce_name)
+                formData.append('cohort_id', cohortId)
+                formData.append('sessionId', session_t.sessionId)
+
+                axios
+                    .post(JsonApiURL+'api/groups_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+                    .then(response => {
+                      this.info9 = response.data
+                      this.wait = 0;
+
+                      axios
+                       .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0, a_counterparty_id: this.a_counterparty_id,  page: this.page,  sessionId: session_t.sessionId }})
+                       .then(response => { 
+                           this.info = response.data
+                           this.numPages = this.info.numPages
+                           this.page = this.info.page
+                           this.upload_cohort_id = 0
+                           console.log(response)
+                       })
+                       .catch(error => {
+                            console.log(error.response)
+                       })
+
+                      console.log(response)
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+          } 
+
+          if( this.file2ce_type == 'application/pdf' || this.file2ce_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || this.file2ce_type == 'image/png' ){
+                const formData = new FormData();
+                formData.append('upload2ce', this.uploadfile2ce)
+                formData.append('file2ce_name', this.file2ce_name)
+                formData.append('cohort_id', cohortId)
+                formData.append('sessionId', session_t.sessionId)
+
+                axios
+                    .post(JsonApiURL+'api/groups_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+                    .then(response => {
+                      this.info9 = response.data
+                      this.wait = 0;
+
+
+                      axios
+                       .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0, a_counterparty_id: this.a_counterparty_id,  page: this.page,  sessionId: session_t.sessionId }})
+                       .then(response => { 
+                           this.info = response.data
+                           this.numPages = this.info.numPages
+                           this.page = this.info.page
+                           this.upload_cohort_id = 0
+                           console.log(response)
+                       })
+                       .catch(error => {
+                            console.log(error.response)
+                       })
+
+
+                      console.log(response)
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+          }
+
+          if( this.file_c_type == 'application/pdf' || this.file_c_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || this.file_c_type == 'image/png' ){
+                const formData = new FormData();
+                formData.append('upload_c', this.uploadfile_c)
+                formData.append('file_c_name', this.file_c_name)
+                formData.append('cohort_id', cohortId)
+                formData.append('sessionId', session_t.sessionId)
+
+                axios
+                    .post(JsonApiURL+'api/groups_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+                    .then(response => {
+                      this.info9 = response.data
+                      this.wait = 0;
+
+
+                      axios
+                       .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0, a_counterparty_id: this.a_counterparty_id,  page: this.page,  sessionId: session_t.sessionId }})
+                       .then(response => { 
+                           this.info = response.data
+                           this.numPages = this.info.numPages
+                           this.page = this.info.page
+                           this.upload_cohort_id = 0
+                           console.log(response)
+                       })
+                       .catch(error => {
+                            console.log(error.response)
+                       })
+
+
+                      console.log(response)
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+          }
+       }
+
+     },
+
+     uploadGoP(index, cohortId) {
+        this.wait = 1
+        if((this.file1p_type == 'application/pdf' || this.file1p_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || this.file1p_type == 'image/png') && this.upload_cohort_id==cohortId && cohortId>0){
+                const formData = new FormData();
+                formData.append('upload1p', this.uploadfile1p)
+                formData.append('file1p_name', this.file1p_name)
+                formData.append('file1p_type', this.file1p_type)
+                formData.append('cohort_id', cohortId)
+                formData.append('sessionId', session_t.sessionId)
+
+                axios
+                    .post(JsonApiURL+'api/groups_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+                    .then(response => {
+                      this.info9 = response.data
+                      this.wait = 0;
+
+
+                      axios
+                       .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0, a_counterparty_id: this.a_counterparty_id,  page: this.page,  sessionId: session_t.sessionId }})
+                       .then(response => { 
+                           this.info = response.data
+                           this.numPages = this.info.numPages
+                           this.page = this.info.page
+                           this.upload_cohort_id = 0
+                           console.log(response)
+                       })
+                       .catch(error => {
+                            console.log(error.response)
+                       })
+
+                      console.log(response)
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+        }
+
+        if((this.file1pe_type == 'application/pdf' || this.file1pe_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || this.file1pe_type == 'image/png') && this.upload_cohort_id==cohortId && cohortId>0){
+                const formData = new FormData();
+                formData.append('upload1pe', this.uploadfile1pe)
+                formData.append('file1pe_name', this.file1pe_name)
+                formData.append('file1pe_type', this.file1pe_type)
+                formData.append('cohort_id', cohortId)
+                formData.append('sessionId', session_t.sessionId)
+
+                axios
+                    .post(JsonApiURL+'api/groups_upload_json.php', formData, {headers: {'Content-Type': 'multipart/form-data'}})
+                    .then(response => {
+                      this.info9 = response.data
+                      this.wait = 0;
+
+
+                      axios
+                       .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: 0, a_counterparty_id: this.a_counterparty_id,  page: this.page,  sessionId: session_t.sessionId }})
+                       .then(response => { 
+                           this.info = response.data
+                           this.numPages = this.info.numPages
+                           this.page = this.info.page
+                           this.upload_cohort_id = 0
+                           console.log(response)
+                       })
+                       .catch(error => {
+                            console.log(error.response)
+                       })
+
+                      console.log(response)
+                })
+                .catch(error => {
+                    console.log(error.response)
+                })
+        }
+
+     },
+
+     handleUploadC1e(index, cohortId) {
+            this.upload_index = index
+            this.upload_cohort_id = cohortId
+            this.uploadfile1ce = document.getElementById('input_upload1ce'+index).files[0];
+            this.file1ce_name = this.uploadfile1ce.name;
+            this.file1ce_type = this.uploadfile1ce.type;
+     },
+     handleUploadC2e(index, cohortId) {
+            this.upload_index = index
+            this.upload_cohort_id = cohortId
+            this.uploadfile2ce = document.getElementById('input_upload2ce'+index).files[0];
+            this.file2ce_name = this.uploadfile2ce.name;
+            this.file2ce_type = this.uploadfile2ce.type;
+     },
+     handleUpload_C(index, cohortId) {
+            this.upload_index = index
+            this.upload_cohort_id = cohortId
+            this.uploadfile_c = document.getElementById('input_upload_c'+index).files[0];
+            this.file_c_name = this.uploadfile_c.name;
+            this.file_c_type = this.uploadfile_c.type;
+     },
+     handleUploadP1(index, cohortId) {
+            this.upload_index = index
+            this.upload_cohort_id = cohortId
+            this.uploadfile1p = document.getElementById('input_upload1p'+index).files[0];
+            this.file1p_name = this.uploadfile1p.name;
+            this.file1p_type = this.uploadfile1p.type;
+     },
+     handleUploadP_e(index, cohortId) {
+            this.upload_index = index
+            this.upload_cohort_id = cohortId
+            this.uploadfile1pe = document.getElementById('input_upload1pe'+index).files[0];
+            this.file1pe_name = this.uploadfile1pe.name;
+            this.file1pe_type = this.uploadfile1pe.type;
+     },
+
+
+
+    printChanged(){
+     axios
+      .post(JsonApiURL+'api/groups_json.php', {list: { order_id: this.order_id, make: this.make,  page: this.page,  sessionId: session_t.sessionId }})
+      .then(response => { 
+            this.info = response.data
+            this.numPages = this.info.numPages
+            this.page = this.info.page
+
+           console.log(response)
+       })
+      .catch(error => {
+              console.log(error.response)
+        })
+    }
+
+},
+
+
+	template: `<div><navigation></navigation><h3>Учебные группы</h3> 
+
+  <h4 style="text-align: center; color: red;">{{message}}</h4>
+
+    <!--<h4 v-if="role!='counterparty' && a_counterparty_id>0"  style="text-align: right;" > {{info.counterparty_title_shortname}} </h4>-->
+    <!--<div   class="mb-3 row"><label for="upload_scan_docs"  class="form-label col-sm-3"   >Категория </label></div>-->
+    <table >
+        <tr v-if="order_id==0"  align="left">
+            <td  colspan="4"  style="padding-left: 0px;  padding-right: 10px;" >Начало обучения c <input type="date" v-model="datesearch" placeholder="Дата"  >  по <input type="date" v-model="datesearch2" placeholder="Дата"  ></td>
+            <td style="padding-left: 10px;  padding-right: 5px;" >
+		    <select  v-model="status"  id="input_status"  aria-label="Статус">
+    		    <option value="0"> - статус - </option>
+    		    <option v-for="item_status in status_array" :value="item_status.status_id">{{item_status.name}} </option>
+		    </select>
+	    </td>
+        <td style="padding-left: 5px;  padding-right: 15px;"  v-if="order_id==0 && role!='counterparty' " ><small>
+	        <select v-model="counterpartysearch">
+	        <option value="0"> -  Организация  - </option>
+            <option v-for="item2 in info2.list" :value="item2.counterparty_id">
+	            {{item2.shortname.substring(0, 45)}} 
+	        </option>
+	        </select>
+	    </small></td>
+        </tr>
+        <tr  align="left">
+            <td colspan="5" style="padding-top: 20px; padding-right: 15px;"><input type="text" v-model="namesearch" placeholder="Курс"   size="70"   @keyup.enter="search_go(0)"></td>
+            <td  style="padding-top: 20px; padding-left: 15px;  padding-right: 0px; text-align: right;" > <button  @click="search_go(0)">&nbsp;<i class="fa-solid fa-magnifying-glass"></i>&nbsp;Поиск&nbsp;</button>&nbsp;&nbsp;&nbsp;&nbsp;<button  title="Сбросить все фильтры"   @click="search_go(1)"  >&nbsp;<i class="fa-solid fa-xmark"></i>&nbsp;Сбросить фильтры&nbsp;</button> </td>
+        </tr>
+        <tr  align="left">
+            <td  style="padding-top: 10px; padding-left: 0px;  padding-right: 5px;" ><input type="text" v-model="groupsearch" placeholder="Группа"   size="50"   @keyup.enter="search_go(0)"></td>
+        </tr>
+    </table>
+
+
+    <br />
+    <table class="table">
+      <thead>
+        <tr  align="left">
+          <th scope="col"> <div style="margin-right: 0px; font-size: smaller;">Учебная группа</div> </th>
+          <th scope="col"> <div style="margin-right: 0px; font-size: smaller;">Период обучения</div> </th>
+          <th>  <div style="margin-right: 0px; font-size: smaller;">Курсы</div> </th>
+          <th>  <div style="margin-right: 0px; font-size: smaller;">Организация</div></th>
+          <th scope="col"><div align="center" style="margin-right: 0px; font-size: smaller;">Протокол</div>  </th>
+          <th scope="col"><div align="center" style="margin-right: 0px; font-size: smaller;">Документы  </th>
+          <th scope="col" width="5%"><div v-if="this.is_LMS>0" align="center" style="margin-right: 0px; font-size: smaller;"></th>
+
+        </tr>
+      </thead>
+     <tbody>   
+        <tr v-for="(item, index) in info.list"  align="left" >  
+            <td style="padding-left: 0px; padding-right: 10px;" >
+                <!--<table border="0"><tr><td valign="middle" style="padding-left: 0px; padding-right: 7px;" ><nobr>{{item.name}}&nbsp;({{item.count}})<i></nobr></td> </tr></table>-->
+                <nobr>{{item.name}}&nbsp;&nbsp;<i style="color: #555;">({{item.count}} чел.)</i></nobr>
+            </td>
+            <td  style="padding-left: 10px; padding-right: 10px;"  >
+                <span v-if="item.date_begin!=''"><small>{{new Date(item.date_begin).toLocaleDateString("ru")}} <!--<br /><small>-</small>--> <br />{{new Date(item.date_end).toLocaleDateString("ru")}}</small></span>
+            </td>
+            <td  style="padding-left: 10px; padding-right: 10px;"  >{{item.course_name}} 
+               <nobr>
+                <!--<router-link  :to="{ name: 'group_edit', params: {groupid: item.cohort_id, orderid: this.order_id, counterpartyid: this.a_counterparty_id}}" title="Редактировать настройки" ><i class="fa-solid fa-pencil"></i></router-link>-->
+                <span v-if="item.consulting==0">
+                    <!--<span v-if="item.scheduler_count==0" ><router-link  :to="{ name: 'group_scheduler', params: {groupid: item.cohort_id, orderid: this.order_id, counterpartyid: this.a_counterparty_id}}"  title="Календарь" ><i class="fa-solid fa-calendar-day"></i></router-link><span style="color: red;">&nbsp;<i class="fa-solid fa-circle-exclamation"></i></span></span>-->
+                    <span v-if="item.date_begin==''" ><router-link  :to="{ name: 'group_scheduler', params: {groupid: item.cohort_id, orderid: this.order_id, counterpartyid: this.a_counterparty_id}}"  title="Календарь" ><i class="fa-solid fa-calendar-day"></i></router-link><span style="color: red;">&nbsp;<i class="fa-solid fa-circle-exclamation"></i></span></span>
+                    <span v-else>
+                        <a @click="lstream_unlink(item.cohort_id, item.name )" style="color: red;" title="Убрать группу из учебного потока"><i class="fa-solid fa-thumbtack-slash"></i></a>
+                        &nbsp;&nbsp;<router-link v-if="item.status_id<12"  :to="{ name: 'group_scheduler', params: {groupid: item.cohort_id, orderid: this.order_id, counterpartyid: this.a_counterparty_id}}"  title="Календарь" ><i class="fa-solid fa-calendar-day"></i></router-link>
+                    </span>
+                </span>
+               </nobr>
+            </td>
+            <td  style="padding-left: 10px; padding-right: 5px;"  ><small>{{item.counterparty_shortname}}</small>
+            </td>
+            <td align="center" style="padding-top: 7px;"   >
+              <div v-if="(role!='counterparty' || item.status_id>=10) && item.protocol_template>0"   class="btn-group"  style="padding-top: 1px;">
+                <button class="btn btn-link dropdown-toggle dropdown-toggle-split" href="" role="button" id="dropdownProtocolMenuLink" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;"><i class="fa-solid fa-file-lines"></i>&nbsp;</button>
+                    <!--<a v-if="item.upload_protocol!=''" :href="'/uploads/groups/protocol/'+item.upload_protocol" target="_blank"  type="button" class="btn btn-outline-primary  btn-sm" > <i class="fa-solid fa-file-lines"></i> </a>
+                    <a v-else-if="item.protocol_html_length==0"  :href="'d-api/documents-protocol.php?groupid='+item.cohort_id+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank" type="button" class="btn btn-outline-primary  btn-sm" > <i class="fa-solid fa-file-lines"></i> </a>
+                    <a v-else :href="'d-api/protocol-saved.php?id='+item.cohort_id+'&file=Протокол-'+item.name+'-'+item.course_name.substring(0, 50)+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank" target="_blank" type="button" class="btn btn-outline-primary  btn-sm" > <i class="fa-solid fa-file-lines"></i> </a>
+                    <button type="button" class="btn btn-outline-primary  btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>-->
+
+                      <ul class="dropdown-menu"  style="--bs-dropdown-min-width: 40rem; padding: 7px;">
+                         <li v-if="item.modify_protocol!=''"><a :href="'/uploads/groups/protocol/'+item.modify_protocol" target="_blank"  class="nav-link">&nbsp;<i class="fa-regular fa-file-lines"></i>Протокол</a> </li>
+                         <li v-if="item.protocol_html_length>0 && item.modify_protocol==''"><a :href="'d-api/protocol-saved.php?id='+item.cohort_id+'&file=Протокол-'+item.name+'-'+item.course_name.substring(0, 50)+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank" target="_blank"  class="nav-link" >&nbsp;<i class="fa-regular fa-file"></i>Протокол</a></li><!-- DEPRECATED -->
+                         <li v-if="item.modify_protocol=='' && item.protocol_html_length==0"><a  :href="'d-api/documents-protocol.php?groupid='+item.cohort_id+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank"  class="nav-link">&nbsp;<i class="fa-regular fa-file-lines"></i>Протокол</a> </li>
+                         <il><hr /></il>
+                         <li><a  :href=""   target="_blank"  class="nav-link">&nbsp;<i class="fa-solid fa-upload"></i> Загрузить отредактированный протокол - docx <i class="fa-regular fa-circle-question" style="color:#137ea7" title="Для загрузки нескольких документов объедините их в один PDF файл"></i></a>
+                            <input v-model="upload_m1p[index]"   class="form-control"  :id="'input_upload1pe'+index" @change="handleUploadP_e(index, item.cohort_id)"   type="file"  placeholder="Файл  протокола">
+                         </li>
+                         <il><hr /></il>
+
+                         <li v-if="item.protocol_html_length>0 || item.upload_protocol!=''" ><a  :href="'d-api/documents-protocol.php?groupid='+item.cohort_id+'&print_v='+this.print_v+'&print_switch='+this.print_switch"   target="_blank"  class="nav-link">&nbsp;<i class="fa-regular fa-file"></i>Автоматически созданный протокол</a></li>
+                         <li v-if="item.protocol_html_length>0 && item.upload_protocol!=''"><a :href="'d-api/protocol-saved.php?id='+item.cohort_id+'&file=Протокол-'+item.name+'-'+item.course_name.substring(0, 50)+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank" target="_blank"  class="nav-link" >&nbsp;<i class="fa-regular fa-file"></i>Ранее отредактированный протокол (html)</a></li><!-- DEPRECATED -->
+
+                         <il><hr /></il>
+                         <li v-if="item.upload_protocol!=''"><a :href="'/uploads/groups/protocol/'+item.upload_protocol" target="_blank"  class="nav-link">&nbsp;<i class="fa-regular fa-file-lines"></i>Скан протокола</a> </li>
+                         <li><a  :href=""   target="_blank"  class="nav-link">&nbsp;<i class="fa-solid fa-upload"></i> Загрузить скан протокола - pdf <i class="fa-regular fa-circle-question" style="color:#137ea7" title="Для загрузки нескольких документов объедините их в один PDF файл"></i></a>
+                            <input v-model="upload_m1p[index]"   class="form-control"  :id="'input_upload1p'+index" @change="handleUploadP1(index, item.cohort_id)"   type="file"  placeholder="Файл скана протокола"><br />
+                         </li>
+                         <li style="text-align: right; margin-right: 7px;">
+                            <span v-if="wait"><i class="fa-solid fa-cog fa-spin"></i></span>
+                            <span v-if="import_total==0"><button type="button" class="btn btn-primary" @click="uploadGoP(index, item.cohort_id)" > Загрузить </button></span>
+                           <span v-else><p>Загружено: {{import_total}} записей</p></span>
+                           </small>
+                         </li>
+                      </ul>
+              </div>
+            </td>
+            
+            <td align="center" style="padding-left: 0px; padding-right: 0px;"  width="10%" >
+               <div   class="dropdown"  v-if="item.certificate1_template>0">
+                <button class="btn btn-link dropdown-toggle dropdown-toggle-split" href="" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;"><i class="fa-solid fa-list-check"></i>&nbsp;</button>
+	            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink" style="--bs-dropdown-min-width: 40rem;  padding: 7px;">
+	                <!--<li  v-if="item.certificate1_template>0"><a :href="'d-api/documents-cert.php?template='+item.certificate1_template+'&groupid='+item.cohort_id+'&id='+this.order_id+'&userid=0'+'&courseid='+item.course_id+'&file='+item.certificate1_name+'-'+item.counterparty_shortname+'&num_of_page='+item.certificate1_num_of_page+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank"  class="nav-link" title="документ об образовании" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> {{item.certificate1_name}} </a></li>
+	                <li v-if="item.certificate2_template>0"><a :href="'d-api/documents-cert.php?template='+item.certificate2_template+'&groupid='+item.cohort_id+'&id='+this.order_id+'&userid=0'+'&courseid='+item.course_id+'&file='+item.certificate2_name+'-'+item.counterparty_shortname+'&num_of_page='+item.certificate2_num_of_page+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank"  class="nav-link" title="документ об образовании" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> {{item.certificate2_name}} </a></li>-->
+
+
+	                <li  v-if="item.certificate1_template>0 && item.modify_certificate1!=''"><a :href="'uploads/groups/certificate/'+item.modify_certificate1" target="_blank"  class="nav-link" title="документ об образовании" > &nbsp;<i class="fa-regular fa-file-lines"></i>&nbsp;{{item.certificate1_name}} </a></li>
+	                <li  v-else-if="item.certificate1_template>0"><a :href="'d-api/documents-cert.php?template='+item.certificate1_template+'&groupid='+item.cohort_id+'&id=0'+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank"  class="nav-link" title="документ об образовании" > &nbsp;<i class="fa-regular fa-file-lines"></i>{{item.certificate1_name}} </a></li>
+	                <li  v-if="item.certificate1_template>0 && item.modify_certificate1!=''"><a :href="'d-api/documents-cert.php?template='+item.certificate1_template+'&groupid='+item.cohort_id+'&id=0'+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank"  class="nav-link" title="автоматически созданный документ об образовании" > &nbsp;<i class="fa-regular fa-file"></i>&nbsp;&nbsp;автоматически созданный документ - {{item.certificate1_name}} </a></li>
+                        <li><a  :href=""   target="_blank"  class="nav-link">&nbsp;<i class="fa-solid fa-upload"></i> Загрузить отредактированный документ - docx:  {{item.certificate1_name}}  <i class="fa-regular fa-circle-question" style="color:#137ea7" title="Для загрузки нескольких документов объедините их в один PDF файл"></i></a> 
+                           <input v-model="upload_m1c[index]"   class="form-control"  :id="'input_upload1ce'+index" @change="handleUploadC1e(index, item.cohort_id)" type="file"  placeholder="Файл скана удостоверений"><br /><!--  :ref="el => { if (el) divs[index] = el }" -->
+                        </li>
+                        <li><hr /></li>
+
+	                <li  v-if="item.certificate2_template>0 && item.modify_certificate2!=''"><a :href="'uploads/groups/certificate/'+item.modify_certificate2" target="_blank"  class="nav-link" title="документ об образовании" > &nbsp;<i class="fa-regular fa-file-lines"></i>&nbsp;{{item.certificate2_name}} </a></li>
+	                <li  v-else-if="item.certificate2_template>0"><a :href="'d-api/documents-cert.php?template='+item.certificate2_template+'&groupid='+item.cohort_id+'&id=0'+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank"  class="nav-link" title="документ об образовании" > &nbsp;<i class="fa-regular fa-file-lines"></i>{{item.certificate2_name}} </a></li>
+	                <li  v-if="item.certificate2_template>0 && item.modify_certificate2!=''"><a :href="'d-api/documents-cert.php?template='+item.certificate2_template+'&groupid='+item.cohort_id+'&id=0'+'&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank"  class="nav-link" title="автоматически созданный документ об образовании" > &nbsp;<i class="fa-regular fa-file"></i>&nbsp;&nbsp;автоматически созданный документ -  {{item.certificate2_name}} </a></li>
+                       <li  v-if="item.certificate2_template>0"><a  :href=""   target="_blank"  class="nav-link">&nbsp;<i class="fa-solid fa-upload"></i> Загрузить отредактированный документ - docx:  {{item.certificate2_name}}  <i class="fa-regular fa-circle-question" style="color:#137ea7" title="Для загрузки нескольких документов объедините их в один PDF файл"></i></a>
+                           <input v-model="upload_m2c[index]"   class="form-control"  :id="'input_upload2ce'+index" @change="handleUploadC2e(index, item.cohort_id)"   type="file"  placeholder="Файл скана удостоверений"><br />
+                       </li>
+                        <il><hr /></il>
+
+                        <li><a :href="'d-api/documents-protocol.php?groupid='+item.cohort_id+'&add_template=20&print_v='+this.print_v+'&print_switch='+this.print_switch" target="_blank"  class="nav-link" title="Ведомость" > &nbsp;<span class="icon"> <i class="fa-regular fa-file-lines"></i></span> Ведомость </a></li>
+
+                       <li><hr /></li>
+                       <li  v-if="item.upload_certificate!=''"><a :href="'uploads/groups/certificate/'+item.upload_certificate" target="_blank"  class="nav-link" title="Скан удостоверений" > &nbsp;<i class="fa-regular fa-file-lines"></i>&nbsp;{{item.certificate1_name}} </a></li>
+                       <li><a  :href=""   target="_blank"  class="nav-link">&nbsp;<i class="fa-solid fa-upload"></i> Загрузить скан удостоверений - pdf:  {{item.certificate1_name}}  <i class="fa-regular fa-circle-question" style="color:#137ea7" title="Для загрузки нескольких документов объедините их в один PDF файл"></i></a> 
+                           <input v-model="upload_c[index]"   class="form-control"  :id="'input_upload_c'+index" @change="handleUpload_C(index, item.cohort_id)" type="file"  placeholder="Файл скана удостоверений"><br /><!--  :ref="el => { if (el) divs[index] = el }" -->
+                       </li>
+
+
+                       <li style="text-align: right; margin-right: 7px;">
+                            <span v-if="wait"><i class="fa-solid fa-cog fa-spin"></i></span>
+                            <span v-if="import_total==0"><button type="button" class="btn btn-primary" @click="uploadGoC(index, item.cohort_id)" > Загрузить </button></span>
+                           <span v-else><p>Загружено: {{import_total}} записей</p></span>
+                           </small>
+                       </li>
+	            </ul>
+	            </div>
+            </td>
+
+            <td  align="right"  width="5%">
+              <div style="float: right" >
+		      <table border="0"><tr>
+                <!--<td  v-if="role!='counterparty'"  style="padding-left: 0px; padding-right: 10px;">
+                    <router-link  :to="{ name: 'group_edit', params: {groupid: item.cohort_id, orderid: this.order_id, counterpartyid: this.a_counterparty_id}}" title="Редактировать настройки" ><span class="icon"><i class="fa-solid fa-pen-to-square"></i></span></router-link>
+                </td>-->
+
+
+                <td  v-if="role!='counterparty'"   style="padding-left: 5px;  padding-right: 0px;">
+		            <a   @click="cohortDelete(item.cohort_id, item.name)"   title="Удалить группу" style="color: red;" ><i class="far fa-trash-alt"></i></a>
+		        </td>
+                </tr></table>
+	           </div>
+	        </td>
+          </tr>
+          
+        <tr v-if="role!='counterparty'" align="left">
+          <td>  </td>
+          <td v-if="a_counterparty_id==0" >  </td>
+          <td colspan="4" align="right">
+            <small>
+                <input v-model="print_v" type="radio" value="false"  class="form-check-input" id="print_Check0" > <label class="form-check-label" for="print_Check0" v-on:click="printChanged()"  > скан-копия </label>&nbsp;&nbsp;&nbsp;&nbsp; 
+                <input v-model="print_v" type="radio" value="true"   class="form-check-input" id="print_Check1" > <label class="form-check-label" for="print_Check1" v-on:click="printChanged()" > версия для печати </label>&nbsp;&nbsp;&nbsp;&nbsp;
+                <input v-model="print_v" type="radio" value="edit"   class="form-check-input" id="print_Check3"> <label class="form-check-label" for="print_Check3" v-on:click="printChanged()" > редактор</label>
+            </small>
+          </td>
+          <td colspan="3" align="right">
+            <small v-if="is_DEVELOPMENT">
+                <div class=" form-switch">&nbsp;&nbsp;&nbsp;&nbsp;<input v-model="print_switch" type="checkbox" role="switch"   class="form-check-input form-switch" id="print_Check_switch">&nbsp;&nbsp;<label class="form-check-label" for="print_Check_switch" v-on:click="printChanged()" >pdf / word</label></div>
+                <!--&nbsp;&nbsp;&nbsp;&nbsp;<input v-model="print_v" type="radio" value="layout" class="form-check-input" id="print_Check4"> <label class="form-check-label" for="print_Check4" v-on:click="printChanged()" > интервалы</label>
+                &nbsp;&nbsp;&nbsp;&nbsp;<input v-model="print_v" type="radio" value="word"   class="form-check-input" id="print_Check5"> <label class="form-check-label" for="print_Check5" v-on:click="printChanged()" > word</label>-->
+            </small>
+          </td>
+        </tr>
+
+  </tbody>
+  </table>
+
+<span v-if="order_id>0">
+  <br />
+  <div class="mb-2">	
+    <div align="right">
+      <button  v-if="!is_number_saved"   class="btn btn-primary"  @click="number_save()" > Сохранить </button>
+      &nbsp&nbsp<router-link :to="{ name: 'orders_list' , params: {counterpartyid: this.a_counterparty_id}}" ><button  class="btn btn-outline-primary"> Закрыть </button></router-link>
+    </div>
+  </div>
+ </div>
+</span>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="exampleModalLabel">Создать новый учебный поток</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-check">
+      
+  <div class="row">
+   <div class="mb-2 col">	
+    <label for="input_date" class="form-label">Дата начала обучения</label>
+      <input v-model="date_begin"  class="form-control" id="input_date"  type="date"   @input="onChangeDateBegin()">
+    <p style="text-align: left; padding-top: 5px;"><button @click="this.date_begin=this.modal_date_begin; onChangeDateBegin()" type="button" class="btn btn-outline-secondary btn-sm">{{new Date(this.modal_date_begin).toLocaleDateString("ru")}}</button> - <button @click="this.date_begin=this.modal_date_begin2; onChangeDateBegin()" type="button" class="btn btn-outline-secondary btn-sm">{{new Date(this.modal_date_begin2).toLocaleDateString("ru")}}</button></p>  
+   </div>
+   <div class="mb-2 col">	
+    <label for="input_date_end" class="form-label">Дата завершения</label>
+      <input v-model="date_end"  class="form-control" id="input_date_end"  type="date"  @input="onChangeDateEnd()" >
+   </div>
+  </div>
+
+  <div class="row">
+   <div class="mb-4 col"> </div>
+   <div class="mb-2 col">	
+    <br /><label for="input_date_protocol" class="form-label">Дата оформления протокола</label>
+      <input v-model="date_protocol"  class="form-control" id="input_date_protocol"  type="date" >
+   </div>
+  </div>
+      
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"> Отмена </button>
+        <button v-if="date_begin!='' && date_end!='' && date_protocol!=''"  @click="lstream_create_go()"  type="button" class="btn btn-primary" data-bs-dismiss="modal"> &nbsp&nbspok&nbsp&nbsp </button>
+        <button v-else  type="button" class="btn btn-primary" data-bs-dismiss="modal" disabled> &nbsp&nbspok&nbsp&nbsp </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="row">
+<div class="col"> </div>
+<div  v-if="numPages>1" aria-label="Page navigation" class="btn-toolbar col"  aria-label="pages"   style="text-align: center;">
+  <ul class="pagination" >
+    <li v-if="page>1" class="page-item">
+      <button  @click="page_go(this.page-1)"  class="page-link" aria-label="Previous"> <span aria-hidden="true"><i class="fa-solid fa-caret-left"></i></span> </button>
+    </li>
+    <li v-if="page>1"class="page-item"><button @click="page_go(1)"  class="page-link" >1</button></li>
+    <li v-if="page>2" class="page-item"><button   class="page-link" >...</button></li>
+    <li v-if="page-2>2"class="page-item"><button @click="page_go(this.page-2)"  class="page-link" >{{page-2}}</button></li>
+    <li v-if="page-1>2"class="page-item"><button @click="page_go(this.page-1)"  class="page-link" >{{page-1}}</button></li>
+    <li class="page-item active" aria-current="page"><button   class="page-link">{{page}}</button></li>
+    <li v-if="page+1<numPages"class="page-item"><button @click="page_go(this.page+1)"  class="page-link" >{{page+1}}</button></li>
+    <li v-if="page+2<numPages"  class="page-item"><button @click="page_go(this.page+2)"  class="page-link" >{{page+2}}</button></li>
+    <li v-if="page+3<numPages" class="page-item"><button   class="page-link" >...</button></li>
+    <li v-if="page<numPages" class="page-item"><button @click="page_go(this.numPages)"  class="page-link" >{{numPages}}</button></li>
+    <li v-if="page<numPages" class="page-item">
+      <button  @click="page_go(this.page+1)"  class="page-link"  aria-label="Next">  <span aria-hidden="true"><i class="fa-solid fa-caret-right"></i></span>  </button>
+    </li>
+  </ul>
+</div>
+<div class="col-2"> </div>
+</div>
+
+
+<div class="row">
+<small class="col-1" >
+        <select  v-model="year_tab"  id="input_status" class="form-select form-select-sm"  aria-label="Статус"  >
+	    <option value="0"> - год - </option>
+	    <option v-for="item in year_arr" :value="item.name">{{item.name}}&nbsp; </option>
+	</select>
+</small>    
+<small class="col"><ul class="nav nav-tabs" >
+    <li v-for="(item, index) in mon_arr"  class="nav-item">
+        <a :class="item.t_class" @click="tab_go(index)">{{item.name}}</a>
+    </li>
+    </ul></small>
+</div>
+
+	</div>`
+
+};
+
+
+
+

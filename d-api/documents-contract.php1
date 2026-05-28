@@ -1,0 +1,413 @@
+<?php
+
+require_once '../config.php';
+
+$dbhost_a = $cfg->host;
+$dbuser_a = $cfg->user;
+$dbpassword_a = $cfg->password;
+$dbname_a = $cfg->name;
+try {  
+    $dbh = new PDO("mysql:host=$dbhost_a;dbname=$dbname_a;charset=utf8", $dbuser_a, $dbpassword_a);  
+}  
+catch(PDOException $e) {  
+    echo $e->getMessage();  
+}
+
+
+
+session_start();
+$sessionid = session_id();
+$auth_session = 0;
+$stmt = $dbh->prepare('SELECT `login`, `role`, `a_account`.`account_id`, `counterparty_id`  FROM `a_session` LEFT JOIN  `a_account` USING(`account_id`)  WHERE `token`=? ');
+$stmt->execute([$sessionid]);
+if($row = $stmt->fetch(PDO::FETCH_OBJ)) {  
+        $auth_session = 1;
+}
+if($auth_session == 0){
+    exit();
+}
+
+
+
+//require_once 'smarty/vendor/autoload.php';
+//use Smarty\Smarty;
+
+require '../smarty/libs/Smarty.class.php';
+$smarty = new Smarty();
+$smarty->setTemplateDir('../documents/');
+$smarty->setCompileDir('../tmp/');
+$smarty->setConfigDir('../config/');
+$smarty->setCacheDir('../cache/');
+
+
+
+$counterparty_id = intval($_GET['counterparty_id']);
+$order_id = intval($_GET['id']);
+
+$data = [];
+$data2 =  [];
+$data3 =  [];
+
+    /*$longtime_contract_c =  $row['longtime_contract'];
+    if($row['longtime_contract_c'] == 'true') {
+            $contract_number = $row['counterparty_id'];
+    }
+    else {
+            //$contract_number = $row['counterparty_id'] . '/' . $row['order_id'];
+            $contract_number = $row['counterparty_id'];
+    }*/
+
+
+if($counterparty_id > 0){
+$stmt2 = $dbh->prepare("SELECT * FROM  `a_counterparty`  WHERE `counterparty_id`=?  ");
+$stmt2->execute( [ intval($_GET['counterparty_id']) ] );
+if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+        $contract_number = $row2['counterparty_id'];
+        $enterprise_manager_a = explode(" ", $row2['enterprise_manager']);
+        $enterprise_manager3 = $enterprise_manager_a[0]. ' ' .mb_substr($enterprise_manager_a[1], 0, 1). '.' .mb_substr($enterprise_manager_a[2], 0, 1). '.';
+        $longtime_contract_c = $row2['longtime_contract'];
+        $data =  [ 'order_num'=>0, 'name'=>$row2['name'], 'shortname'=>$row2['shortname'], 'counterparty_id'=>$row2['counterparty_id'],   'inn'=>$row2['inn'], 'kpp'=>$row2['kpp'], 'ogrn'=>$row2['ogrn'], 'addres1'=>$row2['addres1'],  'addres2'=>$row2['addres2'], 'phone'=>$row2['phone'],
+      'position_head'=>$row2['position_head'], 'enterprise_manager'=>$row2['enterprise_manager'], 'position_head2'=>$row2['position_head2'], 'enterprise_manager2'=>$row2['enterprise_manager2'], 'enterprise_manager3'=>$enterprise_manager3, 
+      'bank'=>$row2['bank'], 'checking_account'=>$row2['checking_account'], 'correspondent_account'=>$row2['correspondent_account'], 'bik'=>$row2['bik'],
+      'date_order'=>'', 'number'=>'', 'date_begin'=>'', 'date_end'=>'', 'date_protocol'=>'', 'date_completed'=>'',
+      'price_sum'=>$price_sum,  'price_sum_str'=>$price_sum_str, 'contract_number'=>'', 'date_order_finish'=>'', 'longtime_contract'=>$row2['longtime_contract'], 'payer_id'=>$row2['payer_id'] ];
+}
+
+$smarty->assign('order_data', $data);
+//print_r($data);
+
+$contract_number_s = '';
+$date_contract = '';
+$contract_order_id = 0;
+$longtime_contract0 = 0; 
+//$stmt = $dbh->prepare("SELECT  `prefix`, `name`, `longtime_contract` FROM `a_contract` WHERE `contract_id`=?  ");
+$stmt = $dbh->prepare("SELECT CURDATE() as `current_date`, `prefix`, `name`, `longtime_contract` FROM `a_contract` WHERE `contract_id`=?  ");
+$stmt->execute( [ intval($_GET['contract_id']) ] );
+if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    //$current_date = $row['current_date'];
+    if( intval($row['longtime_contract']) >0 && $longtime_contract_c == 'true' && intval($_GET['counterparty_id'])>1) {
+            $stmt3 = $dbh->prepare("SELECT `legacy`, `date_contract`, `order_id`   FROM `a_counterparty_contract`  WHERE `contract_id`=?  AND `addition`=-1  AND  `counterparty_id`=? ");
+            $stmt3->execute( [ intval($_GET['contract_id']), intval($_GET['counterparty_id']) ] );
+            if($row3 = $stmt3->fetch(PDO::FETCH_ASSOC)) {
+                if($row3['legacy'] != ''){
+                    $contract_number_s =  $row3['legacy'];
+                }
+                $date_contract =  $row3['date_contract'];  
+                $contract_order_id =  $row3['order_id'];  
+            }
+            if( $contract_number_s == '') {
+                    $contract_number_s =   $row['prefix'] . intval($_GET['counterparty_id']);
+            }
+            $longtime_contract0 = intval($row['longtime_contract']);
+    }
+    else {
+        $contract_number_s =   $row['prefix']  . intval($_GET['id']);
+        $date_contract =  date("Y-m-d", time() );
+    }
+}
+else {
+    $contract_number_s =  'СЭД-' . intval($_GET['id']);
+    $date_contract =  date("Y-m-d", time() );
+}
+//echo $contract_number_s;
+
+if( $date_contract == '' && $_GET['date']!='' )
+            $date_contract = strip_tags($_GET['date']);
+
+if( ($date_contract == '' || $date_contract == '0000-00-00' || $date_contract == '1000-01-01') && $order_id>0 ) {
+    $stmt2 = $dbh->prepare("SELECT  `date_order`    FROM `a_order`  WHERE `order_id`? ");
+    $stmt2->execute( [ intval($order_id) ] );
+    if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+        $date_contract = $row2->date_order;
+    }
+}            
+//if( $date_contract == '' || $date_contract == '0000-00-00' || $date_contract == '1000-01-01' )
+//            $date_contract = $current_date;
+
+
+$date_contract_finish = explode('-', $date_contract)[0] . '-12-31';
+$data3 =  ['contract_number'=>$contract_number_s, 'date_contract'=>$date_contract,  'date_contract_finish'=>$date_contract_finish ];
+$smarty->assign('contract_data', $data3);
+}
+
+
+$template = '0';
+if(intval($_GET['contract_id']) > 0) {
+    $addition = 0;
+    $filename = 'dogovor';
+    if(intval($_GET['addition']) > 0) {
+        $addition = intval($_GET['addition']);
+        $filename = 'Приложение';
+    }
+
+    $stmt2 = $dbh->prepare("SELECT  `type`, `name`, `longtime_contract`, `prefix`, `template_id`, `template1_id`, `template2_id`, `template3_id` FROM `a_contract`   WHERE `contract_id`=? ");
+    $stmt2->execute( [intval($_GET['contract_id']) ] );
+    if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+            if( $addition == 1 )
+                $template = $row2['template1_id'];
+            else if( $addition == 2 )
+                $template = $row2['template2_id'];
+            else if( $addition == 3 )
+                $template = $row2['template3_id'];
+            else
+                $template = $row2['template_id'];
+            
+            if($row2['type']<10)    
+                $filename = 'Dogovor' .  $contract_number_s .'-'. $row2['name'];
+            else
+                $filename =  $contract_number_s;
+    }
+}
+
+else {
+      $data =  [ 'order_num'=>0, 'name'=>'Организация', 'shortname'=>'Организация', 'counterparty_id'=>0,   'inn'=>'ИНН', 'kpp'=>'КПП', 'ogrn'=>'ОГРН', 'addres1'=>'Адрес 1',  'addres2'=>'Адрес 2', 'phone'=>'телефон',
+      'position_head'=>'должность', 'enterprise_manager'=>'Руководитель', 'position_head2'=>'должность', 'enterprise_manager2'=>'Руководитель', 'enterprise_manager3'=>'Руководитель', 
+      'bank'=>'Банк', 'checking_account'=>'счет', 'correspondent_account'=>'кор. счет', 'bik'=>'БИК',
+      'date_order'=>'дд.мм.гггг', 'number'=>'1', 'date_begin'=>'дд.мм.гггг', 'date_end'=>'дд.мм.гггг', 'date_protocol'=>'дд.мм.гггг', 'date_completed'=>'дд.мм.гггг',
+      'price_sum'=>0,  'price_sum_str'=>'ноль рублей', 'contract_number'=>'1', 'date_order_finish'=>'дд.мм.гггг', 'longtime_contract'=>1, 'payer_id'=>0 ];
+      $smarty->assign('order_data', $data);
+
+      //$data3 =  ['contract_number'=>'1', 'date_contract'=>'дд.мм.гггг',  'date_contract_finish'=>'дд.мм.гггг' ];
+      //$smarty->assign('contract_data', $data3);
+
+      $template = intval($_GET['template']);
+      $filename = 'Dogovor-'. $template;
+}
+
+//print_r($data3);
+if($date_contract=="") { 
+    $date_contract=  date("Y-m-d", time() );
+}
+$stmt2 = $dbh->prepare("SELECT *  FROM `a_self`  WHERE `edition`<=?  ORDER BY `edition` DESC  LIMIT 1  ");
+$stmt2->execute( [$date_contract] );
+if($row2 = $stmt2->fetch(PDO::FETCH_ASSOC)) {  
+
+    $enterprise_manager_a = explode(" ", $row2['enterprise_manager']);
+    $enterprise_manager3 = $enterprise_manager_a[0]. ' ' .mb_substr($enterprise_manager_a[1], 0, 1). '.' .mb_substr($enterprise_manager_a[2], 0, 1). '.';
+
+    $self_data =  [  'name'=>$row2['name'], 'shortname'=>$row2['shortname'],    'inn'=>$row2['inn'], 'kpp'=>$row2['kpp'], 'ogrn'=>$row2['ogrn'], 'addres1'=>$row2['addres1'],  'addres2'=>$row2['addres2'], 'phone'=>$row2['phone'],
+      'position_head'=>$row2['position_head'], 'enterprise_manager'=>$row2['enterprise_manager'], 'position_head2'=>$row2['position_head2'], 'enterprise_manager2'=>$row2['enterprise_manager2'], 'enterprise_manager3'=>$enterprise_manager3,  'enterprise_manager_signs'=>$row2['enterprise_manager_signs'], 
+      'bank'=>$row2['bank'], 'checking_account'=>$row2['checking_account'], 'correspondent_account'=>$row2['correspondent_account'], 'bik'=>$row2['bik'], 'license'=>$row2['license'], 'accreditation'=>$row2['accreditation'], 'city'=>$row2['city'] ];
+
+    //$data2 =  ['enterprise_manager'=>$row['enterprise_manager'],  'enterprise_manager2'=>$row['enterprise_manager2'], 'enterprise_manager3'=>$enterprise_manager3, 'enterprise_manager_signs'=>$row['enterprise_manager_signs']  ];
+}
+$smarty->assign('self_data', $self_data);
+//print_r($self_data);
+
+
+if(intval($_GET['counterparty_id']) == 1) {
+    $stmt = $dbh->prepare("SELECT DISTINCT `lastname`, `firstname`, `middlename`, `date_of_birth`, `snils`, `address`, `phone`,  `a_job_title`.`name` as `job_title`   FROM `a_order_users` LEFT JOIN `a_users` USING(`user_id`)  LEFT JOIN `a_job_title` USING(`job_title_id`)   WHERE `order_id`=? ".$lock_str." ORDER BY `lastname`,`firstname` ");
+    $stmt->execute( [$order_id ] );
+    if($row = $stmt->fetch(PDO::FETCH_ASSOC)) {  
+        $fullname3 = $row['lastname']. ' ' .mb_substr($row['firstname'], 0, 1). '.' .mb_substr($row['middlename'], 0, 1). '.';
+        $customer = ['lastname'=>$row['lastname'], 'firstname'=>$row['firstname'], 'middlename'=>$row['middlename'], 'job_title'=>$row['job_title'], 'date_of_birth'=>$row['date_of_birth'], 'snils'=>$row['snils'], 'address'=>$row['address'], 'phone'=>$row['phone'], 'fullname3'=>$fullname3 ];
+    }
+}
+else {
+   $customer =  [ "lastname" => "",  "firstname" => "",  "middlename" => "" ,  "job_title" => "",  "date_of_birth" => "",  "snils" => "", "address" => "",  "phone" =>"" ];
+}
+$smarty->assign('customer', $customer);
+//print_r($customer);
+
+$smarty->assign('users', $users);
+
+
+
+if(isset($_GET['print_v']))
+    $smarty->assign('print_v', $_GET['print_v']);
+else
+    $smarty->assign('print_v', 'false');
+
+
+
+$template_file = '';
+$footer_html_str =
+$report_file = '';
+$stmt2 = $dbh->prepare('SELECT  `name`, `file`, `footer_file`,  `num_of_page` FROM  `a_template`  WHERE `template_id`=? ');
+$stmt2->execute([ $template ]);
+if($row2 = $stmt2->fetch(PDO::FETCH_OBJ)) {
+    $num_of_page = $row2->num_of_page;
+    $template_name = $row2->name;
+    $template_file = $row2->file;
+    $template_footer_file = $row2->footer_file;
+}
+
+
+$html_str = $smarty->fetch('../documents/'.$template_file);
+//echo $html_str;
+if($template_footer_file != '')
+     $footer_html_str = $smarty->fetch('../documents/'.$template_footer_file);
+
+$paper = 'portrait';
+if($_GET['paper'] == 'l')
+       $paper = 'landscape';
+
+require_once '../dompdf/autoload.inc.php';
+use Dompdf\Dompdf;
+
+
+if($_GET['print_v'] && $_GET['print_v']=='office')
+{
+//header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml');
+header('Content-Type: application/vnd.oasis.opendocument.text');
+header('Content-Disposition: attachment; filename="'.rus2translit($_GET['file']).'.odt"');
+header('Cache-Control: max-age=0');
+// If you're serving to IE 9, then the following may be needed
+header('Cache-Control: max-age=1');
+
+// If you're serving to IE over SSL, then the following may be needed
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+header('Pragma: public'); // HTTP/1.0
+
+/*$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+$objWriter->save('php://output');*/
+echo $html_str;
+}
+
+
+else if($_GET['print_v'] && $_GET['print_v']=='edit')
+{
+header('Cache-Control: max-age=0');
+// If you're serving to IE 9, then the following may be needed
+header('Cache-Control: max-age=1');
+// If you're serving to IE over SSL, then the following may be needed
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+header('Pragma: public'); // HTTP/1.0
+
+$header = file_get_contents('documents-editor_contract.header.html');
+$bottom = file_get_contents('documents-editor.bottom.html');
+echo $header;
+echo $html_str;
+echo $bottom;
+}
+else if($_GET['print_v'] && $_GET['print_v']=='layout')
+{
+header('Cache-Control: max-age=0');
+// If you're serving to IE 9, then the following may be needed
+header('Cache-Control: max-age=1');
+
+// If you're serving to IE over SSL, then the following may be needed
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+header('Pragma: public'); // HTTP/1.0
+
+$header = file_get_contents('documents-layout.header.html');
+$header = str_replace( "{Id}", $groupid, $header); 
+$bottom = file_get_contents('documents-layout.bottom.html');
+echo $header;
+echo $html_str;
+echo $bottom;
+}
+
+
+else {
+
+	$dompdf = new Dompdf();
+	$dompdf->setPaper('A4', $paper);
+	$dompdf->set_option('defaultFont', 'DejaVu Sans');
+	$dompdf->set_option('isRemoteEnabled', true);
+
+
+	$dompdf->loadHtml($html_str . $footer_html_str, 'UTF-8');
+	$dompdf->render();
+	//$dompdf->stream();
+    $dompdf->stream(str_replace('JUL', '', rus2translit($filename)) . ".pdf", array("Attachment" => 0));
+}
+
+
+
+function mb_ucfirst($arg_w, $charset = "utf-8") {
+    $word = htmlspecialchars($arg_w, ENT_QUOTES);
+	return mb_strtoupper(mb_substr($word, 0, 1, $charset), $charset).mb_substr($word, 1, mb_strlen($word, $charset)-1, $charset);
+}
+
+
+ /* Возвращает сумму прописью */
+function num2str($num) {
+	$nul='ноль';
+	$ten=array(
+		array('','один','два','три','четыре','пять','шесть','семь', 'восемь','девять'),
+		array('','одна','две','три','четыре','пять','шесть','семь', 'восемь','девять'),
+	);
+	$a20=array('десять','одиннадцать','двенадцать','тринадцать','четырнадцать' ,'пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать');
+	$tens=array(2=>'двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят' ,'восемьдесят','девяносто');
+	$hundred=array('','сто','двести','триста','четыреста','пятьсот','шестьсот', 'семьсот','восемьсот','девятьсот');
+	$unit=array( // Units
+		array('копейка' ,'копейки' ,'копеек',	 1),
+		array('рубль'   ,'рубля'   ,'рублей'    ,0),
+		array('тысяча'  ,'тысячи'  ,'тысяч'     ,1),
+		array('миллион' ,'миллиона','миллионов' ,0),
+		array('миллиард','милиарда','миллиардов',0),
+	);
+	//
+	list($rub,$kop) = explode('.',sprintf("%015.2f", floatval($num)));
+	$out = array();
+	if (intval($rub)>0) {
+		foreach(str_split($rub,3) as $uk=>$v) { // by 3 symbols
+			if (!intval($v)) continue;
+			$uk = sizeof($unit)-$uk-1; // unit key
+			$gender = $unit[$uk][3];
+			list($i1,$i2,$i3) = array_map('intval',str_split($v,1));
+			// mega-logic
+			$out[] = $hundred[$i1]; # 1xx-9xx
+			if ($i2>1) $out[]= $tens[$i2].' '.$ten[$gender][$i3]; # 20-99
+			else $out[]= $i2>0 ? $a20[$i3] : $ten[$gender][$i3]; # 10-19 | 1-9
+			// units without rub & kop
+			if ($uk>1) $out[]= morph($v,$unit[$uk][0],$unit[$uk][1],$unit[$uk][2]);
+		} //foreach
+	}
+	else $out[] = $nul;
+	$out[] = morph(intval($rub), $unit[1][0],$unit[1][1],$unit[1][2]); // rub
+	$out[] = $kop.' '.morph($kop,$unit[0][0],$unit[0][1],$unit[0][2]); // kop
+	return trim(preg_replace('/ {2,}/', ' ', join(' ',$out)));
+}
+
+function morph($n, $f1, $f2, $f5) {
+	$n = abs(intval($n)) % 100;
+	if ($n>10 && $n<20) return $f5;
+	$n = $n % 10;
+	if ($n>1 && $n<5) return $f2;
+	if ($n==1) return $f1;
+	return $f5;
+}
+
+
+function rus2translit($str) {
+        mb_regex_encoding('UTF-8');
+
+        $str2 = str_replace(
+            array(" ", "(", ")", ",", ":", ";", "+", "/", "\\", "'",  "\"", "-", "`"),
+            array("_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"),
+            //array(" ", "(", ")", ".", ",", ":", ";", "+", "/", "\\", "'",  "\"", "-", "`"),
+            //array("_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"),
+            $str
+        );
+        
+        $str3 = str_replace(
+            array("а", "б", "в", "г", "д", "е", "з", "и", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "ц", "ъ", "ы", "ь"),
+            array("a", "b", "v", "g", "d", "e", "z", "i", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "с", "", "y", ""),
+            $str2
+        );
+               
+        $str4 = str_replace(
+            array("А", "Б", "В", "Г", "Д", "Е", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Ц", "Ъ", "Ы", "Ь"),
+            array("A", "B", "V", "G", "D", "E", "Z", "I", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "F", "С", "", "Y", ""),
+            $str3
+        );
+        
+        $str5 = str_replace(
+            array("э", "х", "й", "ё", "ж", "ч", "ш", "щ", "ю", "я", "Э", "Х", "Й", "Ё", "Ж", "Ч", "Ш", "Щ", "Ю", "Я"),
+            array("eh", "kh", "jj", "jo", "zh", "ch", "sh", "shh", "ju", "ja", "EH", "KH", "JJ", "JO", "ZH", "CH", "SH", "SHH", "JU", "JA"),
+            $str4
+        );
+   
+        return $str5;
+}
+
+
+?>
