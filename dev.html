@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+  <title>Sed 2.0 — локальная разработка (без PHP)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/css/bootstrap-lumen.min.css" rel="stylesheet">
+  <script src="/css/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/home.css">
+  <link rel="stylesheet" href="/css/polina.css">
+
+  <script src="/js/vue.global.min.js"></script>
+  <script src="/js/vue-router.global.min.js"></script>
+  <script src="/js/axios.min.js"></script>
+  <link rel="stylesheet" href="/js/jodit.min.css">
+  <script src="/js/jodit.min.js"></script>
+  <style type="text/css">.hidden { display: none; }</style>
+</head>
+<body>
+
+<div id="app" class="container-lg" style="margin-top: 5px;">
+  <div class="text-center" style="margin-top: 2px;">
+    <router-view></router-view>
+  </div>
+</div>
+
+<!-- Глобалы (в проде подставляет index.php) -->
+<script>
+  const AuthTitle = 'Sed 2.0';
+  const BrowserTitle = 'Sed 2.0 (dev)';
+  const ShortTitle = 'Sed 2.0';
+  const JsonApiURL = '/';
+  const MoodleApiURL = '/';
+  const LoginLogoImg = '/uploads/images/login-logo.png';
+  const HoursPerDay = 8;
+  const IS_1C = 0;
+  const IS_LMS = 1;
+  const IS_DEVELOPMENT = 1;
+  const IS_DEPRECATED = 0;
+  const IS_SECR = 0;
+  const IS_LITTLE = 0;
+
+  var session_t = { login: 'dev', sessionId: '1', role: 'admin' };
+
+  var session_role_privileges = {
+    accountedit: 2, self_list: 2, rolelist: 2, accountslist: 2,
+    set_template_contract: 2, validity_period_counterparty_list: 2,
+    course_category_list: 2, courses_list: 2, teachers_commission_list: 2,
+    teacher_list: 2, template_list: 2, counterparty_list: 2, students_list: 2,
+    orders_analytics: 2, orders_table: 2, stat_report: 2, groups_list: 2,
+    lstream_list: 2, calendar: 2, eisot_import: 2, orders_list: 2,
+    orders_list_buh: 2, upload_flag: 2,
+  };
+
+  var session_var = {
+    order_page: 1, order_ordersearch: '', order_invoicesearch: '', order_namesearch: '',
+    order_counterparty_с_id: '', order_counterparty_с: '', order_datesearch: '',
+    order_datesearch2: '', order_status: '', order_cancelled: 1, order_sort: 0, order_posTop: 0,
+    counterparty_page: 1, counterparty_namesearch: '', counterparty_type: -1,
+    student_page: 1, student_lastnamesearch: '', student_firstnamesearch: '', student_middlenamesearch: '',
+    teacher_page: 1, teacher_lastnamesearch: '', teacher_firstnamesearch: '', teacher_middlenamesearch: '',
+    template_page: 1, template_type_id: '', courses_performer_id: '', courses_course_category: '',
+    courses_search: '', group_datesearch: '', group_datesearch2: '', group_namesearch: '',
+    group_counterpartysearch: 0, lstream_datesearch: '', lstream_datesearch2: '',
+    lstream_namesearch: '', lstream_lstreamsearch: '', lstream_counterpartysearch: 0,
+    student_report_user_id: 0, student_report_counterparty_id: 0,
+  };
+
+  var session_navigation = { lstream_lstream_id: 0 };
+</script>
+
+<!-- Моки API (перехват axios.post) -->
+<script src="/dev/dev-mocks.js"></script>
+
+<!-- UI-компоненты (см. components/README.md) -->
+<script src="/components/layout/PageShell.js"></script>
+<script src="/components/layout/PageFooterClose.js"></script>
+<script src="/components/ui/Pagination.js"></script>
+<script src="/components/ui/SearchToolbar.js"></script>
+<script src="/components/ui/FioSearch.js"></script>
+<script src="/components/ui/CreateEntityButton.js"></script>
+<script src="/components/ui/RowActions.js"></script>
+<script src="/components/ui/DataTable.js"></script>
+<script src="/components/ui/BootstrapModal.js"></script>
+<script src="/components/ui/SplitButtonDropdown.js"></script>
+<script src="/components/auth/PrivilegeGuard.js"></script>
+<script src="/components/filters/DateRangeFilter.js"></script>
+<script src="/components/filters/YearMonthTabs.js"></script>
+<script src="/components/filters/StatusSelect.js"></script>
+<script src="/components/filters/CounterpartyPicker.js"></script>
+<script src="/components/filters/CategorySelect.js"></script>
+<script src="/components/filters/PerformerSelect.js"></script>
+<script src="/components/filters/ArchiveToggle.js"></script>
+<script src="/components/forms/FormFieldHelp.js"></script>
+<script src="/components/forms/SnilsField.js"></script>
+<script src="/components/documents/DocumentExportLinks.js"></script>
+<script src="/components/documents/FileUploadModal.js"></script>
+<script src="/components/orders/OrderStatusActions.js"></script>
+<script src="/components/orders/OrderWarningIcons.js"></script>
+<script src="/components/orders/ContractDocumentsModal.js"></script>
+<script src="/components/orders/StudentsCountBadge.js"></script>
+<script src="/components/orders/OrderEntityLinks.js"></script>
+<script src="/components/register.js"></script>
+
+<!-- Vue-страницы -->
+<script src="/pages/login.vue.js"></script>
+<script src="/pages/logout.vue.js"></script>
+<script src="/pages/home.vue.js"></script>
+<script src="/pages/courses_list.vue.js"></script>
+<script src="/pages/course_edit.vue.js"></script>
+<script src="/pages/course_report.vue.js"></script>
+<script src="/pages/course_category_list.vue.js"></script>
+<script src="/pages/course_category_edit.vue.js"></script>
+<script src="/pages/course_calendar_edit.vue.js"></script>
+<script src="/pages/teachers_commission_list.vue.js"></script>
+<script src="/pages/teachers_commission_edit.vue.js"></script>
+<script src="/pages/counterparty_list.vue.js"></script>
+<script src="/pages/counterparty_base_edit.vue.js"></script>
+<script src="/pages/self_list.vue.js"></script>
+<script src="/pages/self_edit.vue.js"></script>
+<script src="/pages/job_title_list.vue.js"></script>
+<script src="/pages/job_title_edit.vue.js"></script>
+<script src="/pages/students_list.vue.js"></script>
+<script src="/pages/students_list_home.vue.js"></script>
+<script src="/pages/student_edit.vue.js"></script>
+<script src="/pages/student_report.vue.js"></script>
+<script src="/pages/students_import.vue.js"></script>
+<script src="/pages/teachers_list.vue.js"></script>
+<script src="/pages/teacher_edit.vue.js"></script>
+<script src="/pages/teacher_course.vue.js"></script>
+<script src="/pages/orders_list.vue.js"></script>
+<script src="/pages/orders_list_redirect.vue.js"></script>
+<script src="/pages/order_edit.vue.js"></script>
+<script src="/pages/order_items.vue.js"></script>
+<script src="/pages/order_discounts.vue.js"></script>
+<script src="/pages/order_student.vue.js"></script>
+<script src="/pages/groups_list.vue.js"></script>
+<script src="/pages/groups_list_redirect.vue.js"></script>
+<script src="/pages/group_scheduler.vue.js"></script>
+<script src="/pages/group_student.vue.js"></script>
+<script src="/pages/group_report.vue.js"></script>
+<script src="/pages/lstream_list.vue.js"></script>
+<script src="/pages/lstream_list_redirect.vue.js"></script>
+<script src="/pages/lstream_edit.vue.js"></script>
+<script src="/pages/lstream_items.vue.js"></script>
+<script src="/pages/lstream_teacher.vue.js"></script>
+<script src="/pages/reports.vue.js"></script>
+<script src="/pages/accounts_list.vue.js"></script>
+<script src="/pages/role_list.vue.js"></script>
+<script src="/pages/account_edit.vue.js"></script>
+<script src="/pages/role_edit.vue.js"></script>
+<script src="/pages/template_list.vue.js"></script>
+<script src="/pages/template1_edit.vue.js"></script>
+<script src="/pages/template2_edit.vue.js"></script>
+<script src="/pages/plan_edit.vue.js"></script>
+<script src="/pages/set_template_contract.vue.js"></script>
+<script src="/pages/orders_analytics.vue.js"></script>
+<script src="/pages/orders_table.vue.js"></script>
+<script src="/pages/stat_report.vue.js"></script>
+<script src="/pages/eisot_import.vue.js"></script>
+<script src="/pages/calendar.vue.js"></script>
+<script src="/pages/validity_period_vue.js"></script>
+<script src="/pages/validity_period_counterparty_list_vue.js"></script>
+<script src="/pages/import.vue.js"></script>
+<script src="/pages/about.vue.js"></script>
+<script src="/pages/contacts.vue.js"></script>
+<script src="/pages/docs.vue.js"></script>
+<script src="/pages/wordvariables.vue.js"></script>
+
+<!-- Единый список роутов (общий с index.php) -->
+<script src="/routes.js"></script>
+
+<script src="/js/chart.js"></script>
+<script>
+  function displayChart(type, ordersCount, searchDate) {
+    if (!ordersCount) return;
+    const ctx = document.getElementById('myChart');
+    if (!ctx) return;
+    let myChart = Chart.getChart('myChart');
+    if (myChart) myChart.destroy();
+    new Chart(ctx, {
+      type: type || 'bar',
+      data: {
+        labels: ordersCount.map((row) => row.status),
+        datasets: [{ label: searchDate, data: ordersCount.map((row) => row.count), borderWidth: 1 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        barThickness: 30,
+        scales: { y: { beginAtZero: true } },
+      },
+    });
+  }
+</script>
+
+<!-- Роутер, navigation, mount -->
+<script src="/dev/dev-app.js"></script>
+
+</body>
+</html>
